@@ -103,7 +103,7 @@ class _ScanScreenState extends State<ScanScreen> {
         child: const Icon(Icons.stop),
       );
     } else {
-      return FloatingActionButton(onPressed: onScanPressed, child: const Text("SCANnn"));
+      return FloatingActionButton(onPressed: onScanPressed, child: const Text("SCAN"));
     }
   }
 

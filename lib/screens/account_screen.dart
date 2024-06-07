@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 
-class AccountPage extends StatefulWidget {
-  const AccountPage({super.key});
+class AccountScreen extends StatefulWidget {
+  const AccountScreen({super.key});
 
   @override
-  State<AccountPage> createState() => _AccountPageState();
+  State<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountPageState extends State<AccountPage> {
+class _AccountScreenState extends State<AccountScreen> {
   final _usernameController = TextEditingController();
   final _websiteController = TextEditingController();
 
@@ -23,8 +23,7 @@ class _AccountPageState extends State<AccountPage> {
 
     try {
       final userId = supabase.auth.currentUser!.id;
-      final data =
-          await supabase.from('profiles').select().eq('id', userId).single();
+      final data = await supabase.from('profiles').select().eq('id', userId).single();
       _usernameController.text = (data['username'] ?? '') as String;
       _websiteController.text = (data['website'] ?? '') as String;
     } on PostgrestException catch (error) {
@@ -67,22 +66,29 @@ class _AccountPageState extends State<AccountPage> {
     try {
       await supabase.from('profiles').upsert(updates);
       if (mounted) {
-        const SnackBar(
-          content: Text('Successfully updated profile!'),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Perfil actualizado con éxito'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } on PostgrestException catch (error) {
       if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } catch (error) {
       if (mounted) {
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ocurrió un error inesperado'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

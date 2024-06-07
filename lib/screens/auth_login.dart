@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:eaquasaver_flutter_app/main.dart';
-//import 'package:flutter/foundation.dart';
+import '../main.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-//import 'package:supabase_quickstart/main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,9 +29,9 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-         
-     await supabase.auth.signInWithPassword(email: _emailController.text.trim(), password: _passwordController.text);
-         
+
+      await supabase.auth.signInWithPassword(email: _emailController.text.trim(), password: _passwordController.text);
+
       /*if (response.error != null) {
         // Handle login error
         throw AuthException('Login error: ${response.error!.message}');
@@ -62,12 +60,6 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
-      if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
-      }
     } catch (error) {
       if (mounted) {
         SnackBar(
