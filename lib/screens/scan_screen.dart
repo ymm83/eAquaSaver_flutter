@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:eaquasaver_flutter_app/utils/extra.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -7,7 +8,6 @@ import 'device_screen.dart';
 import '../utils/snackbar.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
-import '../utils/extra.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -52,6 +52,7 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Future onScanPressed() async {
+    //print('sssssssssss');
     try {
       _systemDevices = await FlutterBluePlus.systemDevices;
     } catch (e) {
@@ -102,7 +103,7 @@ class _ScanScreenState extends State<ScanScreen> {
         child: const Icon(Icons.stop),
       );
     } else {
-      return FloatingActionButton(onPressed: onScanPressed, child: const Text("SCAN"));
+      return FloatingActionButton(onPressed: onScanPressed, child: const Text("SCANnn"));
     }
   }
 
