@@ -22,8 +22,8 @@ class _AccountScreenState extends State<AccountScreen> {
     });
 
     try {
-      final userId = supabase.auth.currentUser!.id;
-      final data = await supabase.from('profiles').select().eq('id', userId).single();
+      final userId = supabPub.auth.currentUser!.id;
+      final data = await supabPub.from('profiles').select().eq('id', userId).single();
       _usernameController.text = (data['username'] ?? '') as String;
       _websiteController.text = (data['website'] ?? '') as String;
     } on PostgrestException catch (error) {
@@ -56,7 +56,7 @@ class _AccountScreenState extends State<AccountScreen> {
     });
     final userName = _usernameController.text.trim();
     final website = _websiteController.text.trim();
-    final user = supabase.auth.currentUser;
+    final user = supabPub.auth.currentUser;
     final updates = {
       'id': user!.id,
       'username': userName,
