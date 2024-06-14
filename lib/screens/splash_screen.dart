@@ -1,4 +1,3 @@
-import 'package:eaquasaver_flutter_app/utils/supabase_client.dart';
 import 'package:flutter/material.dart';
 import '../main.dart';
 
@@ -22,7 +21,7 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
-    final session = supabasePub.auth.currentSession;
+    final session = supabase.auth.currentSession;
     if (session != null) {
       Navigator.of(context).pushReplacementNamed('/account');
     } else {

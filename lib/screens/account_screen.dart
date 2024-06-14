@@ -22,8 +22,8 @@ class _AccountScreenState extends State<AccountScreen> {
     });
 
     try {
-      final userId = supabPub.auth.currentUser!.id;
-      final data = await supabPub.from('profiles').select().eq('id', userId).single();
+      final userId = supabase.auth.currentUser!.id;
+      final data = await supabase.from('profiles').select().eq('id', userId).single();
       _usernameController.text = (data['username'] ?? '') as String;
       _websiteController.text = (data['website'] ?? '') as String;
     } on PostgrestException catch (error) {
@@ -51,12 +51,16 @@ class _AccountScreenState extends State<AccountScreen> {
 
   /// Called when user taps `Update` button
   Future<void> _updateProfile() async {
+    final data =
+        await supabaseEAS.from('user_profile').select('firstname').eq('id', '195004be-ada2-4140-9aad-c3ca054eeeef');
+    print('dataaaaaaaaaaaaa:');
+    print(data);
     setState(() {
       _loading = true;
     });
     final userName = _usernameController.text.trim();
     final website = _websiteController.text.trim();
-    final user = supabPub.auth.currentUser;
+    final user = supabase.auth.currentUser;
     final updates = {
       'id': user!.id,
       'username': userName,
