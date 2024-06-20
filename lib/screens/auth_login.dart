@@ -1,9 +1,16 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:show_hide_password/show_hide_password.dart';
+import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 
 import '../main.dart';
+//hcaptcha
+//sitekey 001ee992-3a50-4a5a-bf5e-9b66a4a414e4
+//secret ES_c6f0da2654da477ba197f8f9fea93592
+//cloudflare
+//sitekey 0x4AAAAAAAc73oNIZFZ3mrD9
+//secret 0x4AAAAAAAc73mmZlrIslaef9sNXfrm6mis
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +22,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _redirecting = false;
+  TextEditingController controller = TextEditingController();
+  //bool _password2Visible = true;
+  //bool _newpasswordVisible = true;
   late final TextEditingController _emailController = TextEditingController();
   late final StreamSubscription<AuthState> _authStateSubscription;
   late final TextEditingController _passwordController = TextEditingController();
@@ -28,6 +38,17 @@ class _LoginPageState extends State<LoginPage> {
   final String stepReset = 'Reset password';
 
   late String authStep; // register, recovery, confirm
+
+  final TurnstileController _controller = TurnstileController();
+  final TurnstileOptions _options = TurnstileOptions(
+    size: TurnstileSize.normal,
+    theme: TurnstileTheme.light,
+    refreshExpired: TurnstileRefreshExpired.manual,
+    language: 'en',
+    retryAutomatically: false,
+  );
+
+  String? _token;
 
   void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
     Color bgColor = Theme.of(context).colorScheme.primary;
@@ -45,6 +66,10 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /*class _toggleIcon extends Widget() {
+    return _showPassword ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off_outlined);
+  }*/
+
   Future<void> _signIn() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
       _showSnackBar(context, 'Email and password cannot be empty', 'primary');
@@ -55,7 +80,8 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      await supabase.auth.signInWithPassword(email: _emailController.text.trim(), password: _passwordController.text);
+      await supabase.auth.signInWithPassword(
+          email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'primary');
@@ -86,9 +112,21 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<bool> isEmailAvailable(String email) async {
+    try {
+      final response = await supabase.from('users').select('email').eq('email', email).single();
+      print(4444444444444444);
+      print(response);
+      // Si la consulta devuelve un resultado, el email ya está registrado
+      return response.isEmpty;
+    } catch (error) {
+      return false;
+    }
+  }
+
   Future<void> _signUpWithEmail() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
-      _showSnackBar(context, 'Email and password cannot be empty');
+      _showSnackBar(context, 'Email and password cannot be empty', 'error');
       return;
     }
     try {
@@ -96,14 +134,21 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      await supabase.auth.signUp(email: _emailController.text.trim(), password: _passwordController.text);
-
-      /*if (response.error != null) {
-        // Handle login error
-        throw AuthException('Login error: ${response.error!.message}');
+      /*if (isEmailAvailable(_emailController.text.trim())) {
+        //await supabase.auth.signUp(email: _emailController.text.trim(), password: _passwordController.text);
+      } else {
+        _showSnackBar(context, 'Email already register!', 'error');
+        return;
       }*/
+      print(4444444444444444);
+
+      final response =
+          await supabase.schema('auth').from('users').select('email').eq('email', _emailController.text).select();
+
+      print(response);
+
       if (mounted) {
-        _showSnackBar(context, 'Check your email for a login link!');
+        _showSnackBar(context, 'Check your email for a login link!', 'success');
         _emailController.clear();
         _passwordController.clear();
       }
@@ -121,7 +166,8 @@ class _LoginPageState extends State<LoginPage> {
       _showSnackBar(context, errorMessage, 'error');
     } catch (error) {
       if (mounted) {
-        _showSnackBar(context, 'Unexpected error occurred', 'error');
+        //_showSnackBar(context, 'Unexpected error occurred', 'error');
+        _showSnackBar(context, error.toString(), 'error');
       }
     } finally {
       if (mounted) {
@@ -147,6 +193,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         _showSnackBar(context, 'Check your email for reset code!', 'success');
         _newpasswordController.clear();
+        _tokenController.clear();
         setState(() {
           authStep = stepReset;
         });
@@ -170,10 +217,18 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _resetPassword() async {
     if (_tokenController.text.trim().isEmpty) {
       _showSnackBar(context, 'The token cannot be empty', 'error');
+      return;
+    }
+    if (_tokenController.text.length < 6) {
+      _showSnackBar(context, 'The token must be 6 digits long.', 'error');
+      return;
+    }
+    if (_newpasswordController.text.trim().length < 6) {
+      _showSnackBar(context, 'The password must be at least 6 characters', 'error');
+      return;
     }
     if (_newpasswordController.text.trim().isEmpty) {
-      _showSnackBar(context, 'The token cannot be empty', 'error');
-
+      _showSnackBar(context, 'The new password cannot be empty', 'error');
       return;
     }
     try {
@@ -190,6 +245,7 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.updateUser(
         UserAttributes(password: _newpasswordController.text.trim()),
       );
+      _showSnackBar(context, 'Reset password successful!', 'success');
       //await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
     } on AuthException catch (error) {
       _showSnackBar(context, error.message, 'error');
@@ -209,7 +265,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     setState(() {
-      authStep = stepReset;
+      super.initState();
+      //_showPassword = true;
+      //_password2Visible = true;
+      //_newpasswordVisible = true;
+
+      authStep = stepSignIn;
       _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
         if (_redirecting) return;
         final session = data.session;
@@ -218,13 +279,12 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.of(context).pushReplacementNamed('/main');
         }
       });
-      super.initState();
     });
   }
 
   @override
   void dispose() {
-    //_emailController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _password2Controller.dispose();
     _tokenController.dispose();
@@ -247,7 +307,6 @@ class _LoginPageState extends State<LoginPage> {
           TextFormField(
             enabled: authStep != stepReset,
             controller: _emailController,
-            //decoration: const InputDecoration(labelText: 'Email'),
             decoration: const InputDecoration(
               icon: Icon(Icons.email_outlined),
               //hintText: 'The email address?',
@@ -275,38 +334,44 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Offstage(
             offstage: authStep != stepSignUp && authStep != stepSignIn,
-            child: TextFormField(
+            child: ShowHidePasswordTextField(
               controller: _passwordController,
+              iconSize: 24,
+              visibleOffIcon: Icons.visibility_off_outlined,
+              visibleOnIcon: Icons.visibility_outlined,
+              hintText: '',
               decoration: const InputDecoration(
                 icon: Icon(Icons.lock_outline),
-                //hintText: 'The email address?',
                 labelText: 'password',
               ),
-              obscureText: true,
             ),
           ),
           Offstage(
             offstage: authStep != stepReset,
-            child: TextFormField(
+            child: ShowHidePasswordTextField(
               controller: _newpasswordController,
+              iconSize: 24,
+              visibleOffIcon: Icons.visibility_off_outlined,
+              visibleOnIcon: Icons.visibility_outlined,
+              hintText: '',
               decoration: const InputDecoration(
                 icon: Icon(Icons.lock_outline),
-                //hintText: 'The email address?',
                 labelText: 'new password',
               ),
-              obscureText: true,
             ),
           ),
           Offstage(
             offstage: authStep != stepSignUp,
-            child: TextFormField(
+            child: ShowHidePasswordTextField(
               controller: _password2Controller,
+              iconSize: 24,
+              visibleOffIcon: Icons.visibility_off_outlined,
+              visibleOnIcon: Icons.visibility_outlined,
+              hintText: '',
               decoration: const InputDecoration(
                 icon: Icon(Icons.lock_outline),
-                //hintText: 'The email address?',
                 labelText: 'repeat',
               ),
-              obscureText: true,
             ),
           ),
           const SizedBox(height: 18),
@@ -375,6 +440,60 @@ class _LoginPageState extends State<LoginPage> {
                   )),
             ),
           ),
+          /*ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: _token != null ? Text(_token!) : const CircularProgressIndicator(),
+          ),*/
+          const SizedBox(height: 48.0),
+          CloudFlareTurnstile(
+            siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
+            options: _options,
+            controller: _controller,
+            onTokenRecived: (token) {
+              setState(() {
+                _token = token;
+              });
+            },
+            onTokenExpired: () async {
+              await _controller.refreshToken();
+            },
+            onError: (error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(error)),
+              );
+            },
+          ),
+          /*const SizedBox(height: 48.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  setState(() {
+                    _token = null;
+                  });
+
+                  await _controller.refreshToken();
+                },
+                child: const Text('Refresh Token'),
+              ),
+              /*const SizedBox(width: 10.0),
+              ElevatedButton(
+                onPressed: () {
+                  print('token***************************************');
+                  print(_controller.token.toString());
+                  _controller.isExpired().then((isExpired) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Token is ${isExpired ? "Expired" : "Valid"}'),
+                      ),
+                    );
+                  });
+                },
+                child: const Text('Validate Token'),
+              ),*/
+            ],
+          ),*/
         ],
       ),
     );
