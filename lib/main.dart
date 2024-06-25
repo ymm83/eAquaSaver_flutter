@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
-import 'screens/splash_screen.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
 
@@ -41,10 +41,10 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: <String, WidgetBuilder>{
-        //'/': (_) => const SplashPage(),
+        '/': (_) => const SplashPage(),
+        '/main': (_) => const BLEMainScreen(),
         '/login': (_) => const LoginPage(),
         '/account': (_) => const AccountScreen(),
-        '/main': (_) => const BLEMainScreen()
       },
       onGenerateRoute: (RouteSettings settings) {
         print('Ruta llamado ${settings.name}');
@@ -52,8 +52,10 @@ class MyApp extends StatelessWidget {
           return MaterialPageRoute(builder: (_) => const LoginPage());
         }*/
       },
-      onUnknownRoute: (settings) => MaterialPageRoute(builder: (_) => const BLEMainScreen()),
-      home: const BLEMainScreen(),
+      onUnknownRoute: (settings) {
+        print('onUnknownRouteonUnknownRouteonUnknownRouteonUnknownRouteonUnknownRoute');
+        return MaterialPageRoute(builder: (context) => const BLEMainScreen());
+      },
     );
   }
 }

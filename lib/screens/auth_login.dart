@@ -134,8 +134,10 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      await supabase.auth
+      final resp = await supabase.auth
           .signUp(email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
+      print('RESPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
+      print(resp.user);
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'success');
