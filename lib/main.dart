@@ -41,11 +41,19 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: <String, WidgetBuilder>{
-        '/': (_) => const SplashPage(),
+        //'/': (_) => const SplashPage(),
         '/login': (_) => const LoginPage(),
         '/account': (_) => const AccountScreen(),
         '/main': (_) => const BLEMainScreen()
       },
+      onGenerateRoute: (RouteSettings settings) {
+        print('Ruta llamado ${settings.name}');
+        /*if (settings.name == '/login') {
+          return MaterialPageRoute(builder: (_) => const LoginPage());
+        }*/
+      },
+      onUnknownRoute: (settings) => MaterialPageRoute(builder: (_) => const BLEMainScreen()),
+      home: const BLEMainScreen(),
     );
   }
 }

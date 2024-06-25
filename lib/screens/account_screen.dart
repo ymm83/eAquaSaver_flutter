@@ -1,3 +1,4 @@
+import 'package:eaquasaver_flutter_app/screens/auth_login.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
@@ -10,8 +11,8 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  final _usernameController = TextEditingController();
-  final _websiteController = TextEditingController();
+  final _firstnameController = TextEditingController();
+  final _lastnameController = TextEditingController();
 
   var _loading = true;
 
@@ -23,9 +24,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
     try {
       final userId = supabase.auth.currentUser!.id;
-      final data = await supabase.from('profiles').select().eq('id', userId).single();
-      _usernameController.text = (data['username'] ?? '') as String;
-      _websiteController.text = (data['website'] ?? '') as String;
+      final data = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
+      _firstnameController.text = (data['firstname'] ?? '') as String;
+      _lastnameController.text = (data['lastname'] ?? '') as String;
     } on PostgrestException catch (error) {
       if (mounted) {
         SnackBar(
@@ -49,26 +50,28 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  final authSubscription = supabase.auth.onAuthStateChange.listen((data) {
+    final AuthChangeEvent event = data.event;
+    if (event == AuthChangeEvent.signedOut) {
+      //Navigator.of(context).pushReplacementNamed('/login');
+    }
+  });
+
   /// Called when user taps `Update` button
   Future<void> _updateProfile() async {
-    final data =
-        await supabaseEAS.from('user_profile').select('firstname').eq('id', '195004be-ada2-4140-9aad-c3ca054eeeef');
-    print('dataaaaaaaaaaaaa:');
-    print(data);
     setState(() {
       _loading = true;
     });
-    final userName = _usernameController.text.trim();
-    final website = _websiteController.text.trim();
-    final user = supabase.auth.currentUser;
+    final firtsname = _firstnameController.text.trim();
+    final lastname = _lastnameController.text.trim();
+    final userId = supabase.auth.currentUser!.id;
     final updates = {
-      'id': user!.id,
-      'username': userName,
-      'website': website,
+      'firstname': firtsname,
+      'lastname': lastname,
       'updated_at': DateTime.now().toIso8601String(),
     };
     try {
-      await supabase.from('profiles').upsert(updates);
+      await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -123,7 +126,10 @@ class _AccountScreenState extends State<AccountScreen> {
       }
     } finally {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        //Navigator.of(context).pushNamed('/login');
+        //Navigator.of(context).pop();
+        print(Navigator.of(context).toString());
+        //Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
       }
     }
   }
@@ -136,8 +142,8 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _websiteController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
     super.dispose();
   }
 
@@ -151,13 +157,13 @@ class _AccountScreenState extends State<AccountScreen> {
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
               children: [
                 TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'User Name'),
+                  controller: _firstnameController,
+                  decoration: const InputDecoration(labelText: 'First Name'),
                 ),
                 const SizedBox(height: 18),
                 TextFormField(
-                  controller: _websiteController,
-                  decoration: const InputDecoration(labelText: 'Website'),
+                  controller: _lastnameController,
+                  decoration: const InputDecoration(labelText: 'Last Name'),
                 ),
                 const SizedBox(height: 18),
                 ElevatedButton(
@@ -165,7 +171,26 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: Text(_loading ? 'Saving...' : 'Update'),
                 ),
                 const SizedBox(height: 18),
-                TextButton(onPressed: _signOut, child: const Text('Sign Out')),
+                TextButton(
+                    //onPressed: _signOut,
+                    onPressed: () {
+                      print('1111111111111111111111111111111111111111111111111111111111111');
+                      /*Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (contexto) => const LoginPage()),
+                        (Route ruta) => false,
+                      );*/
+                      //Navigator.pushNamed(context, '/login');
+                     // Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => const LoginPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                      print('222222222222222222222222222222222222222222222222222222222222222222');
+                    },
+                    child: const Text('Sign Out')),
               ],
             ),
     );

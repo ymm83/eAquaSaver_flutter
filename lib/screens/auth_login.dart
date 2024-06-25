@@ -84,7 +84,6 @@ class _LoginPageState extends State<LoginPage> {
           email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
 
       if (mounted) {
-        _showSnackBar(context, 'Check your email for a login link!', 'primary');
         _emailController.clear();
         _passwordController.clear();
       }
@@ -114,11 +113,12 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<bool> isEmailAvailable(String email) async {
     try {
-      final response = await supabase.from('users').select('email').eq('email', email).single();
-      print(4444444444444444);
+      final response = await supabase.rpc('is_email_exist', params: {'email': email});
+      //return response['rpc_is_email_exist'];
       print(response);
+      print(4444444444444444);
+      return response;
       // Si la consulta devuelve un resultado, el email ya está registrado
-      return response.isEmpty;
     } catch (error) {
       return false;
     }
@@ -134,18 +134,8 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      /*if (isEmailAvailable(_emailController.text.trim())) {
-        //await supabase.auth.signUp(email: _emailController.text.trim(), password: _passwordController.text);
-      } else {
-        _showSnackBar(context, 'Email already register!', 'error');
-        return;
-      }*/
-      print(4444444444444444);
-
-      final response =
-          await supabase.schema('auth').from('users').select('email').eq('email', _emailController.text).select();
-
-      print(response);
+      await supabase.auth
+          .signUp(email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'success');
@@ -188,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
       print(_emailController.text);
-      await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
+      await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _token);
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for reset code!', 'success');
@@ -237,10 +227,7 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       final recovery = await supabase.auth.verifyOTP(
-        email: _emailController.text,
-        token: _tokenController.text,
-        type: OtpType.recovery,
-      );
+          email: _emailController.text, token: _tokenController.text, type: OtpType.recovery, captchaToken: _token);
       print(recovery);
       await supabase.auth.updateUser(
         UserAttributes(password: _newpasswordController.text.trim()),
@@ -272,11 +259,17 @@ class _LoginPageState extends State<LoginPage> {
 
       authStep = stepSignIn;
       _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
-        if (_redirecting) return;
-        final session = data.session;
-        if (session != null) {
-          _redirecting = true;
+        final AuthChangeEvent event = data.event;
+
+        print('Eventtttttttttttttt is: $event');
+        // final session = data.session;
+        if (event == AuthChangeEvent.signedOut) {
+          //Navigator.of(context).pushReplacementNamed('/login');
+        }
+        if (event == AuthChangeEvent.signedIn) {
+          //if (session != null) {
           Navigator.of(context).pushReplacementNamed('/main');
+          //}
         }
       });
     });
@@ -290,6 +283,12 @@ class _LoginPageState extends State<LoginPage> {
     _tokenController.dispose();
     _authStateSubscription.cancel();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant LoginPage oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -374,6 +373,30 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+          const SizedBox(height: 20.0),
+          CloudFlareTurnstile(
+            siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
+            options: _options,
+            controller: _controller,
+            onTokenRecived: (token) {
+              setState(() {
+                _token = token;
+              });
+            },
+            onTokenExpired: () async {
+              await _controller.refreshToken();
+            },
+            onError: (error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(error)),
+              );
+            },
+          ),
+          TextButton(
+              onPressed: () async {
+                await _controller.refreshToken();
+              },
+              child: const Text('Reload captcha', style: TextStyle(color: Color(0xFFEE8418)))),
           const SizedBox(height: 18),
           ElevatedButton(
             onPressed: _isLoading
@@ -396,7 +419,6 @@ class _LoginPageState extends State<LoginPage> {
                 setState(() {
                   authStep = stepSignIn;
                 }),
-                print(authStep)
               },
               child: const Text('Sign in',
                   style: TextStyle(
@@ -413,7 +435,6 @@ class _LoginPageState extends State<LoginPage> {
                 setState(() {
                   authStep = stepSignUp;
                 }),
-                print(authStep)
               },
               child: const Text('Don\'t have an account? Sign up',
                   style: TextStyle(
@@ -427,10 +448,11 @@ class _LoginPageState extends State<LoginPage> {
             offstage: authStep == stepForgot,
             child: TextButton(
               onPressed: () => {
+                //final response = await supabase.rpc('is_email_exist', params: {'email': _emailController.text});
+                //print(response['is_email_exist']);
                 setState(() {
                   authStep = stepForgot;
-                }),
-                print(authStep),
+                })
               },
               child: const Text('Forgot you password?',
                   style: TextStyle(
@@ -440,60 +462,6 @@ class _LoginPageState extends State<LoginPage> {
                   )),
             ),
           ),
-          /*ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: _token != null ? Text(_token!) : const CircularProgressIndicator(),
-          ),*/
-          const SizedBox(height: 48.0),
-          CloudFlareTurnstile(
-            siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
-            options: _options,
-            controller: _controller,
-            onTokenRecived: (token) {
-              setState(() {
-                _token = token;
-              });
-            },
-            onTokenExpired: () async {
-              await _controller.refreshToken();
-            },
-            onError: (error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(error)),
-              );
-            },
-          ),
-          /*const SizedBox(height: 48.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  setState(() {
-                    _token = null;
-                  });
-
-                  await _controller.refreshToken();
-                },
-                child: const Text('Refresh Token'),
-              ),
-              /*const SizedBox(width: 10.0),
-              ElevatedButton(
-                onPressed: () {
-                  print('token***************************************');
-                  print(_controller.token.toString());
-                  _controller.isExpired().then((isExpired) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Token is ${isExpired ? "Expired" : "Valid"}'),
-                      ),
-                    );
-                  });
-                },
-                child: const Text('Validate Token'),
-              ),*/
-            ],
-          ),*/
         ],
       ),
     );
