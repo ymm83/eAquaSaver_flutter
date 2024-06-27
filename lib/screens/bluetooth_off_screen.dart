@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:geolocator/geolocator.dart';
+///import 'package:location/location.dart';
 
 import '../utils/snackbar.dart';
 
@@ -16,43 +16,45 @@ class BluetoothOffScreen extends StatefulWidget {
 }
 
 class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
- bool _isGpsEnabled = false;
-  bool _isPermissionGranted = false;
+  /*late Location location;
+  bool _serviceEnabled = false;
+  PermissionStatus? _permissionGranted;
+  String _locationStatus = "Unknown";
 
   @override
   void initState() {
     super.initState();
-    _checkGpsStatus();
+    location = Location();
+    _checkGps();
   }
 
-  Future<void> _checkGpsStatus() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    setState(() {
-      _isGpsEnabled = serviceEnabled;
-      _isPermissionGranted = permission == LocationPermission.always || permission == LocationPermission.whileInUse;
-    });
-
-    if (!serviceEnabled) {
-      _promptEnableGps();
-    } else if (!_isPermissionGranted) {
-      _requestLocationPermission();
+  Future<void> _checkGps() async {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        setState(() {
+          _locationStatus = "GPS Service Disabled";
+        });
+        return;
+      }
     }
-  }
 
-  void _promptEnableGps() async {
-    // Implementa aquí la lógica para mostrar un diálogo que pida al usuario activar el GPS
-    // En Flutter no hay una manera directa de activar el GPS, debes dirigir al usuario a la configuración
-    await Geolocator.openLocationSettings();
-  }
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        setState(() {
+          _locationStatus = "GPS Permission Denied";
+        });
+        return;
+      }
+    }
 
-  void _requestLocationPermission() async {
-    LocationPermission permission = await Geolocator.requestPermission();
     setState(() {
-      _isPermissionGranted = permission == LocationPermission.always || permission == LocationPermission.whileInUse;
+      _locationStatus = "GPS is Enabled and Permission Granted";
     });
-  }
+  }*/
 
   Widget buildBluetoothOffIcon(BuildContext context) {
     return const Icon(
@@ -101,7 +103,11 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
               buildBluetoothOffIcon(context),
               buildTitle(context),
               if (Platform.isAndroid) buildTurnOnButton(context),
-             Text(
+              /*Text(
+                _locationStatus,
+                style: const TextStyle(fontSize: 20),
+              ),*/
+              /*Text(
                 _isGpsEnabled ? 'GPS is enabled' : 'GPS is disabled',
               ),
               const SizedBox(height: 20),
@@ -112,7 +118,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
               ElevatedButton(
                 onPressed: _checkGpsStatus,
                 child: const Text('Check GPS Status'),
-              ),
+              ),*/
             ],
           ),
         ),

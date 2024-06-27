@@ -258,6 +258,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             ],
           ),
         ),
+        backgroundColor: Colors.lightGreen,
       ),
     );
   }

@@ -48,6 +48,7 @@ class MyApp extends StatelessWidget {
       },
       onGenerateRoute: (RouteSettings settings) {
         print('Ruta llamado ${settings.name}');
+        return null;
         /*if (settings.name == '/login') {
           return MaterialPageRoute(builder: (_) => const LoginPage());
         }*/

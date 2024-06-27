@@ -21,7 +21,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
-  bool _redirecting = false;
+  final bool _redirecting = false;
   TextEditingController controller = TextEditingController();
   //bool _password2Visible = true;
   //bool _newpasswordVisible = true;
@@ -297,12 +297,20 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(authStep),
+        //title: ,
         automaticallyImplyLeading: false,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          const Positioned(
+            top: -150,
+            child: Image(
+              image: AssetImage('assets/company_logo.png'),
+              width: 100,
+              height: 150,
+            ),
+          ),
           const Text('Sign in with your email and password below'),
           const SizedBox(height: 18),
           TextFormField(
@@ -412,6 +420,7 @@ class _LoginPageState extends State<LoginPage> {
                             : authStep == stepReset
                                 ? _resetPassword
                                 : null,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: Text(_isLoading ? 'Loading' : authStep),
           ),
           Offstage(

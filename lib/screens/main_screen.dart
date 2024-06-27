@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'bluetooth_off_screen.dart';
@@ -45,7 +46,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
         : BluetoothOffScreen(adapterState: _adapterState);
 
     // Lista de widgets para cada pestaña
-    final List<Widget> _screens = [
+    final List<Widget> screens = [
       mainScreen,
       const AccountScreen(),
     ];
@@ -54,9 +55,23 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       color: Colors.lightBlue,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('eAquaSaver'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/company_logo.png',
+                fit: BoxFit.cover,
+                height: 40,
+              ),
+              Image.asset('assets/app_title.png', fit: BoxFit.cover)
+            ],
+          ),
+          centerTitle: true,
+          backgroundColor: Theme.of(context).secondaryHeaderColor,
         ),
-        body: _screens[_currentIndex],
+        body: screens[_currentIndex],
+        backgroundColor: Colors.lightGreen,
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
