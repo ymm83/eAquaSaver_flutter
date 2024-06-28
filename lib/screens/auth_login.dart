@@ -116,7 +116,6 @@ class _LoginPageState extends State<LoginPage> {
       final response = await supabase.rpc('is_email_exist', params: {'email': email});
       //return response['rpc_is_email_exist'];
       print(response);
-      print(4444444444444444);
       return response;
       // Si la consulta devuelve un resultado, el email ya está registrado
     } catch (error) {
@@ -134,10 +133,14 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      final resp = await supabase.auth
-          .signUp(email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
-      print('RESPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
-      print(resp.user);
+      final res = await supabase.auth
+          .signUp(email: _emailController.text.trim(), password: _passwordController.text,/* captchaToken: _token*/);
+      final Session? session = res.session;
+      final User? user = res.user;
+      debugPrint('user**********************************');
+      print(user?.toJson());
+      debugPrint('session*******************************');
+      print(session?.toJson());
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'success');

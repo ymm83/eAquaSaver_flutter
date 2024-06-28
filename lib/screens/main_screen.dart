@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'bluetooth_off_screen.dart';
 import 'account_screen.dart';
 import 'scan_screen.dart';
+import 'main_tabs.dart';
+import 'user_tabs.dart';
 
 class BLEMainScreen extends StatefulWidget {
   const BLEMainScreen({super.key});
@@ -41,18 +42,20 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   @override
   Widget build(BuildContext context) {
     // Determina la pantalla a mostrar en la pestaña Main
-    Widget mainScreen = _adapterState == BluetoothAdapterState.on
-        ? const ScanScreen()
-        : BluetoothOffScreen(adapterState: _adapterState);
+    Widget mainScreen =
+        _adapterState == BluetoothAdapterState.on ? const MainTabs() : BluetoothOffScreen(adapterState: _adapterState);
 
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [
       mainScreen,
-      const AccountScreen(),
+      const Center(
+        child: Text('Water screen'),
+      ),
+      const UserTabs(),
     ];
 
     return MaterialApp(
-      color: Colors.lightBlue,
+      color: Colors.greenAccent,
       home: Scaffold(
         appBar: AppBar(
           title: Row(
@@ -68,10 +71,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             ],
           ),
           centerTitle: true,
-          backgroundColor: Theme.of(context).secondaryHeaderColor,
+          backgroundColor: Colors.green[100],
         ),
         body: screens[_currentIndex],
-        backgroundColor: Colors.lightGreen,
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -81,12 +83,16 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           },
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: Icon(Icons.home_outlined),
               label: 'Main',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
+              icon: Icon(Icons.water_drop_outlined),
+              label: 'Water',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_2_outlined),
+              label: 'User',
             ),
           ],
         ),

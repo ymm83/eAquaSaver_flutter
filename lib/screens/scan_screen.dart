@@ -99,11 +99,25 @@ class _ScanScreenState extends State<ScanScreen> {
     if (FlutterBluePlus.isScanningNow) {
       return FloatingActionButton(
         onPressed: onStopPressed,
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.stop),
+        backgroundColor: Colors.blue.shade300,
+        shape: const CircleBorder(),
+        child: const Icon(
+          Icons.stop,
+          size: 40,
+          color: Colors.purple,
+        ),
       );
     } else {
-      return FloatingActionButton(onPressed: onScanPressed, child: const Text("SCAN"));
+      return FloatingActionButton(
+        onPressed: onScanPressed,
+        backgroundColor: Colors.blue.shade300,
+        shape: const CircleBorder(),
+        child: const Icon(
+          Icons.sync,
+          size: 40,
+          color: Colors.purple,
+        ),
+      );
     }
   }
 
@@ -141,7 +155,7 @@ class _ScanScreenState extends State<ScanScreen> {
       key: Snackbar.snackBarKeyB,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Find Devices'),
+          title: const Center(child: Text('Find Devices')),
         ),
         body: RefreshIndicator(
           onRefresh: onRefresh,
