@@ -1,8 +1,10 @@
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-///import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../utils/snackbar.dart';
 
@@ -16,58 +18,94 @@ class BluetoothOffScreen extends StatefulWidget {
 }
 
 class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
-  /*late Location location;
-  bool _serviceEnabled = false;
-  PermissionStatus? _permissionGranted;
-  String _locationStatus = "Unknown";
+  bool _locationEnabled = false;
+  String _locationStatus = 'Comprobando...';
+  String _permissionStatus = 'Comprobando permisos...';
+  StreamSubscription<ServiceStatus>? _serviceStatusStream;
+  StreamSubscription<BluetoothAdapterState>? _bluetoothStateSubscription;
+  BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
 
   @override
   void initState() {
     super.initState();
-    location = Location();
-    _checkGps();
+    _checkLocationServices();
+    _listenForServiceStatusChanges();
+    _listenForBluetoothStateChanges();
   }
 
-  Future<void> _checkGps() async {
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        setState(() {
-          _locationStatus = "GPS Service Disabled";
-        });
-        return;
-      }
-    }
+  @override
+  void dispose() {
+    _serviceStatusStream?.cancel();
+    _bluetoothStateSubscription?.cancel();
+    super.dispose();
+  }
 
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        setState(() {
-          _locationStatus = "GPS Permission Denied";
-        });
-        return;
-      }
-    }
+  Future<void> _checkLocationServices() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
+    // Verificar si los servicios de ubicación están habilitados
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     setState(() {
-      _locationStatus = "GPS is Enabled and Permission Granted";
+      _locationEnabled = serviceEnabled;
+      _locationStatus = serviceEnabled ? 'On' : 'Off';
     });
-  }*/
 
-  Widget buildBluetoothOffIcon(BuildContext context) {
-    return const Icon(
-      Icons.bluetooth_disabled,
-      size: 200.0,
-      color: Colors.white54,
-    );
+    // Solicitar permiso de ubicación
+    permission = await Geolocator.checkPermission();
+    switch (permission) {
+      case LocationPermission.denied:
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            _permissionStatus = 'denied';
+          });
+          return;
+        }
+        break;
+      case LocationPermission.deniedForever:
+        setState(() {
+          _permissionStatus = 'deniedForever';
+        });
+        return;
+      case LocationPermission.whileInUse:
+      case LocationPermission.always:
+        setState(() {
+          _permissionStatus = 'granted';
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _openLocationSettings() async {
+    await Geolocator.openLocationSettings();
+    _checkLocationServices();
+  }
+
+  void _listenForServiceStatusChanges() {
+    _serviceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
+      final bool isEnabled = status == ServiceStatus.enabled;
+      setState(() {
+        _locationEnabled = isEnabled;
+        _locationStatus = isEnabled ? 'On' : 'Off';
+      });
+    });
+  }
+
+  void _listenForBluetoothStateChanges() {
+    _bluetoothStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+      setState(() {
+        _bluetoothAdapterState = state;
+      });
+    });
   }
 
   Widget buildTitle(BuildContext context) {
-    String? state = widget.adapterState?.toString().split(".").last;
+    String state = _bluetoothAdapterState.toString().split('.').last;
     return Text(
-      'Bluetooth Adapter is ${state ?? 'not available'}',
+      'Bluetooth Adapter is $state',
       style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white),
     );
   }
@@ -100,25 +138,24 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              buildBluetoothOffIcon(context),
+              _bluetoothAdapterState == BluetoothAdapterState.off
+                  ? const Icon(Icons.bluetooth_disabled, size: 100.0, color: Colors.white70)
+                  : const Icon(Icons.bluetooth_connected_outlined, size: 100.0, color: Colors.white70),
               buildTitle(context),
               if (Platform.isAndroid) buildTurnOnButton(context),
-              /*Text(
-                _locationStatus,
-                style: const TextStyle(fontSize: 20),
-              ),*/
-              /*Text(
-                _isGpsEnabled ? 'GPS is enabled' : 'GPS is disabled',
-              ),
-              const SizedBox(height: 20),
-              Text(
-                _isPermissionGranted ? 'Location permission granted' : 'Location permission denied',
-              ),
+              _locationEnabled
+                  ? const Icon(Icons.location_on_outlined, size: 100, color: Colors.white70)
+                  : const Icon(Icons.location_off_outlined, size: 100, color: Colors.white70),
+              Text('Ubication status: $_locationStatus',
+              style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
+              const SizedBox(height: 10),
+              Text('Estado de permisos: $_permissionStatus',
+              style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _checkGpsStatus,
-                child: const Text('Check GPS Status'),
-              ),*/
+                onPressed: _locationEnabled ? null : _openLocationSettings,
+                child: const Text('TURN ON'),
+              ),
             ],
           ),
         ),

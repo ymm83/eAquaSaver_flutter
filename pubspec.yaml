@@ -39,9 +39,8 @@ dependencies:
   show_hide_password: ^0.0.2
   cloudflare_turnstile: ^0.4.0
   flutter_colorful_tab: ^0.1.1
-  #location: ^6.0.2
-
-  #hcaptcha_flutter: ^0.0.1+1
+  geolocator: ^12.0.0
+  geolocator_android: 4.5.5
 
 dev_dependencies:
   flutter_test:

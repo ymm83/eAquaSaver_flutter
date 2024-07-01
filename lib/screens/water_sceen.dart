@@ -10,6 +10,8 @@ class WaterScreen extends StatefulWidget {
 class _WaterScreenState extends State<WaterScreen> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Scaffold(
+      body: Text('Water Screen'),
+    );
   }
 }

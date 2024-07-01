@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:eaquasaver_flutter_app/screens/water_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'bluetooth_off_screen.dart';
 import 'account_screen.dart';
@@ -42,15 +44,12 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   @override
   Widget build(BuildContext context) {
     // Determina la pantalla a mostrar en la pestaña Main
-    Widget mainScreen =
-        _adapterState == BluetoothAdapterState.on ? const MainTabs() : BluetoothOffScreen(adapterState: _adapterState);
+    Widget mainScreen = _adapterState == BluetoothAdapterState.on ? const MainTabs() : BluetoothOffScreen(adapterState: _adapterState);
 
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [
       mainScreen,
-      const Center(
-        child: Text('Water screen'),
-      ),
+      const WaterTabs(),
       const UserTabs(),
     ];
 
