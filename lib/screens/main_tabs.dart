@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/ble_bloc.dart';
+import 'device_screen.dart';
 import 'scan_screen.dart';
 
 class MainTabs extends StatefulWidget {
@@ -8,65 +11,78 @@ class MainTabs extends StatefulWidget {
   State<MainTabs> createState() => _MainTabsState();
 }
 
-int pageChanged = 0;
-String pageTitle = 'Water';
-
 class _MainTabsState extends State<MainTabs> {
+  int _pageChanged = 0;
+  String _pageTitle = 'Scan Devices';
+  final PageController _pageController = PageController();
+
   @override
   Widget build(BuildContext context) {
-    PageController pageController = PageController();
-    final BLETabsController = DefaultTabController(
-        length: 2,
-        child: Scaffold(
+    return BlocBuilder<BleBloc, BleState>(
+      builder: (context, state) {
+        return Scaffold(
           appBar: AppBar(
-            actions: [
-              IconButton(
-                  icon: const Icon(Icons.bluetooth),
-                  onPressed: () {
-                    setState(() {
-                      pageTitle = 'bluetooth';
-                    });
-                    pageController.animateToPage(0, duration: Duration(milliseconds: 250), curve: Curves.bounceInOut);
-                  }),
-              IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: () {
-                    setState(() {
-                      pageTitle = 'settings';
-                    });
-                    pageController.animateToPage(1, duration: Duration(milliseconds: 250), curve: Curves.bounceInOut);
-                  }),
-            ],
+            leading: state.showDetails
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      setState(() {
+                        _pageTitle = 'Scan Devices';
+                      });
+                      _pageController.jumpToPage(0);
+                      context.read<BleBloc>().add(const DetailsClose());
+                    },
+                  )
+                : null,
+            actions: state.showDetails
+                ? []
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.bluetooth),
+                      onPressed: () {
+                        setState(() {
+                          _pageTitle = 'Scan Devices';
+                        });
+                        _pageController.jumpToPage(0);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () {
+                        setState(() {
+                          _pageTitle = 'Device Details';
+                        });
+                        _pageController.jumpToPage(1);
+                      },
+                    ),
+                  ],
             backgroundColor: Colors.green[100],
             elevation: 0,
-            title: const TabBar(
-              /* labelColor: Colors.redAccent,
-              unselectedLabelColor: Colors.white,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicator: BoxDecoration(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                  color: Colors.white),
-              dividerHeight: 50,
-              indicatorColor: Colors.red,*/
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.bluetooth),
-                ),
-                Tab(
-                  icon: Icon(Icons.settings),
-                )
-              ],
-            ),
+            title: Text(_pageTitle),
           ),
-          body: const TabBarView(
+          body: PageView(
+            pageSnapping: true,
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _pageChanged = index;
+                _pageTitle = index == 0 ? 'Scan Devices' : 'Device Details';
+              });
+            },
             children: [
-              ScanScreen(),
-              Center(child: Text('Content for Tab 2')),
+              ScanScreen(pageController: _pageController),
+              BlocBuilder<BleBloc, BleState>(
+                builder: (context, state) {
+                  if (state is BleConnected) {
+                    return DeviceScreen(device: state.device);
+                  }
+                  return Center(child: Text('No device connected.'));
+                },
+              ),
             ],
           ),
-        ));
-    return Scaffold(
-      body: BLETabsController,
+        );
+      },
     );
   }
 }

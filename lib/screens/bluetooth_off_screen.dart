@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 
@@ -19,8 +18,8 @@ class BluetoothOffScreen extends StatefulWidget {
 
 class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
   bool _locationEnabled = false;
-  String _locationStatus = 'Comprobando...';
-  String _permissionStatus = 'Comprobando permisos...';
+  String _locationStatus = '...';
+  String _permissionStatus = '...';
   StreamSubscription<ServiceStatus>? _serviceStatusStream;
   StreamSubscription<BluetoothAdapterState>? _bluetoothStateSubscription;
   BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
@@ -146,11 +145,11 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
               _locationEnabled
                   ? const Icon(Icons.location_on_outlined, size: 100, color: Colors.white70)
                   : const Icon(Icons.location_off_outlined, size: 100, color: Colors.white70),
-              Text('Ubication status: $_locationStatus',
-              style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
+              Text('Location status: $_locationStatus',
+                  style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
               const SizedBox(height: 10),
-              Text('Estado de permisos: $_permissionStatus',
-              style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
+              Text('Permission status: $_permissionStatus',
+                  style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _locationEnabled ? null : _openLocationSettings,

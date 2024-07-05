@@ -115,7 +115,6 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final response = await supabase.rpc('is_email_exist', params: {'email': email});
       //return response['rpc_is_email_exist'];
-      print(response);
       return response;
       // Si la consulta devuelve un resultado, el email ya está registrado
     } catch (error) {
@@ -137,10 +136,10 @@ class _LoginPageState extends State<LoginPage> {
           .signUp(email: _emailController.text.trim(), password: _passwordController.text,/* captchaToken: _token*/);
       final Session? session = res.session;
       final User? user = res.user;
-      debugPrint('user**********************************');
-      print(user?.toJson());
-      debugPrint('session*******************************');
-      print(session?.toJson());
+      //debugPrint('user**********************************');
+      //print(user?.toJson());
+      //debugPrint('session*******************************');
+      //print(session?.toJson());
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'success');
@@ -182,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-      print(_emailController.text);
+      //print(_emailController.text);
       await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _token);
 
       if (mounted) {
@@ -231,9 +230,8 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      final recovery = await supabase.auth.verifyOTP(
+      await supabase.auth.verifyOTP(
           email: _emailController.text, token: _tokenController.text, type: OtpType.recovery, captchaToken: _token);
-      print(recovery);
       await supabase.auth.updateUser(
         UserAttributes(password: _newpasswordController.text.trim()),
       );
@@ -266,7 +264,6 @@ class _LoginPageState extends State<LoginPage> {
       _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
         final AuthChangeEvent event = data.event;
 
-        print('Eventtttttttttttttt is: $event');
         // final session = data.session;
         if (event == AuthChangeEvent.signedOut) {
           //Navigator.of(context).pushReplacementNamed('/login');

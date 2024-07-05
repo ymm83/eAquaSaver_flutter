@@ -1,13 +1,11 @@
 import 'dart:async';
 
-import 'package:eaquasaver_flutter_app/screens/water_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'bluetooth_off_screen.dart';
-import 'account_screen.dart';
-import 'scan_screen.dart';
+import 'water_tabs.dart';
 import 'main_tabs.dart';
 import 'user_tabs.dart';
 
@@ -20,8 +18,9 @@ class BLEMainScreen extends StatefulWidget {
 
 class _BLEMainScreenState extends State<BLEMainScreen> {
   BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
-
+  bool _locationStatus = false;
   late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
+  late StreamSubscription<ServiceStatus>? _serviceStatusStream;
   int _currentIndex = 0; // Índice para la barra de navegación inferior
 
   @override
@@ -33,18 +32,39 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
         setState(() {});
       }
     });
+    _serviceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
+      setState(() {
+        _locationStatus = (status == ServiceStatus.enabled) ? true : false;
+      });
+    });
+    _initializeState();
+  }
+
+  Future<void> _initializeState() async {
+    final initialAdapterState = await FlutterBluePlus.adapterState.first;
+    setState(() {
+      _adapterState = initialAdapterState;
+    });
+
+    final initialLocationStatus = await Geolocator.isLocationServiceEnabled();
+    setState(() {
+      _locationStatus = initialLocationStatus;
+    });
   }
 
   @override
   void dispose() {
     _adapterStateStateSubscription.cancel();
+    _serviceStatusStream?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // Determina la pantalla a mostrar en la pestaña Main
-    Widget mainScreen = _adapterState == BluetoothAdapterState.on ? const MainTabs() : BluetoothOffScreen(adapterState: _adapterState);
+    Widget mainScreen = (_adapterState == BluetoothAdapterState.on && _locationStatus == true)
+        ? const MainTabs()
+        : BluetoothOffScreen(adapterState: _adapterState);
 
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [

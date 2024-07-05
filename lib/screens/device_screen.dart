@@ -240,14 +240,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return ScaffoldMessenger(
       key: Snackbar.snackBarKeyC,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.device.platformName),
-          actions: [buildConnectButton(context)],
-        ),
         body: SingleChildScrollView(
           child: Column(
             children: <Widget>[
               buildRemoteId(context),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.bluetooth_disabled),
+                label: const Text('Disconect'),
+                onPressed: () => {widget.device.disconnect()},
+              ),
               ListTile(
                 leading: buildRssiTile(context),
                 title: Text('Device is ${_connectionState.toString().split('.')[1]}.'),
@@ -258,7 +259,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             ],
           ),
         ),
-        backgroundColor: Colors.lightGreen,
+        //backgroundColor: Colors.lightGreen,
       ),
     );
   }
