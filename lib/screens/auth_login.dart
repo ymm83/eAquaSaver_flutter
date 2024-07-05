@@ -137,9 +137,9 @@ class _LoginPageState extends State<LoginPage> {
       final Session? session = res.session;
       final User? user = res.user;
       //debugPrint('user**********************************');
-      //print(user?.toJson());
+      //debugPrint(user?.toJson());
       //debugPrint('session*******************************');
-      //print(session?.toJson());
+      //debugPrint(session?.toJson());
 
       if (mounted) {
         _showSnackBar(context, 'Check your email for a login link!', 'success');
@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-      //print(_emailController.text);
+      //debugPrint(_emailController.text);
       await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _token);
 
       if (mounted) {
@@ -460,7 +460,7 @@ class _LoginPageState extends State<LoginPage> {
             child: TextButton(
               onPressed: () => {
                 //final response = await supabase.rpc('is_email_exist', params: {'email': _emailController.text});
-                //print(response['is_email_exist']);
+                //debugPrint(response['is_email_exist']);
                 setState(() {
                   authStep = stepForgot;
                 })

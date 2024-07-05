@@ -52,7 +52,7 @@ class _MainTabsState extends State<MainTabs> {
                         setState(() {
                           _pageTitle = 'Device Details';
                         });
-                        _pageController.jumpToPage(1);
+                        _pageController.jumpToPage(2);
                       },
                     ),
                   ],
@@ -61,6 +61,7 @@ class _MainTabsState extends State<MainTabs> {
             title: Text(_pageTitle),
           ),
           body: PageView(
+            physics: const NeverScrollableScrollPhysics(),
             pageSnapping: true,
             controller: _pageController,
             onPageChanged: (index) {
@@ -76,10 +77,12 @@ class _MainTabsState extends State<MainTabs> {
                   if (state is BleConnected) {
                     return DeviceScreen(device: state.device);
                   }
-                  return Center(child: Text('No device connected.'));
+                  return const Center(child: CircularProgressIndicator());
                 },
               ),
+              const Center(child: Text('Settings BLE'))
             ],
+            
           ),
         );
       },

@@ -19,8 +19,8 @@ class ScanScreen extends StatefulWidget {
 
 class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
-  List<BluetoothDevice> _systemDevices = [];
-  List<ScanResult> _scanResults = [];
+  late List<BluetoothDevice> _systemDevices = [];
+  late List<ScanResult> _scanResults = [];
   bool _isScanning = false;
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
@@ -28,20 +28,27 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
+    onScanPressed();
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
-      _scanResults = results;
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _scanResults = results;
+        });
       }
     }, onError: (e) {
       Snackbar.show(ABC.b, prettyException("Scan Error:", e), success: false);
     });
 
     _isScanningSubscription = FlutterBluePlus.isScanning.listen((state) {
-      _isScanning = state;
       if (mounted) {
-        setState(() {});
+        if (state == true) {
+          debugPrint('state is true-----------------------------------: $state');
+        } else {
+          debugPrint('state is false ----------------------------------: $state');
+        }
+        setState(() {
+          _isScanning = state;
+        });
       }
     });
 
@@ -60,13 +67,18 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   Future onScanPressed() async {
+    //_controller.forward();
     try {
       _systemDevices = await FlutterBluePlus.systemDevices;
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("System Devices Error:", e), success: false);
     }
     try {
-      await FlutterBluePlus.startScan(withNames: ['eAquaSaver'], timeout: const Duration(seconds: 15));
+      await FlutterBluePlus.startScan(
+          //withServices: [Guid('0x40cddba8-0x0e58-0x47b1-0xb2fa-0xa93c4993d81d')],
+          withNames: ['eAquaSaver'],
+          timeout: const Duration(seconds: 5));
+      //_controller.stop();
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("Start Scan Error:", e), success: false);
     }
@@ -77,7 +89,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Future onStopPressed() async {
     try {
-      FlutterBluePlus.stopScan();
+      debugPrint('onStop-dbp---------------$FlutterBluePlus');
+      await FlutterBluePlus.stopScan();
+      debugPrint(FlutterBluePlus.isScanningNow.toString());
+      _controller.stop();
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("Stop Scan Error:", e), success: false);
     }
@@ -94,7 +109,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Future onRefresh() {
     if (_isScanning == false) {
-      FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
+      FlutterBluePlus.startScan(timeout: const Duration(seconds: 1));
     }
     if (mounted) {
       setState(() {});
@@ -103,36 +118,23 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   Widget buildScanButton(BuildContext context) {
-    if (FlutterBluePlus.isScanningNow) {
-      return FloatingActionButton(
-          onPressed: onScanPressed,
-          backgroundColor: Colors.blue.shade300,
-          shape: const CircleBorder(),
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (BuildContext context, Widget? child) {
-              return Transform.rotate(
-                angle: _controller.value * 2.0 * 3.141592653589793,
-                child: const Icon(
-                  Icons.sync,
-                  size: 40,
-                  color: Colors.purple,
-                ),
-              );
-            },
-          ));
-    } else {
-      return FloatingActionButton(
-        onPressed: onScanPressed,
+    return FloatingActionButton(
+        onPressed: _isScanning == false ? onScanPressed : onStopPressed,
         backgroundColor: Colors.blue.shade300,
         shape: const CircleBorder(),
-        child: const Icon(
-          Icons.sync,
-          size: 40,
-          color: Colors.purple,
-        ),
-      );
-    }
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (BuildContext context, Widget? child) {
+            return Transform.rotate(
+              angle: _controller.value * 5 * 3.141592653589793,
+              child: const Icon(
+                Icons.sync,
+                size: 40,
+                color: Colors.purple,
+              ),
+            );
+          },
+        ));
   }
 
   List<Widget> _buildSystemDeviceTiles(BuildContext context) {
