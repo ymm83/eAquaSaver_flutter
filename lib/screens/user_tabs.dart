@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'account_screen.dart';
+import 'issue_screen.dart';
 
 class UserTabs extends StatefulWidget {
   const UserTabs({super.key});
@@ -9,50 +10,53 @@ class UserTabs extends StatefulWidget {
 }
 
 class _UserTabsState extends State<UserTabs> {
+  final PageController _userTabController = PageController();
+  int _pageChanged = 0;
+  String _pageTitle = 'Profile';
+
   @override
   Widget build(BuildContext context) {
-    final UserTabsController = DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.green[100],
-            elevation: 0,
-            title: const TabBar(
-              /* labelColor: Colors.redAccent,
-              unselectedLabelColor: Colors.white,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicator: BoxDecoration(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                  color: Colors.white),
-              dividerHeight: 50,
-              indicatorColor: Colors.red,*/
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.manage_accounts_outlined),
-                ),
-                Tab(
-                  icon: Icon(Icons.star_half_outlined),
-                ),
-                Tab(
-                  icon: Icon(Icons.comment_outlined),
-                ),
-                Tab(
-                  icon: Icon(Icons.bug_report_outlined),
-                )
-              ],
-            ),
-          ),
-          body: const TabBarView(
-            children: [
-              AccountScreen(),
-              Center(child: Text('Rating')),
-              Center(child: Text('Comments')),
-              Center(child: Text('Issues')),
-            ],
-          ),
-        ));
     return Scaffold(
-      body: UserTabsController,
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.manage_accounts_outlined),
+            onPressed: () => _userTabController.jumpToPage(0),
+          ),
+          IconButton(
+            icon: const Icon(Icons.star_half_outlined),
+            onPressed: () => _userTabController.jumpToPage(1),
+          ),
+          IconButton(
+            icon: const Icon(Icons.comment_outlined),
+            onPressed: () => _userTabController.jumpToPage(2),
+          ),
+          IconButton(
+            icon: const Icon(Icons.bug_report_outlined),
+            onPressed: () => _userTabController.jumpToPage(3),
+          )
+        ],
+        backgroundColor: Colors.green[100],
+        elevation: 0,
+        title: Text(_pageTitle),
+      ),
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        pageSnapping: true,
+        controller: _userTabController,
+        onPageChanged: (index) {
+          setState(() {
+            _pageChanged = index;
+            _pageTitle = ['Profile', 'Rating', 'Comments', 'Issues'][index];
+          });
+        },
+        children: const [
+          AccountScreen(),
+          Center(child: Text('Rating')),
+          Center(child: Text('Comments')),
+          IssueScreen()
+        ],
+      ),
     );
   }
 }

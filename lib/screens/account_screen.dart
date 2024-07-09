@@ -1,6 +1,6 @@
-import 'package:eaquasaver_flutter_app/screens/auth_login.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'auth_login.dart';
 import '../main.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -150,7 +150,6 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -174,7 +173,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 TextButton(
                     //onPressed: _signOut,
                     onPressed: () {
-                      print('1111111111111111111111111111111111111111111111111111111111111');
                       /*Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (contexto) => const LoginPage()),
@@ -188,7 +186,6 @@ class _AccountScreenState extends State<AccountScreen> {
                           builder: (context) => const LoginPage(),
                         ),
                       );
-                      print('222222222222222222222222222222222222222222222222222222222222222222');
                     },
                     child: const Text('Sign Out')),
               ],

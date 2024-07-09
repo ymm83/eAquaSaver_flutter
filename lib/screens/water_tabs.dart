@@ -39,7 +39,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
                 pageTitle = 'Water';
                 pageChanged = 0;
               });
-              _pageController.animateToPage(0, duration: const Duration(milliseconds: 250), curve: Curves.bounceInOut);
+              _pageController.jumpToPage(0);
             },
           ),
           IconButton(
@@ -49,7 +49,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
                 pageTitle = 'Location';
                 pageChanged = 1;
               });
-              _pageController.animateToPage(1, duration: const Duration(milliseconds: 250), curve: Curves.bounceInOut);
+              _pageController.jumpToPage(1);
             },
           ),
         ],
@@ -58,6 +58,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
         title: Text(pageTitle),
       ),
       body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
         pageSnapping: true,
         controller: _pageController,
         onPageChanged: (index) {
@@ -65,7 +66,6 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
             pageChanged = index;
             pageTitle = index == 0 ? 'Water' : 'Location';
           });
-          print(pageChanged);
         },
         children: [
           const WaterScreen(),
