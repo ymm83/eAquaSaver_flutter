@@ -14,28 +14,45 @@ class _UserTabsState extends State<UserTabs> {
   int _pageChanged = 0;
   String _pageTitle = 'Profile';
 
+  List<Widget> _actionsDefault(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.manage_accounts_outlined),
+        onPressed: () => _userTabController.jumpToPage(0),
+      ),
+      IconButton(
+        icon: const Icon(Icons.star_half_outlined),
+        onPressed: () => _userTabController.jumpToPage(1),
+      ),
+      IconButton(
+        icon: const Icon(Icons.comment_outlined),
+        onPressed: () => _userTabController.jumpToPage(2),
+      ),
+      IconButton(
+        icon: const Icon(Icons.bug_report_outlined),
+        onPressed: () => _userTabController.jumpToPage(3),
+      )
+    ];
+  }
+
+  List<Widget> _actionsIssue(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.checklist_outlined),
+        onPressed: () => _userTabController.jumpToPage(0),
+      ),
+      IconButton(
+        icon: const Icon(Icons.star_half_outlined),
+        onPressed: () => _userTabController.jumpToPage(1),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.manage_accounts_outlined),
-            onPressed: () => _userTabController.jumpToPage(0),
-          ),
-          IconButton(
-            icon: const Icon(Icons.star_half_outlined),
-            onPressed: () => _userTabController.jumpToPage(1),
-          ),
-          IconButton(
-            icon: const Icon(Icons.comment_outlined),
-            onPressed: () => _userTabController.jumpToPage(2),
-          ),
-          IconButton(
-            icon: const Icon(Icons.bug_report_outlined),
-            onPressed: () => _userTabController.jumpToPage(3),
-          )
-        ],
+        actions: _actionsDefault(context),
         backgroundColor: Colors.green[100],
         elevation: 0,
         title: Text(_pageTitle),

@@ -1,5 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../main.dart'; // Asegúrate de que este import sea correcto según tu estructura de proyecto
+
+class IssueColor {
+  Color error = Colors.red;
+}
+/*switch (issue_status) {
+        case 'new':
+            styleBadge = 'error'
+            break;
+        case 'acepted':
+            styleBadge = 'primary'
+            break;
+        case 'in progress':
+            styleBadge = 'secondary'
+            break;
+        case 'fixed':
+            styleBadge = 'success'
+            break;
+        case 'rejected':
+            styleBadge = 'warning'
+            break;
+    }*/
 
 class IssueScreen extends StatefulWidget {
   const IssueScreen({super.key});
@@ -11,8 +33,10 @@ class IssueScreen extends StatefulWidget {
 class _IssueScreenState extends State<IssueScreen> {
   List _issueData = [];
   bool _isLoading = true;
-  int selectedRadio = 0;
-
+  int selectedRadio = 1;
+  bool _newIssue = false;
+  TextEditingController issueTitleController = TextEditingController();
+  TextEditingController issueBodyController = TextEditingController();
   void _getIssues() async {
     try {
       final data = await supabaseEAS.from('issue').select();
@@ -35,15 +59,28 @@ class _IssueScreenState extends State<IssueScreen> {
 
   void _saveIssue() async {
     try {
-      final data = await supabaseEAS.from('issue').select();
+      final List<dynamic> data = await supabaseEAS.from('issue').insert(
+        {
+          'submitter': supabase.auth.currentUser?.id,
+          'summary': issueTitleController.text,
+          'description': issueBodyController.text,
+          'target': selectedRadio == 1
+              ? 'app'
+              : selectedRadio == 2
+                  ? 'device'
+                  : null
+        },
+      ).select();
       setState(() {
-        _issueData = data;
+        _issueData.add( data[0] );
         _isLoading = false;
       });
+      debugPrint('----------$data---------');
     } catch (error) {
+      debugPrint('----------$error---------');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Unexpected error occurred'),
+          content: Text('Error: $error'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -64,113 +101,107 @@ class _IssueScreenState extends State<IssueScreen> {
     return Scaffold(
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _issueData.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text(_issueData[index]['id'].toString()),
-                  subtitle: Text(_issueData[index]['summary']),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAlertDialog(context);
-        },
-        backgroundColor: Colors.blue,
-        shape: const CircleBorder(),
-        child: const Icon(
-          Icons.add,
-          size: 40,
-        ),
-      ),
-    );
-  }
-
-  void _showAlertDialog(BuildContext context) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'New Issue Form',
-            style: TextStyle(fontSize: 14),
-          ),          
-          content: StatefulBuilder(            
-            builder: (BuildContext context, StateSetter setState) {
-              TextEditingController issueTitleController = TextEditingController();
-              TextEditingController issueBodyController = TextEditingController();
-              return SingleChildScrollView(
+          : (_newIssue == false)
+              ? ListView.builder(
+                  itemCount: _issueData.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      key:GlobalKey(),
+                      title: Text(_issueData[index]['id'].toString()),
+                      subtitle: Text(_issueData[index]['summary']),
+                      
+                    );
+                  },
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Radio<int>(
-                        value: 1,
-                        groupValue: selectedRadio,
-                        onChanged: (int? val) {
-                          setState(() {
-                            selectedRadio = val!;
-                          });
-                        },
+                      const Text('Describe the issue'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Radio<int>(
+                            value: 1,
+                            groupValue: selectedRadio,
+                            onChanged: (int? val) {
+                              setState(() {
+                                selectedRadio = val!;
+                              });
+                            },
+                          ),
+                          const Text('App'),
+                          const SizedBox(width: 20), // Espaciado entre los radios
+                          Radio<int>(
+                            value: 2,
+                            groupValue: selectedRadio,
+                            onChanged: (int? val) {
+                              setState(() {
+                                selectedRadio = val!;
+                              });
+                            },
+                          ),
+                          const Text('Device'),
+                        ],
                       ),
-                      const Text('App'),
-                      const SizedBox(width: 20), // Espaciado entre los radios
-                      Radio<int>(
-                        value: 2,
-                        groupValue: selectedRadio,
-                        onChanged: (int? val) {
-                          setState(() {
-                            selectedRadio = val!;
-                          });
-                        },
+                      TextFormField(
+                        maxLines: 2,
+                        controller: issueTitleController,
+                        decoration: const InputDecoration(
+                          //hintText: 'The email address?',
+                          labelText: 'summary',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                          ),
+                          counterText: "",
+                        ),
+                        maxLength: 20,
                       ),
-                      const Text('Device'),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        maxLines: 8,
+                        controller: issueBodyController,
+                        decoration: const InputDecoration(
+                          //hintText: 'The email address?',
+                          labelText: 'description',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                          ),
+                        ),
+                      ),
                     ],
-                  ),
-                  TextFormField(
-                    maxLines: 2,
-                    controller: issueTitleController,
-                    decoration: const InputDecoration(
-                        //hintText: 'The email address?',
-                        labelText: 'summary',
-                        border: OutlineInputBorder(),
-                        counterText: ""),
-                    maxLength: 20,
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    maxLines: 6,
-                    controller: issueBodyController,
-                    decoration: const InputDecoration(
-                      //hintText: 'The email address?',
-                      labelText: 'description',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ],
-              ));
-            },
-          ),
-          actions: [
-            TextButton(
+                  )),
+      floatingActionButton: (_newIssue == false)
+          ? FloatingActionButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                setState(() {
+                  _newIssue = true;
+                });
               },
-              child: const Text('Close'),
-            ),
-            TextButton(
+              backgroundColor: Colors.blue,
+              shape: const CircleBorder(),
+              child: const Icon(
+                Icons.add,
+                size: 40,
+              ),
+            )
+          : FloatingActionButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                _saveIssue();
+                debugPrint(
+                    'user_id ${supabase.auth.currentUser?.id.toString()} summary: ${issueTitleController.text} description: ${issueBodyController.text} target: ${(selectedRadio == 1) ? 'app' : (selectedRadio == 2) ? 'device' : null}');
+                setState(() {
+                  _newIssue = false;
+                });
               },
-              child: const Text('Save'),
+              backgroundColor: Colors.green,
+              shape: const CircleBorder(),
+              child: const Icon(
+                Icons.check_outlined,
+                size: 40,
+              ),
             ),
-          ],
-        );
-      },
     );
   }
 }

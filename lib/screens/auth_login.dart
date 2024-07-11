@@ -330,6 +330,7 @@ class _LoginPageState extends State<LoginPage> {
                 icon: Icon(Icons.security_update_good),
                 //hintText: 'The email address?',
                 labelText: 'token',
+                counterText: ""
               ),
               validator: (value) {
                 if (value!.isEmpty || value.length < 6) {
