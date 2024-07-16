@@ -4,7 +4,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utils/extra.dart';
 import '../utils/snackbar.dart';
-import '../bloc/ble_bloc.dart';
+import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
 

@@ -7,7 +7,8 @@ import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
-import 'bloc/ble_bloc.dart';
+import 'bloc/ble/ble_bloc.dart';
+import 'bloc/issue/issue_bloc.dart';
 
 final supabase = Supabase.instance.client;
 final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
@@ -22,7 +23,10 @@ Future<void> main() async {
   //runApp(const MyApp());
   runApp(
     MultiBlocProvider(
-      providers: [BlocProvider(create: (context) => BleBloc(flutterBlue))],
+      providers: [
+        BlocProvider(create: (context) => BleBloc(flutterBlue)),
+        BlocProvider(create: (context) => IssueBloc(supabaseEAS, supabase.auth.currentUser!.id)),
+      ],
       child: MyApp(),
     ),
   );

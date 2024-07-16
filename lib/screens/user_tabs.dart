@@ -1,3 +1,4 @@
+import 'package:eaquasaver_flutter_app/screens/issue_form.dart';
 import 'package:flutter/material.dart';
 import 'account_screen.dart';
 import 'issue_screen.dart';
@@ -64,14 +65,16 @@ class _UserTabsState extends State<UserTabs> {
         onPageChanged: (index) {
           setState(() {
             _pageChanged = index;
-            _pageTitle = ['Profile', 'Rating', 'Comments', 'Issues'][index];
+            _pageTitle = ['Profile', 'Rating', 'Comments', 'Issues', 'New Issue'][index];
           });
         },
-        children: const [
-          AccountScreen(),
-          Center(child: Text('Rating')),
-          Center(child: Text('Comments')),
-          IssueScreen()
+        children: [
+          const AccountScreen(),
+          const Center(child: Text('Rating')),
+          const Center(child: Text('Comments')),
+          IssueScreen(pageController: _userTabController),
+          IssueForm(typeForm: 'new'),
+          IssueForm(typeForm: 'edit'),
         ],
       ),
     );
