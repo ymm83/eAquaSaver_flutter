@@ -10,7 +10,7 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
   final SupabaseQuerySchema supabase;
   final String userid;
 
-  IssueBloc(this.supabase, this.userid) : super(IssueLoading()) {
+  IssueBloc(this.supabase, this.userid) : super(IssueState()) {
     on<LoadIssues>(_onLoadIssues);
     on<AddIssue>(_onAddIssue);
     on<DeleteIssue>(_onDeleteIssue);
@@ -24,7 +24,7 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
       final data = await supabase.from('issue').select().eq('submitter', userid);
       emit(IssueLoaded(data));
     } catch (error) {
-      emit(const IssueError('Unexpected error occurred'));
+      emit(IssueError('Unexpected error occurred'));
     }
   }
 
@@ -52,7 +52,7 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
         issues.removeWhere((issue) => issue['id'] == event.id);
         emit(IssueLoaded(issues));
       } else {
-        emit(const IssueError('Error: no se pudo eliminar'));
+        emit(IssueError('Error: no se pudo eliminar'));
       }
     } catch (error) {
       emit(IssueError('Error: $error'));
@@ -85,7 +85,7 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
       if (data.isNotEmpty) {
         emit(IssueDetail(data[0]));
       } else {
-        emit(const IssueError('Issue not found'));
+        emit(IssueError('Issue not found'));
       }
     } catch (error) {
       emit(IssueError('Error: $error'));
@@ -93,7 +93,6 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
   }
 
   void _onSelectIssueID(SelectIssueID event, Emitter<IssueState> emit) {
-    state.selectById=event.issue.id;
-    emit(IssueSelected(event.issue));
+    emit(state.copyWith(selectId: event.selectId));
   }
 }

@@ -52,12 +52,12 @@ class GetIssue extends IssueEvent {
 }
 
 class SelectIssueID extends IssueEvent {
-  final Issue issue;
+  final int selectId;
 
-  SelectIssueID(this.issue);
+  const SelectIssueID(this.selectId);
 
   @override
-  List<Object> get props => [issue];
+  List<Object> get props => [selectId];
 }
 
 class ClearSelectedIssueId extends IssueEvent {}

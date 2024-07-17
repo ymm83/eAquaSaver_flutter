@@ -1,22 +1,33 @@
 part of 'issue_bloc.dart';
 
-abstract class IssueState extends Equatable {
-  const IssueState();
-  final int selectById=0; 
-  @override
-  List<Object> get props => [selectById];
+class IssueState extends Equatable {
+  final int selectId;
+  IssueState({this.selectId = 0});
 
-  get issue => null;
+  @override
+  List<Object> get props => [selectId];
+
+  IssueState copyWith({
+    int? selectId,
+  }) {
+    return IssueState(
+      selectId: selectId ?? this.selectId,
+  );
+  }
 }
 
-class IssueLoading extends IssueState {}
+class IssueLoading extends IssueState {
+  IssueLoading();
+}
 
-class IssueSuccess extends IssueState {}
+class IssueSuccess extends IssueState {
+  IssueSuccess();
+}
 
 class IssueLoaded extends IssueState {
   final List issues;
 
-  const IssueLoaded(this.issues);
+  IssueLoaded(this.issues);
 
   @override
   List<Object> get props => [issues];
@@ -25,7 +36,7 @@ class IssueLoaded extends IssueState {
 class IssueError extends IssueState {
   final String message;
 
-  const IssueError(this.message);
+  IssueError(this.message);
 
   @override
   List<Object> get props => [message];
@@ -34,17 +45,17 @@ class IssueError extends IssueState {
 class IssueDetail extends IssueState {
   final Map issue;
 
-  const IssueDetail(this.issue);
+  IssueDetail(this.issue);
 
   @override
   List<Object> get props => [issue];
 }
 
 class IssueSelected extends IssueState {
-  final Issue issue;
+  final int id;
      
-  IssueSelected(this.issue);
+  IssueSelected(this.id):super(selectId: id);
 
   @override
-  List<Object> get props => [issue];
+  List<Object> get props => [id];
 }

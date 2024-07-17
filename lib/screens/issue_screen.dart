@@ -4,7 +4,6 @@ import 'package:moment_dart/moment_dart.dart';
 import '../bloc/issue/issue_bloc.dart';
 import '../model/issue.dart';
 
-
 class IssueScreen extends StatefulWidget {
   final PageController pageController;
 
@@ -19,11 +18,13 @@ class _IssueScreenState extends State<IssueScreen> {
   TextEditingController issueBodyController = TextEditingController();
   int selectedRadio = 1;
   bool _newIssue = false;
+  late int issueId;
 
   @override
   void initState() {
     super.initState();
     context.read<IssueBloc>().add(LoadIssues());
+    issueId = context.read<IssueBloc>().state.selectId;
   }
 
   @override
@@ -59,7 +60,7 @@ class _IssueScreenState extends State<IssueScreen> {
                                 children: [
                                   RichText(
                                     text: TextSpan(
-                                      text: 'target: ',
+                                      text: '${state.issues[index]['id']} target: ',
                                       style: const TextStyle(fontSize: 10, color: Color.fromARGB(255, 5, 69, 85)),
                                       children: [
                                         TextSpan(
@@ -84,7 +85,9 @@ class _IssueScreenState extends State<IssueScreen> {
                                       InkWell(
                                         onTap: () {
                                           widget.pageController.jumpToPage(5);
-                                          context.read<IssueBloc>().add(SelectIssueID(Issue(id: state.issues[index]['id'])));
+                                          context.read<IssueBloc>().add(SelectIssueID(state.issues[index]['id']));
+                                          //context.read<IssueBloc>().add(GetIssue(state.issues[index]['id']));
+                                          //context.read<IssueBloc>().add(SelectIssueID(state.issues[index]['id']));
                                         },
                                         splashColor: Color.fromARGB(255, 122, 191, 245),
                                         borderRadius: BorderRadius.circular(50),

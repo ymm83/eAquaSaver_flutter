@@ -16,6 +16,7 @@ class _IssueFormState extends State<IssueForm> {
   final TextEditingController issueTitleController = TextEditingController();
   final TextEditingController issueBodyController = TextEditingController();
   int selectedRadio = 1;
+  late int issueId;
 
   @override
   void dispose() {
@@ -25,15 +26,26 @@ class _IssueFormState extends State<IssueForm> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    issueId = context.read<IssueBloc>().state.selectId;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<IssueBloc, IssueState>(
-        builder: (context, state) {
-          return SingleChildScrollView(
+      body: BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
+        return SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue ${state.issue.id}'),
+              TextButton(
+                  onPressed: () {
+                    //BlocProvider.of<IssueBloc>(context).add(const SelectIssueID());
+                  },
+                  child: Text('$issueId')),
+              Text('state: ${state.selectId}'),
+              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue'),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -84,10 +96,9 @@ class _IssueFormState extends State<IssueForm> {
                 ),
               ),
             ],
-        ),
-      );
-      }
-      ),
+          ),
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         elevation: 5,
         onPressed: () {
