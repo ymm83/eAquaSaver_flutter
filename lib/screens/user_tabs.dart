@@ -1,5 +1,10 @@
+import 'package:eaquasaver_flutter_app/bloc/bloc/bloc_bloc.dart';
+import 'package:eaquasaver_flutter_app/main.dart';
 import 'package:eaquasaver_flutter_app/screens/issue_form.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_screen.dart';
 import 'issue_screen.dart';
 
@@ -14,6 +19,7 @@ class _UserTabsState extends State<UserTabs> {
   final PageController _userTabController = PageController();
   int _pageChanged = 0;
   String _pageTitle = 'Profile';
+  late SupabaseClient supabase;
 
   List<Widget> _actionsDefault(BuildContext context) {
     return [
@@ -51,6 +57,7 @@ class _UserTabsState extends State<UserTabs> {
 
   @override
   Widget build(BuildContext context) {
+    final SupabaseClient supa = BlocProvider.of<IssueBloc>(context).supabase;
     return Scaffold(
       appBar: AppBar(
         actions: _actionsDefault(context),
@@ -73,8 +80,8 @@ class _UserTabsState extends State<UserTabs> {
           const Center(child: Text('Rating')),
           const Center(child: Text('Comments')),
           IssueScreen(pageController: _userTabController),
-          IssueForm(typeForm: 'new'),
-          IssueForm(typeForm: 'edit'),
+          IssueForm(typeForm: 'new', supabase: supa, pageController: _userTabController),
+          IssueForm(typeForm: 'edit', supabase: supa, pageController: _userTabController),
         ],
       ),
     );

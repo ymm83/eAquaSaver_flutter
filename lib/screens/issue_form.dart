@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/issue/issue_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+//import '../bloc/issue/issue_bloc.dart';
+import '../bloc/bloc/bloc_bloc.dart';
 
 class IssueForm extends StatefulWidget {
   final String typeForm;
-  final int? issueId;
+  final SupabaseClient supabase;
+  final PageController pageController;
 
-  const IssueForm({super.key, required this.typeForm, this.issueId});
+  const IssueForm({Key? key, required this.typeForm, required this.supabase, required this.pageController})
+      : super(key: key);
 
   @override
   State<IssueForm> createState() => _IssueFormState();
 }
 
 class _IssueFormState extends State<IssueForm> {
-  final TextEditingController issueTitleController = TextEditingController();
-  final TextEditingController issueBodyController = TextEditingController();
+  TextEditingController issueTitleController = TextEditingController();
+  TextEditingController issueBodyController = TextEditingController();
   int selectedRadio = 1;
-  late int issueId;
+  bool _isLoading = true;
+  late Map _issueData;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.typeForm == 'edit') {
+      final issueId = context.read<IssueBloc>().state.selectId;
+      // _issueData = await _getAsyncIssueById(issueId);
+      _getIssueById(issueId);
+      //debugPrint('------------- _issueData: ${_issueData['submitter']}');
+      // issueTitleController = TextEditingController(text: _issueData['summary']);
+      //issueBodyController = TextEditingController(text: _issueData['description']);
+      //issueTitleController.text = 'summary';
+      //issueBodyController.text = 'description';
+    }
+  }
 
   @override
   void dispose() {
@@ -25,10 +45,83 @@ class _IssueFormState extends State<IssueForm> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    issueId = context.read<IssueBloc>().state.selectId;
+  Future<Map> _getAsyncIssueById(int id) async {
+    try {
+      final supabase = widget.supabase;
+      final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
+      return Future.value(data);
+    } catch (error) {
+      return Future.value({});
+    }
+  }
+
+  void _getIssueById(int id) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      final supabase = widget.supabase;
+      final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
+      setState(() {
+        _issueData = data;
+        issueTitleController.text = data['summary'];
+        issueBodyController.text = data['description'];
+        selectedRadio = _issueData['target'] == 'app' ? 1 : 2;
+        _isLoading = false;
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Unexpected error occurred'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _updateIssueById(int id, IssueBloc bloc) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final supabase = widget.supabase;
+      final data = await supabase
+          .schema('eaquasaver')
+          .from('issue')
+          .update({
+            'submitter': supabase.auth.currentUser!.id,
+            'summary': issueTitleController.text,
+            'description': issueBodyController.text,
+            'target': selectedRadio == 1 ? 'app' : 'device'
+          })
+          .eq('id', id)
+          .select()
+          .single();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Issue updated successfully'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Unexpected error occurred'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      Future.delayed(const Duration(seconds: 1), () {
+        widget.pageController.jumpToPage(3);
+      });
+    }
   }
 
   @override
@@ -39,13 +132,8 @@ class _IssueFormState extends State<IssueForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              TextButton(
-                  onPressed: () {
-                    //BlocProvider.of<IssueBloc>(context).add(const SelectIssueID());
-                  },
-                  child: Text('$issueId')),
               Text('state: ${state.selectId}'),
-              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue'),
+              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue [id#${state.selectId}]'),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -106,7 +194,7 @@ class _IssueFormState extends State<IssueForm> {
           if (widget.typeForm == 'new') {
             //issueBloc.add(AddIssue(issueTitleController.text, issueBodyController.text, selectedRadio ));
           } else if (widget.typeForm == 'edit') {
-            //issueBloc.add(EditIssue(widget.issueId!,issueTitleController.text,issueBodyController.text, selectedRadio ));
+            _updateIssueById(issueBloc.state.selectId, issueBloc);
           }
         },
         backgroundColor: Colors.green,
@@ -119,3 +207,213 @@ class _IssueFormState extends State<IssueForm> {
     );
   }
 }
+
+/*import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+//import '../bloc/issue/issue_bloc.dart';
+import '../bloc/bloc/bloc_bloc.dart';
+
+class IssueForm extends StatefulWidget {
+  final String typeForm;
+  final SupabaseClient supabase;
+  final PageController pageController;
+
+  const IssueForm({super.key, required this.typeForm, required this.supabase, required this.pageController});
+
+  @override
+  State<IssueForm> createState() => _IssueFormState();
+}
+
+class _IssueFormState extends State<IssueForm> {
+  late TextEditingController issueTitleController = TextEditingController();
+  late TextEditingController issueBodyController = TextEditingController();
+  int selectedRadio = 1;
+  late int issueId;
+  bool _isLoading = true;
+  late Map _issueData;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoading = true;
+    if (widget.typeForm == 'edit') {
+      final issueId = context.read<IssueBloc>().state.selectId;
+      _getIssueById(issueId);
+      issueTitleController.text = _issueData['summary'];
+      issueBodyController.text = _issueData['description'];
+    }
+  }
+
+  @override
+  void deactivate() {
+    issueTitleController.clear();
+    issueBodyController.clear();
+    super.deactivate();
+  }
+
+  Future _getIssueById(int id) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final supabase = widget.supabase;
+      final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).select();
+      setState(() {
+        _issueData = data[0];
+        selectedRadio = data[0]['target'] == 'app'
+            ? 1
+            : data[0]['target'] == 'device'
+                ? 2
+                : 0;
+      });
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Unexpected error occurred'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _updateIssueById(int id, IssueBloc bloc) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final supabase = widget.supabase;
+
+      final data = await supabase
+          .schema('eaquasaver')
+          .from('issue')
+          .update({
+            'submitter': supabase.auth.currentUser!.id,
+            'summary': issueTitleController.text,
+            'description': issueBodyController.text,
+            'target': selectedRadio == 1 ? 'app' : 'device'
+          })
+          .eq('id', id)
+          .select();
+      if (data.length == 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Issue updated sussesfull'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Unexpected error occurred'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    } finally {
+      //bloc.add(ClearEdit());
+      setState(() {
+        _isLoading = false;
+      });
+      Future.delayed(const Duration(seconds: 1), () {
+        widget.pageController.jumpToPage(3);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
+        return SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('state: ${state.selectId}'),
+              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue [id#${state.selectId}]'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Radio<int>(
+                    value: 1,
+                    groupValue: selectedRadio,
+                    onChanged: (int? val) {
+                      setState(() {
+                        selectedRadio = val!;
+                      });
+                    },
+                  ),
+                  const Text('App'),
+                  const SizedBox(width: 20),
+                  Radio<int>(
+                    value: 2,
+                    groupValue: selectedRadio,
+                    onChanged: (int? val) {
+                      setState(() {
+                        selectedRadio = val!;
+                      });
+                    },
+                  ),
+                  const Text('Device'),
+                ],
+              ),
+              TextField(
+                maxLines: 2,
+                controller: issueTitleController,
+                decoration: const InputDecoration(
+                  labelText: 'summary',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  ),
+                  counterText: "",
+                ),
+                maxLength: 20,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                maxLines: 8,
+                controller: issueBodyController,
+                decoration: const InputDecoration(
+                  labelText: 'description',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      floatingActionButton: FloatingActionButton(
+        elevation: 5,
+        onPressed: () {
+          final issueBloc = BlocProvider.of<IssueBloc>(context);
+          if (widget.typeForm == 'new') {
+            //issueBloc.add(AddIssue(issueTitleController.text, issueBodyController.text, selectedRadio ));
+          } else if (widget.typeForm == 'edit') {
+            _updateIssueById(issueBloc.state.selectId, issueBloc);
+          }
+        },
+        backgroundColor: Colors.green,
+        shape: const CircleBorder(),
+        child: const Icon(
+          Icons.check_outlined,
+          size: 40,
+        ),
+      ),
+    );
+  }
+}
+*/

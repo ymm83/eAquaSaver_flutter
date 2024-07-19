@@ -1,16 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../model/issue.dart';
 
 part 'issue_event.dart';
 part 'issue_state.dart';
 
 class IssueBloc extends Bloc<IssueEvent, IssueState> {
-  final SupabaseQuerySchema supabase;
-  final String userid;
+  final Supabase supabase;
+  //final String userid;
 
-  IssueBloc(this.supabase, this.userid) : super(IssueState()) {
+  IssueBloc() : super(IssueState()) {
     on<LoadIssues>(_onLoadIssues);
     on<AddIssue>(_onAddIssue);
     on<DeleteIssue>(_onDeleteIssue);
@@ -95,4 +94,5 @@ class IssueBloc extends Bloc<IssueEvent, IssueState> {
   void _onSelectIssueID(SelectIssueID event, Emitter<IssueState> emit) {
     emit(state.copyWith(selectId: event.selectId));
   }
+
 }
