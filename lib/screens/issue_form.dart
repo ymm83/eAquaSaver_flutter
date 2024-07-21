@@ -25,23 +25,39 @@ class _IssueFormState extends State<IssueForm> {
 
   @override
   void initState() {
-    super.initState();
+    debugPrint('INITSTATE CALLED');
+    issueTitleController.text = '';
+    issueBodyController.text = '';
     if (widget.typeForm == 'edit') {
       final issueId = context.read<IssueBloc>().state.selectId;
-      // _issueData = await _getAsyncIssueById(issueId);
+      //_issueData = _getAsyncIssueById(issueId);
       _getIssueById(issueId);
+
       //debugPrint('------------- _issueData: ${_issueData['submitter']}');
       // issueTitleController = TextEditingController(text: _issueData['summary']);
       //issueBodyController = TextEditingController(text: _issueData['description']);
       //issueTitleController.text = 'summary';
       //issueBodyController.text = 'description';
+      setState(() {});
     }
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    debugPrint('didChangeDependencies CALLED');
+    if (widget.typeForm == 'edit') {
+      final issueId = context.read<IssueBloc>().state.selectId;
+      // _getIssueById(issueId);
+    }
+    super.didChangeDependencies();
   }
 
   @override
   void dispose() {
     issueTitleController.dispose();
     issueBodyController.dispose();
+    debugPrint('DISPOSE CALLED');
     super.dispose();
   }
 
@@ -62,13 +78,19 @@ class _IssueFormState extends State<IssueForm> {
       });
       final supabase = widget.supabase;
       final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
-      setState(() {
-        _issueData = data;
-        issueTitleController.text = data['summary'];
-        issueBodyController.text = data['description'];
-        selectedRadio = _issueData['target'] == 'app' ? 1 : 2;
-        _isLoading = false;
-      });
+      if (data.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _issueData = data;
+            //issueTitleController.text = data['summary'];
+            //issueBodyController.text = data['description'];
+            issueTitleController = TextEditingController(text: _issueData['summary']);
+            issueBodyController = TextEditingController(text: _issueData['description']);
+            selectedRadio = _issueData['target'] == 'app' ? 1 : 2;
+            _isLoading = false;
+          });
+        }
+      }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -79,6 +101,41 @@ class _IssueFormState extends State<IssueForm> {
     } finally {
       setState(() {
         _isLoading = false;
+      });
+    }
+  }
+
+  void _addIssue() async {
+    final supabase = widget.supabase;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final List<dynamic> data = await supabase.schema('eaquasaver').from('issue').insert(
+        {
+          'submitter': supabase.auth.currentUser?.id,
+          'summary': issueTitleController.text,
+          'description': issueBodyController.text,
+          'target': selectedRadio == 1 ? 'app' : 'device'
+        },
+      ).select();
+      if (data.length > 0) {
+        debugPrint('Issue añadido correctamente!');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      Future.delayed(const Duration(seconds: 1), () {
+        widget.pageController.jumpToPage(3);
+        //super.dispose();
       });
     }
   }
@@ -101,12 +158,15 @@ class _IssueFormState extends State<IssueForm> {
           .eq('id', id)
           .select()
           .single();
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (data.isNotEmpty) {
+        debugPrint('Issue actualizado correctamente!');
+        /*ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Issue updated successfully'),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
-      );
+      );*/
+      }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -118,8 +178,10 @@ class _IssueFormState extends State<IssueForm> {
       setState(() {
         _isLoading = false;
       });
+
       Future.delayed(const Duration(seconds: 1), () {
         widget.pageController.jumpToPage(3);
+        //super.dispose();
       });
     }
   }
@@ -190,10 +252,11 @@ class _IssueFormState extends State<IssueForm> {
       floatingActionButton: FloatingActionButton(
         elevation: 5,
         onPressed: () {
-          final issueBloc = BlocProvider.of<IssueBloc>(context);
+          FocusScope.of(context).unfocus();
           if (widget.typeForm == 'new') {
-            //issueBloc.add(AddIssue(issueTitleController.text, issueBodyController.text, selectedRadio ));
+            _addIssue();
           } else if (widget.typeForm == 'edit') {
+            final issueBloc = BlocProvider.of<IssueBloc>(context);
             _updateIssueById(issueBloc.state.selectId, issueBloc);
           }
         },

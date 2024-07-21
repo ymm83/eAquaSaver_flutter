@@ -26,7 +26,7 @@ class IssueColor {
     }*/
 
 class IssueScreen extends StatefulWidget {
-   final PageController pageController;
+  final PageController pageController;
 
   const IssueScreen({super.key, required this.pageController});
 
@@ -217,15 +217,18 @@ class _IssueScreenState extends State<IssueScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
-        return Scaffold(
+      return Scaffold(
           body: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : (_newIssue == false)
                   ? ListView.builder(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      shrinkWrap: true,
                       itemCount: _issueData.length,
                       itemBuilder: (BuildContext context, int index) {
-                        final formattedDate =
-                            Moment(DateTime.parse(_issueData[index]['created_at'])).startOf(DurationUnit.second).fromNow();
+                        final formattedDate = Moment(DateTime.parse(_issueData[index]['created_at']))
+                            .startOf(DurationUnit.second)
+                            .fromNow();
                         //debugPrint('$formattedDate');
                         return Card(
                           color: Color.fromARGB(255, 191, 241, 239),
@@ -233,7 +236,8 @@ class _IssueScreenState extends State<IssueScreen> {
                             key: GlobalKey(),
                             title: Text(
                               '${_issueData[index]['id']}-${_issueData[index]['summary']}',
-                              style: const TextStyle(fontWeight: FontWeight.w400, color: Color.fromARGB(255, 1, 24, 43)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w400, color: Color.fromARGB(255, 1, 24, 43)),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +270,7 @@ class _IssueScreenState extends State<IssueScreen> {
                                         onTap: () {
                                           context.read<IssueBloc>().add(EditIssue(_issueData[index]['id']));
                                           widget.pageController.jumpToPage(5);
-                                          },
+                                        },
                                         splashColor: Color.fromARGB(255, 122, 191, 245),
                                         borderRadius: BorderRadius.circular(50),
                                         child: const Icon(
@@ -359,39 +363,40 @@ class _IssueScreenState extends State<IssueScreen> {
                           ),
                         ],
                       )),
-          floatingActionButton: (_newIssue == false)
-              ? FloatingActionButton(
-                  onPressed: () {
-                    setState(() {
-                      _newIssue = true;
-                    });
-                  },
-                  backgroundColor: Colors.blue,
-                  shape: const CircleBorder(),
-                  child: const Icon(
-                    Icons.add,
-                    size: 40,
-                  ),
-                )
-              : FloatingActionButton(
-                  onPressed: () {
-                    _saveIssue();
-                    debugPrint(
-                        'user_id ${supabase.auth.currentUser?.id.toString()} summary: ${issueTitleController.text} description: ${issueBodyController.text} target: ${(selectedRadio == 1) ? 'app' : (selectedRadio == 2) ? 'device' : null}');
-                    setState(() {
-                      _newIssue = false;
-                    });
-                  },
-                  backgroundColor: Colors.green,
-                  shape: const CircleBorder(),
-                  child: const Icon(
-                    Icons.check_outlined,
-                    size: 40,
-                  ),
+          floatingActionButton:
+              //(_newIssue == false)
+              /*?*/ FloatingActionButton(
+            onPressed: () {
+              setState(() {
+                _newIssue = true;
+              });
+              widget.pageController.jumpToPage(4);
+            },
+            backgroundColor: Colors.blue,
+            shape: const CircleBorder(),
+            child: const Icon(
+              Icons.add,
+              size: 40,
+            ),
+          )
+          /*: FloatingActionButton(
+                onPressed: () {
+                  _saveIssue();
+                  debugPrint(
+                      'user_id ${supabase.auth.currentUser?.id.toString()} summary: ${issueTitleController.text} description: ${issueBodyController.text} target: ${(selectedRadio == 1) ? 'app' : (selectedRadio == 2) ? 'device' : null}');
+                  setState(() {
+                    _newIssue = false;
+                  });
+                },
+                backgroundColor: Colors.green,
+                shape: const CircleBorder(),
+                child: const Icon(
+                  Icons.check_outlined,
+                  size: 40,
                 ),
-        );
-      }
-    );
+              ),*/
+          );
+    });
   }
 }
 

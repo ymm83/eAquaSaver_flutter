@@ -1,9 +1,7 @@
 import 'package:eaquasaver_flutter_app/bloc/bloc/bloc_bloc.dart';
-import 'package:eaquasaver_flutter_app/main.dart';
 import 'package:eaquasaver_flutter_app/screens/issue_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_screen.dart';
 import 'issue_screen.dart';
@@ -16,7 +14,7 @@ class UserTabs extends StatefulWidget {
 }
 
 class _UserTabsState extends State<UserTabs> {
-  final PageController _userTabController = PageController();
+  final PageController _userTabController = PageController(keepPage: false);
   int _pageChanged = 0;
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
@@ -67,7 +65,7 @@ class _UserTabsState extends State<UserTabs> {
       ),
       body: PageView(
         physics: const NeverScrollableScrollPhysics(),
-        pageSnapping: true,
+        pageSnapping: false,
         controller: _userTabController,
         onPageChanged: (index) {
           setState(() {
