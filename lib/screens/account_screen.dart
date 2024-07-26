@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'auth_login.dart';
 import '../main.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -107,33 +106,6 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  Future<void> _signOut() async {
-    try {
-      await supabase.auth.signOut();
-    } on AuthException catch (error) {
-      if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
-      }
-    } finally {
-      if (mounted) {
-        //Navigator.of(context).pushNamed('/login');
-        //Navigator.of(context).pop();
-        print(Navigator.of(context).toString());
-        //Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
-      }
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -169,25 +141,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   onPressed: _loading ? null : _updateProfile,
                   child: Text(_loading ? 'Saving...' : 'Update'),
                 ),
-                const SizedBox(height: 18),
-                TextButton(
-                    //onPressed: _signOut,
-                    onPressed: () {
-                      /*Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (contexto) => const LoginPage()),
-                        (Route ruta) => false,
-                      );*/
-                      //Navigator.pushNamed(context, '/login');
-                     // Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => const LoginPage()));
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
-                        ),
-                      );
-                    },
-                    child: const Text('Sign Out')),
               ],
             ),
     );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bloc/bloc/bloc_bloc.dart';
+import '../bloc/issue/issue_bloc.dart';
+import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
 import 'issue_screen.dart';
@@ -53,7 +54,6 @@ class _UserTabsState extends State<UserTabs> {
   @override
   Widget build(BuildContext context) {
     final SupabaseClient supa = BlocProvider.of<IssueBloc>(context).supabase;
-    List act = [3, 4, 5];
     return Scaffold(
       appBar: AppBar(
         leading: _currentPage > 0
@@ -83,7 +83,7 @@ class _UserTabsState extends State<UserTabs> {
           });
         },
         children: [
-          const Center(child: Text('User Dashboard')),
+          const UserDashboard(),
           const AccountScreen(),
           ReviewsScreen(supabase: supa, pageController: _userTabController),
           IssueScreen(pageController: _userTabController),

@@ -1,4 +1,4 @@
-import 'package:eaquasaver_flutter_app/bloc/bloc/bloc_bloc.dart';
+import 'package:eaquasaver_flutter_app/bloc/issue/issue_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moment_dart/moment_dart.dart';

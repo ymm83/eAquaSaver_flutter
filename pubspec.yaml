@@ -46,6 +46,10 @@ dependencies:
   flutter_bloc: ^8.1.6
   moment_dart: ^2.1.0
   flutter_rating_bar: ^4.0.1
+  flutter_map: ^7.0.2
+  flutter_map_cancellable_tile_provider: ^3.0.0
+  latlong2: ^0.9.1
+  connectivity_plus: ^6.0.3
 
 dev_dependencies:
   flutter_test:

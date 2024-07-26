@@ -16,7 +16,8 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _redirect() async {
-    await Future.delayed(Duration.zero);
+    //await Future.delayed(Duration.zero);
+    await Future.delayed(const Duration(seconds: 3));
     if (!mounted) {
       return;
     }
@@ -32,7 +33,42 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+      backgroundColor: Color.fromARGB(255, 237, 243, 250),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image(
+            image: AssetImage('assets/company_logo.png'),
+            width: 200,
+            height: 150,
+          ),
+          SizedBox(height: 20),
+          Center(
+              child: Text(
+            'eAquaSaver App',
+            style: TextStyle(fontSize: 27, color: Color.fromARGB(255, 3, 50, 138), fontWeight: FontWeight.bold),
+          )),
+          SizedBox(height: 10),
+          Padding(
+              padding: EdgeInsets.all(20),
+              child: LinearProgressIndicator(
+                color: Colors.blue,
+                backgroundColor: Colors.redAccent,
+              )),
+          Center(child: SizedBox(height: 10)),
+          Center(
+              child: Text(
+            'Loading...',
+            style: TextStyle(fontSize: 17, color: Color.fromARGB(255, 3, 50, 138)),
+          )),
+          Padding(
+              padding: EdgeInsets.only(top: 100),
+              child: Text(
+                'SantRoss Tech Company ®',
+                style: TextStyle(color: Color.fromARGB(255, 7, 128, 11), fontSize: 15),
+              ))
+        ],
+      ),
     );
   }
 }

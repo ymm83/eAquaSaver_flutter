@@ -8,7 +8,8 @@ import 'screens/auth_login.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
 import 'bloc/ble/ble_bloc.dart';
-import 'bloc/bloc/bloc_bloc.dart';
+import 'bloc/location/location_bloc.dart';
+import 'bloc/issue/issue_bloc.dart';
 
 final supabase = Supabase.instance.client;
 final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
@@ -26,6 +27,7 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (context) => BleBloc(flutterBlue)),
         BlocProvider(create: (context) => IssueBloc(supabase)),
+        BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
       ],
       child: MyApp(),
     ),
@@ -51,23 +53,23 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/login',
+      initialRoute: '/splash',
       routes: <String, WidgetBuilder>{
-        '/': (_) => const SplashPage(),
+        '/splash': (_) => const SplashPage(),
         '/main': (_) => const BLEMainScreen(),
         '/login': (_) => const LoginPage(),
         '/account': (_) => const AccountScreen(),
       },
-      onGenerateRoute: (RouteSettings settings) {
-        print('Ruta llamado ${settings.name}');
+      /*onGenerateRoute: (RouteSettings settings) {
+        //print('Ruta llamado ${settings.name}');
         return null;
         /*if (settings.name == '/login') {
           return MaterialPageRoute(builder: (_) => const LoginPage());
         }*/
-      },
-      onUnknownRoute: (settings) {
+      },*/
+      /*onUnknownRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const BLEMainScreen());
-      },
+      },*/
     );
   }
 }

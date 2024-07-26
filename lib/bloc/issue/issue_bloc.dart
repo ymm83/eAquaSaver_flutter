@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'bloc_event.dart';
-part 'bloc_state.dart';
+part 'issue_event.dart';
+part 'issue_state.dart';
 
 class IssueBloc extends Bloc<IssueEvent, IssueState> {
   final SupabaseClient supabase;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 //import '../bloc/issue/issue_bloc.dart';
-import '../bloc/bloc/bloc_bloc.dart';
+import '../bloc/issue/issue_bloc.dart';
 
 class IssueForm extends StatefulWidget {
   final String typeForm;

@@ -1,4 +1,4 @@
-part of 'bloc_bloc.dart';
+part of 'issue_bloc.dart';
 
 class IssueState {
   final int selectId;
