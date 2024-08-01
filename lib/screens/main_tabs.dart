@@ -1,3 +1,4 @@
+import 'package:eaquasaver_flutter_app/screens/device_charts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/ble/ble_bloc.dart';
@@ -27,7 +28,7 @@ class _MainTabsState extends State<MainTabs> {
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
                       setState(() {
-                        _pageTitle = 'Scan Devices';
+                        _pageTitle = 'Manager';
                       });
                       _pageController.jumpToPage(0);
                       context.read<BleBloc>().add(const DetailsClose());
@@ -35,7 +36,26 @@ class _MainTabsState extends State<MainTabs> {
                   )
                 : null,
             actions: state.showDetails
-                ? []
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () {
+                        setState(() {
+                          _pageTitle = 'Manager';
+                        });
+                        _pageController.jumpToPage(1);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.bar_chart_outlined),
+                      onPressed: () {
+                        setState(() {
+                          _pageTitle = 'Statistics';
+                        });
+                        _pageController.jumpToPage(3);
+                      },
+                    )
+                  ]
                 : [
                     IconButton(
                       icon: const Icon(Icons.bluetooth),
@@ -50,7 +70,7 @@ class _MainTabsState extends State<MainTabs> {
                       icon: const Icon(Icons.settings),
                       onPressed: () {
                         setState(() {
-                          _pageTitle = 'Device Details';
+                          _pageTitle = 'Manager';
                         });
                         _pageController.jumpToPage(2);
                       },
@@ -65,10 +85,12 @@ class _MainTabsState extends State<MainTabs> {
             pageSnapping: true,
             controller: _pageController,
             onPageChanged: (index) {
-              setState(() {
-                _pageChanged = index;
-                _pageTitle = index == 0 ? 'Scan Devices' : 'Device Details';
-              });
+              _pageChanged = index;
+              if (index == 0) {
+                setState(() {
+                  _pageTitle = 'Scan Devices';
+                });
+              }
             },
             children: [
               ScanScreen(pageController: _pageController),
@@ -80,9 +102,9 @@ class _MainTabsState extends State<MainTabs> {
                   return const Center(child: CircularProgressIndicator());
                 },
               ),
-              const Center(child: Text('Settings BLE'))
+              const Center(child: Text('Settings BLE')),
+              DeviceCharts.withRandomData()
             ],
-            
           ),
         );
       },

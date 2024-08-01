@@ -100,10 +100,18 @@ class _UserDashboardState extends State<UserDashboard> {
           : ListView(
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
               children: [
-                Center(child: Text(userData.isNotEmpty ? '${userData['firstname']} ${userData['lastname']}' : '')),
-                const SizedBox(height: 18),
-                Center(child: Text('${supabase.auth.currentUser!.email}')),
-                const SizedBox(height: 18),
+                Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  color: Colors.blue.shade200,
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Text('YM'),
+                    ),
+                    title: Text(userData.isNotEmpty ? '${userData['firstname']} ${userData['lastname']}' : ''),
+                    subtitle: Text('${supabase.auth.currentUser!.email}'),
+                  ),
+                ),
+                const SizedBox(height: 30),
                 Positioned.fill(
                     bottom: 20,
                     child: Center(

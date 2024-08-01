@@ -50,6 +50,8 @@ dependencies:
   flutter_map_cancellable_tile_provider: ^3.0.0
   latlong2: ^0.9.1
   connectivity_plus: ^6.0.3
+  d_chart: ^2.6.9
+  community_charts_flutter: ^1.0.4
 
 dev_dependencies:
   flutter_test:
