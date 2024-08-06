@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import "package:unorm_dart/unorm_dart.dart" as unorm;
 
 const String QUALITY_URL = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable';
 
 String upperAndClean(String str) {
-  return str.toUpperCase().normalize().replaceAll(RegExp(r'[\u0300-\u036f]'), '');
+  return unorm.nfc(str.toUpperCase()).replaceAll(RegExp(r'[\u0300-\u036f]'), '');
+  //return str.toUpperCase().normalize().replaceAll(RegExp(r'[\u0300-\u036f]'), '');
 }
 
 Future<String?> getPlaceByZipCode(String code) async {
@@ -24,7 +26,7 @@ Future<String?> getPlaceByZipCode(String code) async {
       throw Exception('Failed to load place');
     }
   } catch (error) {
-    print('---Error---: Fn>getPlaceByZipCode>TryCatch: $error');
+    debugPrint('---Error---: Fn>getPlaceByZipCode>TryCatch: $error');
     return null;
   }
 }
@@ -50,13 +52,14 @@ Future<dynamic> franceEuaCommune(String commune) async {
       throw Exception('Failed to load commune data');
     }
   } catch (error) {
-    print('---Error---: Fn>franceEuaCommune>TryCatch: $error');
+    debugPrint('---Error---: Fn>franceEuaCommune>TryCatch: $error');
     return null;
   }
 }
 
 Future<List<dynamic>> rawApiResults(String codeCommune) async {
-  final String apiUrl = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=$codeCommune&code_parametre=1302,1338,1337,1367,1345&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,resultat_alphanumerique&date_min_prelevement=2021-01-01&sort=desc';
+  final String apiUrl =
+      'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=$codeCommune&code_parametre=1302,1338,1337,1367,1345&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,resultat_alphanumerique&date_min_prelevement=2021-01-01&sort=desc';
 
   try {
     final response = await http.get(Uri.parse(apiUrl), headers: {'Accept-Language': 'fr'});
@@ -95,7 +98,7 @@ Future<List<dynamic>> rawApiResults(String codeCommune) async {
       throw Exception('Failed to load raw API results');
     }
   } catch (error) {
-    print('Error: rawApiResults $error');
+    debugPrint('Error: rawApiResults $error');
     return [];
   }
 }

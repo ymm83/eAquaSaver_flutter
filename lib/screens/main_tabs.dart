@@ -103,7 +103,14 @@ class _MainTabsState extends State<MainTabs> {
                 },
               ),
               const Center(child: Text('Settings BLE')),
-              DeviceCharts.withRandomData()
+              BlocBuilder<BleBloc, BleState>(
+                builder: (context, state) {
+                  if (state is BleConnected) {
+                    return DeviceCharts(device: state.device);
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              )
             ],
           ),
         );

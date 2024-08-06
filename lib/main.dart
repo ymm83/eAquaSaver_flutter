@@ -10,6 +10,7 @@ import 'config/supabase.dart';
 import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
 import 'bloc/issue/issue_bloc.dart';
+import 'api/secure_storage.dart';
 
 final supabase = Supabase.instance.client;
 final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
@@ -19,7 +20,10 @@ Future<void> main() async {
   await Supabase.initialize(
     url: dbUrl,
     anonKey: dbAnonKey,
-    authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
+    authOptions: FlutterAuthClientOptions(localStorage: MySecureStorage()),
+    storageOptions: const StorageClientOptions(
+      retryAttempts: 5,
+    ),
   );
   //runApp(const MyApp());
   runApp(
@@ -60,16 +64,6 @@ class MyApp extends StatelessWidget {
         '/login': (_) => const LoginPage(),
         '/account': (_) => const AccountScreen(),
       },
-      /*onGenerateRoute: (RouteSettings settings) {
-        //print('Ruta llamado ${settings.name}');
-        return null;
-        /*if (settings.name == '/login') {
-          return MaterialPageRoute(builder: (_) => const LoginPage());
-        }*/
-      },*/
-      /*onUnknownRoute: (settings) {
-        return MaterialPageRoute(builder: (context) => const BLEMainScreen());
-      },*/
     );
   }
 }

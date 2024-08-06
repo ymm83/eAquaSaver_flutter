@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import "dart:typed_data";
 
 import "package:flutter/material.dart";
 import "package:flutter_blue_plus/flutter_blue_plus.dart";
@@ -49,16 +50,26 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
 
   Future onReadPressed() async {
     try {
-      await c.read();
-      Snackbar.show(ABC.c, "Read: Success", success: true);
+      await c.read().then((onValue) {
+        debugPrint('*********fromCharCodes: ${String.fromCharCodes(onValue)}');
+        debugPrint('${_convertData(onValue)}');
+      });
+     // Snackbar.show(ABC.c, "Read: Success", success: true);
     } catch (e) {
       Snackbar.show(ABC.c, prettyException("Read Error:", e), success: false);
     }
   }
 
+  int _convertData(List<int> value) {
+    // Asumiendo que los valores son enteros de 16 bits sin signo
+    return ByteData.sublistView(Uint8List.fromList(value)).getUint16(0, Endian.little);
+  }
+
   Future onWritePressed() async {
+    final String data = 'yunior-ble';
     try {
-      await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);
+      await c.write(data.codeUnits, withoutResponse: c.properties.writeWithoutResponse);
+      //await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);
       Snackbar.show(ABC.c, "Write: Success", success: true);
       if (c.properties.read) {
         await c.read();

@@ -243,6 +243,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              Text(widget.device.advName), 
               buildRemoteId(context),
               OutlinedButton.icon(
                 icon: const Icon(Icons.bluetooth_disabled),

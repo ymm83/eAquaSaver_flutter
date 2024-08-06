@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_login.dart';
 import '../main.dart';
+import 'dart:convert';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -11,18 +13,19 @@ class UserDashboard extends StatefulWidget {
 }
 
 class _UserDashboardState extends State<UserDashboard> {
-  var _loading = true;
+  bool _loading = true;
   late Map userData;
+  FlutterSecureStorage _storage = FlutterSecureStorage();
 
-  /// Called once a user id is received within `onAuthenticated()`
-  Future<void> _getProfile() async {
-    setState(() {
+  Future<Map> _getOnlineProfile() async {
+    /*setState(() {
       _loading = true;
-    });
-
+    });*/
     try {
       final userId = supabase.auth.currentUser!.id;
       userData = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
+      await _storage.write(key: 'myprofile', value: json.encode(userData));
+      return userData;
     } on PostgrestException catch (error) {
       if (mounted) {
         SnackBar(
@@ -39,12 +42,38 @@ class _UserDashboardState extends State<UserDashboard> {
         );
       }
     } finally {
-      if (mounted) {
+      /*if (mounted) {
         setState(() {
           _loading = false;
         });
-      }
+      }*/
     }
+    return {};
+  }
+
+  /// Called once a user id is received within `onAuthenticated()`
+  Future<Map> _getLocalProfile() async {
+    /*setState(() {
+      _loading = true;
+    });*/
+    try {
+      final data = await _storage.read(key: 'myprofile');
+      debugPrint('---- Reading Secure Storage');
+      //data = jsonDecode(onValue!);
+      userData = json.decode(data!);
+      //userData['firstname'] = 'Loba';
+      debugPrint('---- ${userData.toString()}');
+      return userData;
+    } catch (e) {
+      debugPrint('${e.toString()}');
+    } finally {
+      /*if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }*/
+    }
+    return {};
   }
 
   final authSubscription = supabase.auth.onAuthStateChange.listen((data) {
@@ -84,7 +113,22 @@ class _UserDashboardState extends State<UserDashboard> {
   @override
   void initState() {
     super.initState();
-    _getProfile();
+    _getLocalProfile().then((localValue) {
+      userData = localValue;
+      if (userData.isEmpty) {
+        // get online profile
+        _getOnlineProfile().then((onlineValue) {
+          userData = onlineValue;
+          setState(() {
+            _loading = false;
+          });
+        });
+      } else {
+        setState(() {
+          _loading = false;
+        });
+      }
+    });
   }
 
   @override

@@ -1,4 +1,3 @@
-import 'package:eaquasaver_flutter_app/screens/device_charts.dart';
 import 'package:flutter/material.dart';
 import 'map_sceen.dart';
 import 'water_sceen.dart';
@@ -53,16 +52,6 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
               _pageController.jumpToPage(1);
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart_sharp),
-            onPressed: () {
-              setState(() {
-                pageTitle = 'Charts';
-                pageChanged = 2;
-              });
-              _pageController.jumpToPage(2);
-            },
-          ),
         ],
         backgroundColor: Colors.green[100],
         elevation: 0,
@@ -78,10 +67,9 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
             pageTitle = index == 0 ? 'Water' : 'Location';
           });
         },
-        children: [
-          const WaterScreen(),
-          const MapScreen(),
-          DeviceCharts.withSampleData(),
+        children: const [
+          WaterScreen(),
+          MapScreen(),
         ],
       ),
     );

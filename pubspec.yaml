@@ -52,6 +52,8 @@ dependencies:
   connectivity_plus: ^6.0.3
   d_chart: ^2.6.9
   community_charts_flutter: ^1.0.4
+  flutter_secure_storage: ^8.1.0
+  unorm_dart: ^0.3.0
 
 dev_dependencies:
   flutter_test:

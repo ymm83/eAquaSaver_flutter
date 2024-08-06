@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 
 part 'location_event.dart';
@@ -10,6 +12,7 @@ part 'location_state.dart';
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final GeolocatorPlatform _geolocator = GeolocatorPlatform.instance;
   late StreamSubscription<Position> _positionSubscription;
+  final FlutterSecureStorage _storage = FlutterSecureStorage();
 
   LocationBloc() : super(LocationInitial()) {
     on<LocationStarted>(_onLocationStarted);
@@ -39,9 +42,10 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         return;
       }
 
-      _positionSubscription = _geolocator
-          .getPositionStream()
-          .listen((Position position) => add(LocationChanged(position: position)));
+      _positionSubscription = _geolocator.getPositionStream().listen((Position position) {
+        add(LocationChanged(position: position));
+        _storage.write(key: 'storageLocation', value: jsonEncode(position));
+      });
     } catch (_) {
       emit(LocationLoadFailure());
     }
