@@ -66,7 +66,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
   }
 
   Future onWritePressed() async {
-    final String data = 'yunior-ble';
+    final String data = '400';
     try {
       await c.write(data.codeUnits, withoutResponse: c.properties.writeWithoutResponse);
       //await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);

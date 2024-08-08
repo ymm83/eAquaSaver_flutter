@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import "package:unorm_dart/unorm_dart.dart" as unorm;
 
+const String REVERSE_URL = 'https://nominatim.openstreetmap.org';
 const String QUALITY_URL = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable';
 
 String upperAndClean(String str) {
-  return unorm.nfc(str.toUpperCase()).replaceAll(RegExp(r'[\u0300-\u036f]'), '');
+  return unorm.nfd(str.toUpperCase()).replaceAll(RegExp(r'[\u0300-\u036f]'), '');
   //return str.toUpperCase().normalize().replaceAll(RegExp(r'[\u0300-\u036f]'), '');
 }
 
@@ -102,3 +103,43 @@ Future<List<dynamic>> rawApiResults(String codeCommune) async {
     return [];
   }
 }
+
+
+Future<Map<String, dynamic>> getReverseLocation(Map<String, double> coord) async {
+  final double lat = coord['latitude']!;
+  final double lon = coord['longitude']!;
+  final String url = '$REVERSE_URL/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1';
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: {'Accept-Language': 'en'},
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> result = jsonDecode(response.body);
+
+    if (result['address'] != null) {
+      if (result['address']['municipality'] != null) {
+        final String coordsPlace = upperAndClean(result['address']['municipality']);
+        result['address']['region'] = coordsPlace;
+      } else if (result['address']['city'] != null) {
+        final String coordsPlace = result['address']['state'];
+        result['address']['region'] = coordsPlace;
+      }
+    }
+    //debugPrint('--getReverseLocation--: ${result.values}');
+    return result;
+  } else {
+    throw Exception('Failed to load reverse location');
+  }
+}
+
+/*region: coordsPlace, name: result.address.country, code: result.address.country_code */
+/*franceCommune(UpperAndClean(result.address.village.toUpperCase()));
+console.log('........ Address.........')
+console.log( result.address )
+console.log('........ Village .........')
+console.log( result.address.village )
+console.log('........ Commune.........')
+});
+}*/

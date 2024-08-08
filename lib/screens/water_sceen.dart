@@ -1,9 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../api/water.dart';
 import '../bloc/location/location_bloc.dart';
 
 class WaterScreen extends StatefulWidget {
@@ -15,10 +14,30 @@ class WaterScreen extends StatefulWidget {
 
 class _WaterScreenState extends State<WaterScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String? _address;
+  Map<String, dynamic>? _locationData;
 
-  Future<Map<String, dynamic>> _getStorageLocation() async {
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocationAndAddress();
+  }
+
+  Future<void> _fetchLocationAndAddress() async {
     final data = await _storage.read(key: 'storageLocation');
-    return jsonDecode(data!);
+    if (data != null) {
+      final locationData = jsonDecode(data);
+      final latitude = locationData['latitude'] ?? '0';
+      final longitude = locationData['longitude'] ?? '0';
+      setState(() {
+        _locationData = locationData;
+      });
+
+      final addressData = await getReverseLocation({'latitude': latitude, 'longitude': longitude});
+      setState(() {
+        _address = addressData['address']['city_district'];
+      });
+    }
   }
 
   @override
@@ -30,22 +49,19 @@ class _WaterScreenState extends State<WaterScreen> {
             return Center(child: Text('Water Screen ${state.position}'));
           }
 
-          return FutureBuilder<Map<String, dynamic>>(
-            future: _getStorageLocation(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (snapshot.hasData) {
-                final data = snapshot.data!;
-                final latitude = data['latitude'] ?? 'No latitude';
-                final longitude = data['longitude'] ?? 'No longitude';
-                return Center(child: Text('Stored Location: Lat: $latitude, Lon: $longitude'));
-              } else {
-                return Center(child: Text('No data available'));
-              }
-            },
+          if (_locationData == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final latitude = _locationData!['latitude'] ?? '0';
+          final longitude = _locationData!['longitude'] ?? '0';
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(child: Text('Stored Location: Lat: $latitude, Lon: $longitude')),
+              Center(child: Text('Address: ${_address ?? 'Loading...'}')),
+            ],
           );
         },
       ),

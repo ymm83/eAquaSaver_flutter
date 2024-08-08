@@ -96,8 +96,9 @@ class _DeviceChartsState extends State<DeviceCharts> {
 
   void _addData(String charName, int value) {
     DateTime now = DateTime.now();
-    switch (charName) {
-      case 'current_saved_water':
+
+    /*switch (charName) {
+     case 'current_saved_water':
         _dataCurrentSavedWater.add(TimeSeriesValue(now, value));
         break;
       case 'current_used_water':
@@ -109,12 +110,68 @@ class _DeviceChartsState extends State<DeviceCharts> {
       case 'whole_used_water':
         _dataWholeUsedWater.add(TimeSeriesValue(now, value));
         break;
-    }
+      default:
+       
+        break;
+    }*/
+    // _testWaterData.add(TimeSeriesValue(now, random.nextInt(100)));
+  }
+
+  /// Create one series with sample hard coded data.
+  static List<charts.Series<TimeSeriesValue, DateTime>> _createSampleData2() {
+    final data = [
+      TimeSeriesValue(DateTime(2017, 9, 19), 5),
+      TimeSeriesValue(DateTime(2017, 9, 26), 25),
+      TimeSeriesValue(DateTime(2017, 10, 3), 100),
+      TimeSeriesValue(DateTime(2017, 10, 10), 75),
+    ];
+
+    return [
+      charts.Series<TimeSeriesValue, DateTime>(
+        id: 'SSssss',
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+        domainFn: (TimeSeriesValue sales, _) => sales.time,
+        measureFn: (TimeSeriesValue sales, _) => sales.value,
+        data: data,
+      )
+    ];
+  }
+
+  final List<TimeSeriesValue> _testWaterData = [
+    TimeSeriesValue(DateTime.now(), Random().nextInt(100)),
+    TimeSeriesValue(DateTime.now(), Random().nextInt(100)),
+    TimeSeriesValue(DateTime.now(), Random().nextInt(100)),
+    TimeSeriesValue(DateTime.now(), Random().nextInt(100)),
+    TimeSeriesValue(DateTime.now(), Random().nextInt(100)),
+  ];
+
+  static List<charts.Series<OrdinalSales, String>> _createSampleData() {
+    final data = [
+      OrdinalSales('Enero', 5),
+      OrdinalSales('Febrero', 25),
+      OrdinalSales('Marzo', 100),
+      OrdinalSales('Abril', 75),
+      OrdinalSales('Mayo', 25),
+      OrdinalSales('Junio', 35),
+      OrdinalSales('Julio', 16),
+      OrdinalSales('Agosto', 90),
+    ];
+
+    return [
+      charts.Series<OrdinalSales, String>(
+          id: 'Sales',
+          domainFn: (OrdinalSales sales, _) => sales.year,
+          measureFn: (OrdinalSales sales, _) => sales.sales,
+          data: data,
+          displayName: 'ddd',
+          // Set a label accessor to control the text of the bar label.
+          labelAccessorFn: (OrdinalSales sales, _) => '${sales.sales.toString()}')
+    ];
   }
 
   void _updateChart() {
-    _seriesList = [
-      charts.Series<TimeSeriesValue, DateTime>(
+    /* _seriesList = [
+      /*charts.Series<TimeSeriesValue, DateTime>(
         id: 'Current Save',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
         domainFn: (TimeSeriesValue values, _) => values.time,
@@ -141,8 +198,15 @@ class _DeviceChartsState extends State<DeviceCharts> {
         domainFn: (TimeSeriesValue values, _) => values.time,
         measureFn: (TimeSeriesValue values, _) => values.value,
         data: _dataCurrentSavedWater,
+      ),**/
+      charts.Series<TimeSeriesValue, DateTime>(
+        id: 'Test data',
+        colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
+        domainFn: (TimeSeriesValue values, _) => values.time,
+        measureFn: (TimeSeriesValue values, _) => values.value,
+        data: _testWaterData2,
       ),
-    ];
+    ];*/
   }
 
   @override
@@ -171,42 +235,55 @@ class _DeviceChartsState extends State<DeviceCharts> {
       'whole_saved_water': '40cddbb0-0x0e58-0x47b1-0xb2fa-0xa93c4993d81d',
       'whole_used_water': '40cddbb1-0x0e58-0x47b1-0xb2fa-0xa93c4993d81d',
     };
-    for (BluetoothService service in widget.device.servicesList) {
-      if (service.serviceUuid.toString() == '40cddba8-0e58-47b1-b2fa-a93c4993d81d') {
-        debugPrint('${service.serviceUuid.toString()}');
-        debugPrint('${service.characteristics.asMap()}');
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
-          if (_characteristicNames.containsValue(characteristic.uuid.toString())) {
-            _targetCharacteristics.add(characteristic);
-            characteristic.setNotifyValue(true);
-            var sub = characteristic.lastValueStream.listen((value) {
-              setState(() {
-                String charName = _characteristicNames.entries
-                    .firstWhere((entry) => entry.value == characteristic.uuid.toString())
-                    .key;
-                int intValue = _convertData(value);
-                _addData(charName, value.first);
-                _updateChart();
-              });
+    /*for (BluetoothService service in widget.device.servicesList) {
+      // if (service.serviceUuid.toString() == '40cddba8-0e58-47b1-b2fa-a93c4993d81d') {
+      debugPrint('${service.serviceUuid.toString()}');
+      debugPrint('${service.characteristics.asMap()}');
+      for (BluetoothCharacteristic characteristic in service.characteristics) {
+        if (_characteristicNames.containsValue(characteristic.uuid.toString())) {
+          _targetCharacteristics.add(characteristic);
+          characteristic.setNotifyValue(true);
+
+          _addData(characteristic.uuid.toString().substring(0,4), Random().nextInt(100)); //no va aki
+          _updateChart(); // no va aki
+          /* var sub = characteristic.lastValueStream.listen((value) {
+            setState(() {
+              String charName = _characteristicNames.entries.firstWhere((entry) => entry.value == characteristic.uuid.toString()).key;
+              //var intValue = String.fromCharCodes(value);
+              //_addData(charName, String.fromCharCodes(value).);
+              //_addData(charName, value.first);
+              _addData(charName, 400);
+              _updateChart();
             });
-            _charSubscriptions.add(sub);
-          }
+          });
+          _charSubscriptions.add(sub);*/
         }
       }
-    }
+      //}
+    }*/
 
-    return Scaffold(
+    /* return Scaffold(
       appBar: AppBar(title: Text('BLE Data Chart')),
       body: charts.TimeSeriesChart(_seriesList, animate: true),
+    );*/
+
+    return charts.TimeSeriesChart(
+      _createSampleData2(),
+      animate: true,
+      // Optionally pass in a [DateTimeFactory] used by the chart. The factory
+      // should create the same type of [DateTime] as the data provided. If none
+      // specified, the default creates local date time.
+      dateTimeFactory: const charts.LocalDateTimeFactory(),
     );
+
     /*return Column(
       children: [
         const SizedBox(height: 20),
-        charts.TimeSeriesChart(_seriesList, animate: true),
-        /*SizedBox(
+        //charts.TimeSeriesChart(_seriesList, animate: true),
+        SizedBox(
           width: 900,
           height: 300,
-          child: charts.BarChart(
+          child: charts.TimeSeriesChart(
             behaviors: [
               charts.ChartTitle('Litros',
                   behaviorPosition: charts.BehaviorPosition.top,
@@ -222,17 +299,18 @@ class _DeviceChartsState extends State<DeviceCharts> {
                   behaviorPosition: charts.BehaviorPosition.end,
                   titleOutsideJustification: charts.OutsideJustification.middleDrawArea),*/
             ],
-            widget.seriesList ?? seriesList2,
-            animate: widget.animate,
+            _createSampleData2(),
+            //widget.seriesList ?? seriesList2,
+            animate: true,
             // Set a bar label decorator.
             // Example configuring different styles for inside/outside:
             //       barRendererDecorator: new charts.BarLabelDecorator(
             //          insideLabelStyleSpec: new charts.TextStyleSpec(...),
             //          outsideLabelStyleSpec: new charts.TextStyleSpec(...)),
-            barRendererDecorator: charts.BarLabelDecorator<String>(),
+           // barRendererDecorator: charts.BarLabelDecorator<String>(),
             domainAxis: const charts.OrdinalAxisSpec(),
           ),
-        ),*/
+        ),
       ],
     );*/
   }
