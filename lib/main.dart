@@ -1,7 +1,9 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/connectivity/connectivity_bloc.dart';
 import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
@@ -15,6 +17,7 @@ import 'api/secure_storage.dart';
 final supabase = Supabase.instance.client;
 final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
 final FlutterBluePlus flutterBlue = FlutterBluePlus();
+final connectivity = Connectivity();
 
 Future<void> main() async {
   await Supabase.initialize(
@@ -32,6 +35,7 @@ Future<void> main() async {
         BlocProvider(create: (context) => BleBloc(flutterBlue)),
         BlocProvider(create: (context) => IssueBloc(supabase)),
         BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
+        BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
       ],
       child: MyApp(),
     ),
