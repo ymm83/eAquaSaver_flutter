@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/connectivity/connectivity_bloc.dart';
 import 'map_sceen.dart';
 import 'water_sceen.dart';
 
@@ -27,29 +29,46 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
     super.dispose();
   }
 
+  void _navigateToPage(int page) {
+    // Verifica el estado de conectividad
+    final connectivityState = BlocProvider.of<ConnectivityBloc>(context).state;
+
+    if (connectivityState is ConnectivityOnline) {
+      _pageController.jumpToPage(page);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay conexión a Internet.'),
+          backgroundColor: Colors.red,
+          showCloseIcon: true,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final waterTabsController = Scaffold(
       appBar: AppBar(
         actions: [
           IconButton(
-            icon: const Icon(Icons.science_outlined),
+            icon: Icon(Icons.science_outlined, color: Colors.blue[900]),
             onPressed: () {
               setState(() {
                 pageTitle = 'Water';
                 pageChanged = 0;
               });
-              _pageController.jumpToPage(0);
+              _navigateToPage(0);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.location_on_outlined),
+            icon:  Icon(Icons.location_on_outlined, color: Colors.blue[900]),
             onPressed: () {
               setState(() {
                 pageTitle = 'Location';
                 pageChanged = 1;
               });
-              _pageController.jumpToPage(1);
+              _navigateToPage(1);
             },
           ),
         ],

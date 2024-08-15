@@ -55,6 +55,7 @@ dependencies:
   flutter_secure_storage: ^8.1.0
   unorm_dart: ^0.3.0
   http: ^1.2.2
+  flutter_map_dragmarker: ^7.0.0
 
 dev_dependencies:
   flutter_test:

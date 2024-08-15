@@ -25,7 +25,6 @@ class _IssueFormState extends State<IssueForm> {
 
   @override
   void initState() {
-    debugPrint('INITSTATE CALLED');
     issueTitleController.text = '';
     issueBodyController.text = '';
     if (widget.typeForm == 'edit') {
@@ -250,15 +249,15 @@ class _IssueFormState extends State<IssueForm> {
       }),
       floatingActionButton: FloatingActionButton(
         elevation: 5,
-        onPressed: _isLoading == true ? null : () {
-          FocusScope.of(context).unfocus();
-          if (widget.typeForm == 'new') {
-            _addIssue();
-          } else if (widget.typeForm == 'edit') {
-            final issueBloc = BlocProvider.of<IssueBloc>(context);
-            _updateIssueById(issueBloc.state.selectId, issueBloc);
-          }
-        },
+        onPressed: () {
+                FocusScope.of(context).unfocus();
+                if (widget.typeForm == 'new') {
+                  _addIssue();
+                } else if (widget.typeForm == 'edit') {
+                  final issueBloc = BlocProvider.of<IssueBloc>(context);
+                  _updateIssueById(issueBloc.state.selectId, issueBloc);
+                }
+              },
         backgroundColor: Colors.green,
         shape: const CircleBorder(),
         child: const Icon(
@@ -269,4 +268,3 @@ class _IssueFormState extends State<IssueForm> {
     );
   }
 }
-

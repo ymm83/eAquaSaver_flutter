@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/issue/issue_bloc.dart';
+import '../bloc/connectivity/connectivity_bloc.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -20,33 +21,54 @@ class _UserTabsState extends State<UserTabs> {
   int _currentPage = 0;
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+  void _navigateToPage(int page) {
+    // Verifica el estado de conectividad
+    final connectivityState = BlocProvider.of<ConnectivityBloc>(context).state;
+
+    if (connectivityState is ConnectivityOnline) {
+      _userTabController.jumpToPage(page);
+    } else {
+      // Mostrar SnackBar directamente aquí
+      scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('No hay conexión a Internet.'),
+          backgroundColor: Colors.red,
+          showCloseIcon: true,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   List<Widget> _actionsDefault(BuildContext context) {
     return [
       IconButton(
-        icon: const Icon(Icons.manage_accounts_outlined),
-        onPressed: () => _userTabController.jumpToPage(1),
+        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900]),
+        onPressed: () => _navigateToPage(1),
       ),
       IconButton(
-        icon: const Icon(Icons.reviews_outlined),
-        onPressed: () => _userTabController.jumpToPage(2),
+        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900]),
+        onPressed: () => _navigateToPage(2),
       ),
       IconButton(
-        icon: const Icon(Icons.bug_report_outlined),
-        onPressed: () => _userTabController.jumpToPage(3),
-      )
+        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900]),
+        onPressed: () => _navigateToPage(3),
+      ),
     ];
   }
 
   List<Widget> _actionsIssue(BuildContext context) {
     return [
       IconButton(
-        icon: const Icon(Icons.checklist_outlined),
-        onPressed: () => _userTabController.jumpToPage(3),
+        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900]),
+        onPressed: () => _navigateToPage(3),
       ),
       IconButton(
-        icon: const Icon(Icons.add_box_outlined),
-        onPressed: () => _userTabController.jumpToPage(4),
+        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900]),
+        onPressed: () => _navigateToPage(4),
       ),
     ];
   }
@@ -54,42 +76,46 @@ class _UserTabsState extends State<UserTabs> {
   @override
   Widget build(BuildContext context) {
     final SupabaseClient supa = BlocProvider.of<IssueBloc>(context).supabase;
-    return Scaffold(
-      appBar: AppBar(
-        leading: _currentPage > 0
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_outlined),
-                onPressed: () => _userTabController.jumpToPage(0),
-              )
-            : null,
-        leadingWidth: 40,
-        actions: _currentPage == 0
-            ? _actionsDefault(context)
-            : ([3, 4, 5].contains(_currentPage))
-                ? _actionsIssue(context)
-                : _actionsDefault(context),
-        backgroundColor: Colors.green[100],
-        elevation: 0,
-        title: Text(_pageTitle),
-      ),
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        pageSnapping: false,
-        controller: _userTabController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-            _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
-          });
-        },
-        children: [
-          const UserDashboard(),
-          const AccountScreen(),
-          ReviewsScreen(supabase: supa, pageController: _userTabController),
-          IssueScreen(pageController: _userTabController),
-          IssueForm(typeForm: 'new', supabase: supa, pageController: _userTabController),
-          IssueForm(typeForm: 'edit', supabase: supa, pageController: _userTabController),
-        ],
+
+    return ScaffoldMessenger(
+      key: scaffoldMessengerKey,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: _currentPage > 0
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back_outlined),
+                  onPressed: () => _navigateToPage(0),
+                )
+              : null,
+          leadingWidth: 40,
+          actions: _currentPage == 0
+              ? _actionsDefault(context)
+              : ([3, 4, 5].contains(_currentPage))
+                  ? _actionsIssue(context)
+                  : _actionsDefault(context),
+          backgroundColor: Colors.green[100],
+          elevation: 0,
+          title: Text(_pageTitle),
+        ),
+        body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          pageSnapping: false,
+          controller: _userTabController,
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index;
+              _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
+            });
+          },
+          children: [
+            const UserDashboard(),
+            const AccountScreen(),
+            ReviewsScreen(supabase: supa, pageController: _userTabController),
+            IssueScreen(pageController: _userTabController, supabase: supa),
+            IssueForm(typeForm: 'new', supabase: supa, pageController: _userTabController),
+            IssueForm(typeForm: 'edit', supabase: supa, pageController: _userTabController),
+          ],
+        ),
       ),
     );
   }

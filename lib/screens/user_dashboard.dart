@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -16,6 +18,7 @@ class _UserDashboardState extends State<UserDashboard> {
   bool _loading = true;
   late Map userData;
   FlutterSecureStorage _storage = FlutterSecureStorage();
+  late final StreamSubscription<AuthState> authSubscription;
 
   Future<Map> _getOnlineProfile() async {
     /*setState(() {
@@ -76,13 +79,6 @@ class _UserDashboardState extends State<UserDashboard> {
     return {};
   }
 
-  final authSubscription = supabase.auth.onAuthStateChange.listen((data) {
-    final AuthChangeEvent event = data.event;
-    if (event == AuthChangeEvent.signedOut) {
-      //Navigator.of(context).pushReplacementNamed('/login');
-    }
-  });
-
   Future<void> _signOut() async {
     setState(() {
       _loading = true;
@@ -112,7 +108,16 @@ class _UserDashboardState extends State<UserDashboard> {
 
   @override
   void initState() {
-    super.initState();
+    authSubscription = supabase.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.signedOut) {
+        if (mounted) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage())).then((_) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          });
+        }
+      }
+    });
     _getLocalProfile().then((localValue) {
       userData = localValue;
       if (userData.isEmpty) {
@@ -129,6 +134,7 @@ class _UserDashboardState extends State<UserDashboard> {
         });
       }
     });
+    super.initState();
   }
 
   @override
@@ -156,24 +162,8 @@ class _UserDashboardState extends State<UserDashboard> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                Positioned.fill(
-                    bottom: 20,
-                    child: Center(
-                        child: TextButton(
-                      onPressed: () {
-                        _signOut();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
-                      },
-                      child: TextButton.icon(
-                          onPressed: _signOut,
-                          label: const Text('Sign Out'),
-                          icon: const Icon(Icons.exit_to_app_outlined)),
-                    )))
+                TextButton.icon(
+                    onPressed: _signOut, label: const Text('Sign Out'), icon: const Icon(Icons.exit_to_app_outlined)),
               ],
             ),
     );
