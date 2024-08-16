@@ -1,0 +1,3 @@
+[submodule "lib/protobuf"]
+	path = lib/protobuf
+	url = https://gitlab.com/santross/brands/watersaver/protobuf.git
