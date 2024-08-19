@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:protobuf/protobuf.dart';
 import '../utils/extra.dart';
 import '../utils/snackbar.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
+import '../protobuf/eaquasaver_msg.pb.dart';
 
 class ScanScreen extends StatefulWidget {
   final PageController pageController;
@@ -25,16 +28,75 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
 
+  void _processManufacturerData(AdvertisementData advertisementData) {
+    // Verifica si hay datos de fabricante
+
+    debugPrint('advertisementData: ${advertisementData.manufacturerData}');
+
+    if (advertisementData.manufacturerData.isNotEmpty) {
+      advertisementData.manufacturerData.forEach((key, value) {
+        debugPrint('ID del fabricante: $key');
+        debugPrint('Datos del fabricante: ${value}');
+
+        // Decodifica los datos de Protobuf
+        debugPrint('value.runtimeType: ${value.runtimeType}');
+        _decodeManufacturerData(value);
+      });
+    } else {
+      debugPrint('No hay datos de fabricante disponibles.');
+    }
+  }
+
+  void _decodeManufacturerData(List<int> data) {
+    if (data.isEmpty) {
+      debugPrint('Error: Los datos están vacíos.');
+      return;
+    }
+
+    debugPrint('Datos recibidos para decodificación: ${getNiceHexArray(data)}');
+    // debugPrint('eAquaSaverMessage: ${data}');
+    try {
+      Uint8List byteList = Uint8List.fromList(data);
+
+      int size = byteList[0];
+      Uint8List protobufData = byteList.sublist(1, size);
+
+      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+
+      debugPrint("Tamaño del dato: $size");
+      debugPrint("Mensaje decodificado: $decodedMessage");
+
+      //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
+      //debugPrint('Decoded Manufacturer Data: ${decodedData}');
+
+      //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
+      //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
+    } catch (e) {
+      debugPrint('Error al decodificar los datos: $e');
+    }
+  }
+
+  String getNiceHexArray(List<int> bytes) {
+    return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]';
+  }
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
-      vsync: this, // Usa 'this' porque _ScanScreenState ahora implementa TickerProviderStateMixin
+      vsync: this,
     );
     onScanPressed();
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       if (mounted) {
+        for (ScanResult r in results) {
+          //if (r.device.advName == "eAquaSaver") {
+          debugPrint('eAquaSaver encontrado: ${r.device.advName}');
+          debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
+          _processManufacturerData(r.advertisementData);
+          //}
+        }
         setState(() {
           _scanResults = results;
         });
@@ -74,7 +136,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     try {
       await FlutterBluePlus.startScan(
           //withServices: [Guid('0x40cddba8-0x0e58-0x47b1-0xb2fa-0xa93c4993d81d')],
-          withNames: ['eAquaSaver'],
+          //withNames: ['eAquaSaver'],
           timeout: const Duration(seconds: 5));
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("Start Scan Error:", e), success: false);
