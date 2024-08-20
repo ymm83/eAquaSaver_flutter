@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:protobuf/protobuf.dart';
 import '../utils/extra.dart';
 import '../utils/snackbar.dart';
 import '../bloc/ble/ble_bloc.dart';
@@ -36,7 +35,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
         //debugPrint('ID del fabricante: $key');
-       // debugPrint('Datos del fabricante: ${value}');
+        // debugPrint('Datos del fabricante: ${value}');
 
         // Decodifica los datos de Protobuf
         debugPrint('value.runtimeType: ${value.runtimeType}');
@@ -55,26 +54,26 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
     debugPrint('Datos recibidos para decodificación: ${getNiceHexArray(data)}');
     // debugPrint('eAquaSaverMessage: ${data}');
-    //try {
-    Uint8List byteList = Uint8List.fromList(data);
-    debugPrint("byteList: $byteList");
+    try {
+      Uint8List byteList = Uint8List.fromList(data);
+      debugPrint("byteList: $byteList");
 
-    int size = byteList[0];
-    Uint8List protobufData = byteList.sublist(1, 24);
-debugPrint("protobufData: $protobufData");
-    eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+      int size = byteList[0];
+      Uint8List protobufData = byteList.sublist(1, 24);
+      debugPrint("protobufData: $protobufData");
+      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
 
-    debugPrint("Tamaño del dato: $size");
-    debugPrint("Mensaje decodificado: $decodedMessage");
+      debugPrint("Tamaño del dato: $size");
+      debugPrint("Mensaje decodificado: $decodedMessage");
 
-    //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
-    //debugPrint('Decoded Manufacturer Data: ${decodedData}');
+      //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
+      //debugPrint('Decoded Manufacturer Data: ${decodedData}');
 
-    //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
-    //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
-    //} catch (e) {
-    //  debugPrint('Error al decodificar los datos: $e');
-    //}
+      //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
+      //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
+    } catch (e) {
+      debugPrint('Error al decodificar los datos: $e');
+    }
   }
 
   String getNiceHexArray(List<int> bytes) {
@@ -92,11 +91,16 @@ debugPrint("protobufData: $protobufData");
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       if (mounted) {
         for (ScanResult r in results) {
-          //if (r.device.advName == "eAquaSaver") {
-          debugPrint('eAquaSaver encontrado: ${r.device.advName}');
-          debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
-          _processManufacturerData(r.advertisementData);
-          //}
+          String name = r.device.advName;
+          if (name.startsWith('eAquaS')) {
+            if (name == 'eAquaSaver') {
+              debugPrint('eAquaSaver encontrado: ${r.device.advName}');
+            }
+            if (name == 'eAquaS Beacon') {
+              debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
+            }
+            _processManufacturerData(r.advertisementData);
+          }
         }
         setState(() {
           _scanResults = results;

@@ -42,15 +42,6 @@ class _IssueFormState extends State<IssueForm> {
     super.initState();
   }
 
-  @override
-  void didChangeDependencies() {
-    debugPrint('didChangeDependencies CALLED');
-    if (widget.typeForm == 'edit') {
-      final issueId = context.read<IssueBloc>().state.selectId;
-      // _getIssueById(issueId);
-    }
-    super.didChangeDependencies();
-  }
 
   @override
   void dispose() {
