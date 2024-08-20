@@ -9,7 +9,7 @@ import '../utils/snackbar.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
-import '../protobuf/eaquasaver_msg.pb.dart';
+import '../protoc/eaquasaver_msg.pb.dart';
 
 class ScanScreen extends StatefulWidget {
   final PageController pageController;
@@ -35,8 +35,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
-        debugPrint('ID del fabricante: $key');
-        debugPrint('Datos del fabricante: ${value}');
+        //debugPrint('ID del fabricante: $key');
+       // debugPrint('Datos del fabricante: ${value}');
 
         // Decodifica los datos de Protobuf
         debugPrint('value.runtimeType: ${value.runtimeType}');
@@ -55,25 +55,26 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
     debugPrint('Datos recibidos para decodificación: ${getNiceHexArray(data)}');
     // debugPrint('eAquaSaverMessage: ${data}');
-    try {
-      Uint8List byteList = Uint8List.fromList(data);
+    //try {
+    Uint8List byteList = Uint8List.fromList(data);
+    debugPrint("byteList: $byteList");
 
-      int size = byteList[0];
-      Uint8List protobufData = byteList.sublist(1, size);
+    int size = byteList[0];
+    Uint8List protobufData = byteList.sublist(1, 24);
+debugPrint("protobufData: $protobufData");
+    eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
 
-      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+    debugPrint("Tamaño del dato: $size");
+    debugPrint("Mensaje decodificado: $decodedMessage");
 
-      debugPrint("Tamaño del dato: $size");
-      debugPrint("Mensaje decodificado: $decodedMessage");
+    //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
+    //debugPrint('Decoded Manufacturer Data: ${decodedData}');
 
-      //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
-      //debugPrint('Decoded Manufacturer Data: ${decodedData}');
-
-      //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
-      //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
-    } catch (e) {
-      debugPrint('Error al decodificar los datos: $e');
-    }
+    //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
+    //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
+    //} catch (e) {
+    //  debugPrint('Error al decodificar los datos: $e');
+    //}
   }
 
   String getNiceHexArray(List<int> bytes) {
