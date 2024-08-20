@@ -94,12 +94,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           String name = r.device.advName;
           if (name.startsWith('eAquaS')) {
             if (name == 'eAquaSaver') {
-              debugPrint('eAquaSaver encontrado: ${r.device.advName}');
+              debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
             }
             if (name == 'eAquaS Beacon') {
               debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
+              _processManufacturerData(r.advertisementData);
             }
-            _processManufacturerData(r.advertisementData);
           }
         }
         setState(() {
