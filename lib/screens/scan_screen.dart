@@ -27,7 +27,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
 
-  void _processManufacturerData(AdvertisementData advertisementData) {
+  /*void _processManufacturerData(AdvertisementData advertisementData) {
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
         _decodeManufacturerData(value);
@@ -59,17 +59,18 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
       debugPrint('Temperatura caliente: ${decodedMessage.hotTemperature}');
       debugPrint('Temperatura fría: ${decodedMessage.coldTemperature}');
+      debugPrint('Current hot used: ${decodedMessage.currentHotUsed}');
     } catch (e) {
-      debugPrint('Error al decodificar los datos: $e');
+      //debugPrint('Error al decodificar los datos: $e');
     }
-  }
+  }*/
 
   String getNiceHexArray(List<int> bytes) {
     return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]';
   }
 
   List<String> getHexArray(List<int> bytes) {
-    debugPrint('////////// ${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).toList()}');
+    //debugPrint('////////// ${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).toList()}');
     return bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).toList();
   }
 
@@ -84,21 +85,14 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       if (mounted) {
         for (ScanResult r in results) {
-          String name = r.device.advName;
-          if (name.startsWith('eAquaS')) {
-            if (name == 'eAquaSaver') {
-              debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
-            }
-            if (name == 'eAquaS Beacon') {
-              debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
-              _processManufacturerData(r.advertisementData);
-            }
+          if (r.device.advName == 'eAquaSaver') {
+            //debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
           }
         }
-        setState(() {
-          _scanResults = results;
-        });
       }
+      setState(() {
+        _scanResults = results.where((r) => r.device.advName.startsWith('eAquaS')).toList();
+      });
     }, onError: (e) {
       Snackbar.show(ABC.b, prettyException("Scan Error:", e), success: false);
     });
@@ -135,7 +129,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       await FlutterBluePlus.startScan(
           //withServices: [Guid('0x40cddba8-0x0e58-0x47b1-0xb2fa-0xa93c4993d81d')],
           //withNames: ['eAquaSaver'],
-          timeout: const Duration(seconds: 5));
+          timeout: const Duration(seconds: 3));
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("Start Scan Error:", e), success: false);
     }
@@ -215,12 +209,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
-        .map(
-          (r) => ScanResultTile(
-            result: r,
-            onTap: () => onConnectPressed(r.device),
-          ),
-        )
+        //.where((r) => r.device.advName == 'eAquaSaver')
+        .map((r) => ScanResultTile(
+              result: r,
+              onTap: () => onConnectPressed(r.device),
+            ))
         .toList();
   }
 

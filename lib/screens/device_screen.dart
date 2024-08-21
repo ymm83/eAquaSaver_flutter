@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:eaquasaver_flutter_app/utils/extra.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
@@ -31,6 +33,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<bool> _isConnectingSubscription;
   late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<int> _mtuSubscription;
+  late StreamSubscription<List<ScanResult>> _beaconSubscription;
+  late Map<String, dynamic> _beaconData = {};
+  late Timer _beaconTimer;
 
   @override
   void initState() {
@@ -40,13 +45,20 @@ class _DeviceScreenState extends State<DeviceScreen> {
       _connectionState = state;
       if (state == BluetoothConnectionState.connected) {
         _services = []; // must rediscover services
+      } else if (state == BluetoothConnectionState.disconnected) {
+        _stopBeaconScanning(); // Detener escaneo al desconectarse
       }
+
       if (state == BluetoothConnectionState.connected && _rssi == null) {
         _rssi = await widget.device.readRssi();
       }
       if (mounted) {
         setState(() {});
       }
+    });
+
+    _beaconTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      _startBeaconScanning(); // Llama a tu función para escanear beacons
     });
 
     _mtuSubscription = widget.device.mtu.listen((value) {
@@ -71,17 +83,88 @@ class _DeviceScreenState extends State<DeviceScreen> {
     });
   }
 
+  void _processManufacturerData(AdvertisementData advertisementData) {
+    if (advertisementData.manufacturerData.isNotEmpty) {
+      advertisementData.manufacturerData.forEach((key, value) {
+        _decodeManufacturerData(value);
+      });
+    } else {
+      debugPrint('No hay datos de fabricante disponibles.');
+    }
+  }
+
+  void _decodeManufacturerData(List<int> data) {
+    if (data.isEmpty) {
+      debugPrint('Error: Los datos están vacíos.');
+      return;
+    }
+
+    try {
+      Uint8List byteList = Uint8List.fromList(data);
+
+      int size = byteList[0];
+      Uint8List protobufData = byteList.sublist(1, size + 5);
+      //debugPrint("protobufData: $protobufData");
+      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+
+      debugPrint("Tamaño del mensaje: $size");
+      debugPrint("\nMensaje decodificado: --- START ---\n $decodedMessage--- END ---");
+
+      debugPrint('Temperatura caliente: ${decodedMessage.hotTemperature}');
+      debugPrint('Temperatura fría: ${decodedMessage.coldTemperature}');
+      if (mounted) {
+        setState(() {
+          _beaconData = {
+            'temperature': decodedMessage.temperature,
+            'hotTemperature': decodedMessage.hotTemperature,
+            'coldTemperature': decodedMessage.coldTemperature,
+            'currentHotUsed': decodedMessage.currentHotUsed,
+            'currentRecovered': decodedMessage.currentRecovered,
+            'totalColdUsed': decodedMessage.totalColdUsed,
+            'totalRecovered': decodedMessage.totalRecovered,
+            'totalHotUsed': decodedMessage.totalHotUsed,
+          };
+        });
+      }
+    } catch (e) {
+      debugPrint('Error al decodificar los datos: $e');
+    }
+  }
+
   @override
   void dispose() {
     _connectionStateSubscription.cancel();
     _mtuSubscription.cancel();
     _isConnectingSubscription.cancel();
     _isDisconnectingSubscription.cancel();
+    _stopBeaconScanning();
+    _beaconTimer.cancel();
     super.dispose();
   }
 
   bool get isConnected {
     return _connectionState == BluetoothConnectionState.connected;
+  }
+
+  Future<void> _startBeaconScanning() async {
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+    _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
+      for (ScanResult r in results) {
+        String name = r.device.advName;
+        if (name.startsWith('eAquaS')) {
+          if (name == 'eAquaS Beacon') {
+            if (r.device.remoteId == widget.device.remoteId) {
+              _processManufacturerData(r.advertisementData);
+            }
+          }
+        }
+      }
+    }) /*.onData(handleData)*/;
+  }
+
+  void _stopBeaconScanning() {
+    _beaconSubscription.cancel();
+    _beaconData.clear();
   }
 
   Future onConnectPressed() async {
@@ -243,7 +326,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              Text(widget.device.advName), 
+              Text(widget.device.platformName),
               buildRemoteId(context),
               OutlinedButton.icon(
                 icon: const Icon(Icons.bluetooth_disabled),
@@ -257,6 +340,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
               ),
               buildMtuTile(context),
               ..._buildServiceTiles(context, widget.device),
+              // Mostrar datos de beacon
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_beaconData.isNotEmpty)
+                      const Text('Beacon Data:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    if (_beaconData.isNotEmpty) // Verificar si hay datos
+                      ..._beaconData.entries.map((entry) {
+                        return Text('${entry.key}: ${entry.value}');
+                      }),
+                    if (_beaconData.isEmpty) const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
+                    if (_beaconData.isEmpty)
+                      const Padding(
+                          padding: EdgeInsets.only(left: 50, right: 50, top: 5),
+                          child: LinearProgressIndicator(
+                            color: Colors.blue,
+                            backgroundColor: Colors.redAccent,
+                          )),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
