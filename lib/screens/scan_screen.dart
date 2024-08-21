@@ -28,17 +28,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late StreamSubscription<bool> _isScanningSubscription;
 
   void _processManufacturerData(AdvertisementData advertisementData) {
-    // Verifica si hay datos de fabricante
-
-    debugPrint('advertisementData: ${advertisementData.manufacturerData}');
-
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
-        //debugPrint('ID del fabricante: $key');
-        // debugPrint('Datos del fabricante: ${value}');
-
-        // Decodifica los datos de Protobuf
-        debugPrint('value.runtimeType: ${value.runtimeType}');
         _decodeManufacturerData(value);
       });
     } else {
@@ -52,25 +43,22 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       return;
     }
 
-    debugPrint('Datos recibidos para decodificación: ${getNiceHexArray(data)}');
-    // debugPrint('eAquaSaverMessage: ${data}');
     try {
       Uint8List byteList = Uint8List.fromList(data);
-      debugPrint("byteList: $byteList");
 
       int size = byteList[0];
-      Uint8List protobufData = byteList.sublist(1, 24);
-      debugPrint("protobufData: $protobufData");
+      Uint8List protobufData = byteList.sublist(1, size + 5);
+      //debugPrint("protobufData: $protobufData");
       eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
 
-      debugPrint("Tamaño del dato: $size");
-      debugPrint("Mensaje decodificado: $decodedMessage");
+      //debugPrint("Tamaño del dato: $size");
+      debugPrint("\nMensaje decodificado: --- START ---\n $decodedMessage--- END ---");
 
       //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
       //debugPrint('Decoded Manufacturer Data: ${decodedData}');
 
-      //debugPrint('Temperatura caliente: ${decodedData.hotTemperature}');
-      //debugPrint('Temperatura fría: ${decodedData.coldTemperature}');
+      debugPrint('Temperatura caliente: ${decodedMessage.hotTemperature}');
+      debugPrint('Temperatura fría: ${decodedMessage.coldTemperature}');
     } catch (e) {
       debugPrint('Error al decodificar los datos: $e');
     }
@@ -78,6 +66,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   String getNiceHexArray(List<int> bytes) {
     return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]';
+  }
+
+  List<String> getHexArray(List<int> bytes) {
+    debugPrint('////////// ${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).toList()}');
+    return bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).toList();
   }
 
   @override
