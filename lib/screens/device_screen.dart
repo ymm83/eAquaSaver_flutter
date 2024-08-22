@@ -94,6 +94,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   void _decodeManufacturerData(List<int> data) {
+      debugPrint("Data: ${data}");
+
     if (data.isEmpty) {
       debugPrint('Error: Los datos están vacíos.');
       return;
@@ -103,7 +105,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       Uint8List byteList = Uint8List.fromList(data);
 
       int size = byteList[0];
-      Uint8List protobufData = byteList.sublist(1, size + 5);
+      Uint8List protobufData = byteList.sublist(1, size+5);
       //debugPrint("protobufData: $protobufData");
       eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
 

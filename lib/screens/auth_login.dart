@@ -132,8 +132,10 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      final res = await supabase.auth
-          .signUp(email: _emailController.text.trim(), password: _passwordController.text,/* captchaToken: _token*/);
+      final res = await supabase.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text, /* captchaToken: _token*/
+      );
       final Session? session = res.session;
       final User? user = res.user;
       //debugPrint('user**********************************');
@@ -327,11 +329,10 @@ class _LoginPageState extends State<LoginPage> {
             child: TextFormField(
               controller: _tokenController,
               decoration: const InputDecoration(
-                icon: Icon(Icons.security_update_good),
-                //hintText: 'The email address?',
-                labelText: 'token',
-                counterText: ""
-              ),
+                  icon: Icon(Icons.security_update_good),
+                  //hintText: 'The email address?',
+                  labelText: 'token',
+                  counterText: ""),
               validator: (value) {
                 if (value!.isEmpty || value.length < 6) {
                   return 'Token does not match!';
