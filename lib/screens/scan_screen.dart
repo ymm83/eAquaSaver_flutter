@@ -44,12 +44,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
 
     try {
-      Uint8List byteList = Uint8List.fromList(data);
-
-      int size = byteList[0];
-      Uint8List protobufData = byteList.sublist(1, size + 5);
+      int size = data[0];
+      var protobufData = data.sublist(1, size+1);
       //debugPrint("protobufData: $protobufData");
       eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+
+      double hotTemperature = decodedMessage.hotTemperature / 10.0;
+      double coldTemperature = decodedMessage.coldTemperature / 10.0;
 
       //debugPrint("Tamaño del dato: $size");
       debugPrint("\nMensaje decodificado: --- START ---\n $decodedMessage--- END ---");
@@ -57,11 +58,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       //final decodedData = eAquaSaverMessage.fromBuffer(Uint8List.fromList(data));
       //debugPrint('Decoded Manufacturer Data: ${decodedData}');
 
-      debugPrint('Temperatura caliente: ${decodedMessage.hotTemperature}');
-      debugPrint('Temperatura fría: ${decodedMessage.coldTemperature}');
-      debugPrint('Current hot used: ${decodedMessage.currentHotUsed}');
+      debugPrint('Temperatura caliente: $hotTemperature');
+      debugPrint('Temperatura fría: $coldTemperature');
+      //debugPrint('Current hot used: ${decodedMessage.currentHotUsed}');
     } catch (e) {
-      //debugPrint('Error al decodificar los datos: $e');
+      debugPrint('Error al decodificar los datos: $e');
     }
   }
 

@@ -18,4 +18,6 @@
 	//"forwardPorts": [],
 	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
 	// "remoteUser": "vscode"
+
+	"initializeCommand": ["docker", "build", "--network=host",".devcontainer"]
 }

@@ -83,4 +83,3 @@ RUN flutter config --android-sdk "${ANDROID_SDK_ROOT}"
 RUN yes | flutter doctor --android-licenses
 RUN flutter config --no-analytics
 RUN flutter update-packages
-# RUN flutter pub add flutter_blue_plus
