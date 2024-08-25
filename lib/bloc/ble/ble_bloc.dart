@@ -35,6 +35,7 @@ class BleBloc extends Bloc<BleEvent, BleState> {
 
   void _onConnectToDevice(ConnectToDevice event, Emitter<BleState> emit) async {
     try {
+      await FlutterBluePlus.stopScan();
       await event.device.connect();
       connectedDevice = event.device;
       emit(BleConnected(event.device));

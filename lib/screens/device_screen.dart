@@ -57,9 +57,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
 
-    _beaconTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      _startBeaconScanning(); // Llama a tu función para escanear beacons
-    });
+    //_beaconTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+    _startBeaconScanning(); // Llama a tu función para escanear beacons
+    //});
 
     _mtuSubscription = widget.device.mtu.listen((value) {
       _mtuSize = value;
@@ -94,7 +94,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   void _decodeManufacturerData(List<int> data) {
-      debugPrint("Data: ${data}");
+    debugPrint("Data: ${data}");
 
     if (data.isEmpty) {
       debugPrint('Error: Los datos están vacíos.');
@@ -105,7 +105,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       Uint8List byteList = Uint8List.fromList(data);
 
       int size = byteList[0];
-      Uint8List protobufData = byteList.sublist(1, size+5);
+      Uint8List protobufData = byteList.sublist(1, 25);
       //debugPrint("protobufData: $protobufData");
       eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
 
@@ -149,7 +149,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<void> _startBeaconScanning() async {
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+    await FlutterBluePlus.startScan(
+        withRemoteIds: [widget.device.remoteId.toString()], timeout: const Duration(seconds: 3));
     _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
       for (ScanResult r in results) {
         String name = r.device.advName;
@@ -164,7 +165,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }) /*.onData(handleData)*/;
   }
 
-  void _stopBeaconScanning() {
+  Future<void> _stopBeaconScanning() async {
+    await FlutterBluePlus.stopScan();
     _beaconSubscription.cancel();
     _beaconData.clear();
   }
@@ -193,7 +195,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future onDisconnectPressed() async {
     try {
-      await widget.device.disconnectAndUpdateStream();
+      await widget.device.disconnect();
       Snackbar.show(ABC.c, "Disconnect: Success", success: true);
     } catch (e) {
       Snackbar.show(ABC.c, prettyException("Disconnect Error:", e), success: false);
@@ -333,7 +335,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               OutlinedButton.icon(
                 icon: const Icon(Icons.bluetooth_disabled),
                 label: const Text('Disconect'),
-                onPressed: () => {widget.device.disconnect()},
+                onPressed: () => {widget.device.disconnect(queue: true)},
               ),
               ListTile(
                 leading: buildRssiTile(context),
