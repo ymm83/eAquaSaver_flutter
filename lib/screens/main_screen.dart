@@ -94,6 +94,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
         ),
         body: screens[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(
+          selectedItemColor: Colors.blue.shade600,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           currentIndex: _currentIndex,
           onTap: (index) {
             setState(() {

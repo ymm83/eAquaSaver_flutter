@@ -22,10 +22,11 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
   late List<BluetoothDevice> _systemDevices = [];
-  late List<ScanResult> _scanResults = [];
+  late List<ScanResult> _scanResults = FlutterBluePlus.lastScanResults;
   bool _isScanning = false;
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
+  bool _initialScanCompleted = false;
 
   void _processManufacturerData(AdvertisementData advertisementData) {
     if (advertisementData.manufacturerData.isNotEmpty) {
@@ -81,7 +82,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    onScanPressed();
+    _performInitialScan();
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       if (mounted) {
         for (ScanResult r in results) {
@@ -91,7 +92,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
             }
             if (name == 'eAquaS Beacon') {
-              debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName}');
+              debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName} remoteId: ${r.device.remoteId}');
               _processManufacturerData(r.advertisementData);
             }
           }
@@ -99,7 +100,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
         setState(() {
           _scanResults = results.where((r) => r.device.advName.startsWith('eAquaS')).toList();
+          //_isScanning = false;
         });
+        //FlutterBluePlus.stopScan();
       }
     }, onError: (e) {
       Snackbar.show(ABC.b, prettyException("Scan Error:", e), success: false);
@@ -125,6 +128,15 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     _isScanningSubscription.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _performInitialScan() async {
+    if (!_initialScanCompleted) {
+      await onScanPressed();
+      setState(() {
+        _initialScanCompleted = true;
+      });
+    }
   }
 
   Future onScanPressed() async {
@@ -169,7 +181,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Future onRefresh() {
     if (!_isScanning) {
-      FlutterBluePlus.startScan(timeout: const Duration(seconds: 1));
+      //FlutterBluePlus.startScan(timeout: const Duration(seconds: 1));
     }
     if (mounted) {
       setState(() {});
@@ -217,7 +229,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
-        //.where((r) => r.device.advName == 'eAquaSaver')
+        .where((r) => r.device.advName == 'eAquaSaver')
         .map((r) => ScanResultTile(
               result: r,
               onTap: () => onConnectPressed(r.device),
@@ -230,15 +242,29 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     return ScaffoldMessenger(
       key: Snackbar.snackBarKeyB,
       child: Scaffold(
-        appBar: AppBar(
+        /* appBar: AppBar(
           title: const Center(child: Text('Find Devices')),
-        ),
+        ),*/
         body: RefreshIndicator(
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
-              ..._buildSystemDeviceTiles(context),
-              ..._buildScanResultTiles(context),
+              if (_systemDevices.isNotEmpty) const Center(child: Text('My devices', style: TextStyle())),
+              if (_systemDevices.isNotEmpty) ..._buildSystemDeviceTiles(context),
+              // Mostrar un indicador de progreso si se está escaneando
+              if (_isScanning) const Center(child: Text('Searching eAcuaSaver devices...', style: TextStyle())),
+              if (_isScanning)
+                const Padding(
+                    padding: EdgeInsets.only(left: 50, right: 50, top: 5),
+                    child: LinearProgressIndicator(
+                      color: Colors.blue,
+                      backgroundColor: Colors.redAccent,
+                    )),
+              if (_isScanning == false && _scanResults.isNotEmpty)
+                Center(
+                    child: Text('${_scanResults.map((r) => r.device.platformName).toList()} Founded devices:',
+                        style: TextStyle())),
+              if (_isScanning == false) ..._buildScanResultTiles(context),
             ],
           ),
         ),
