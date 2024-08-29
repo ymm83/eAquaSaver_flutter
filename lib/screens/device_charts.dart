@@ -1,12 +1,112 @@
-// EXCLUDE_FROM_GALLERY_DOCS_START
 import 'dart:async';
-import 'dart:math';
-import 'dart:typed_data';
-// EXCLUDE_FROM_GALLERY_DOCS_END
 import 'package:community_charts_flutter/community_charts_flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../bloc/beacon/beacon_bloc.dart';
+
+class DeviceCharts extends StatefulWidget {
+  final bool animate;
+  final BluetoothDevice? device;
+
+  DeviceCharts({this.animate = false, this.device});
+
+  @override
+  _DeviceChartsState createState() => _DeviceChartsState();
+}
+
+class _DeviceChartsState extends State<DeviceCharts> {
+  late Timer beaconTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<BeaconBloc>().add(FakeData());
+    beaconTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      context.read<BeaconBloc>().add(FakeData());
+    });
+  }
+
+  @override
+  void dispose() {
+    beaconTimer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<BeaconBloc, BeaconState>(
+      builder: (context, state) {
+        if (state is BeaconLoaded) {
+          final data = _createData(state);
+
+          return SizedBox(
+              height: 100,
+              width: 100,
+              child: charts.PieChart<String>(
+                data,
+                animate: widget.animate,
+                defaultRenderer: charts.ArcRendererConfig<String>(
+                  arcWidth: 90,
+                  arcRendererDecorators: [
+                    charts.ArcLabelDecorator(
+                      insideLabelStyleSpec: const charts.TextStyleSpec(fontSize: 12),
+                      labelPosition: charts.ArcLabelPosition.auto, // Mostrar las etiquetas dentro
+                    ),
+                  ],
+                ),
+                behaviors: [
+                  charts.DatumLegend(
+                    position: charts.BehaviorPosition.bottom,
+                    outsideJustification: charts.OutsideJustification.middleDrawArea,
+                    horizontalFirst: false,
+                    cellPadding: EdgeInsets.only(right: 60.0, left: 40, bottom: 20.0),
+                    showMeasures: true,
+                    legendDefaultMeasure: charts.LegendDefaultMeasure.lastValue,
+                    measureFormatter: (num? value) {
+                      return value == null ? '-' : '${value} L';
+                    },
+                  ),
+                ],
+              ));
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+
+  List<charts.Series<LinearData, String>> _createData(BeaconLoaded state) {
+    final data = [
+      LinearData('TotalRecovered', state.beaconData['totalRecovered'] ?? 0),
+      LinearData('TotalHotUsed', state.beaconData['totalHotUsed'] ?? 0),
+      LinearData('TotalColUsed', state.beaconData['totalColdUsed'] ?? 0),
+    ];
+
+    return [
+      charts.Series<LinearData, String>(
+        id: 'BeaconData',
+        domainFn: (LinearData data, _) => data.label,
+        measureFn: (LinearData data, _) => data.value,
+        data: data,
+        labelAccessorFn: (LinearData row, _) => '${row.value} L',
+        //labelAccessorFn: (LinearData row, _) => '${row.label}: ${row.value}',
+      )
+    ];
+  }
+}
+
+/// Data model for the chart
+class LinearData {
+  final String label;
+  final int value;
+
+  LinearData(this.label, this.value);
+}
+
+
+/*
 class DeviceCharts extends StatefulWidget {
   final List<charts.Series<dynamic, String>>? seriesList;
   final bool animate;
@@ -330,3 +430,4 @@ class TimeSeriesValue {
 
   TimeSeriesValue(this.time, this.value);
 }
+*/

@@ -151,10 +151,13 @@ class _UserDashboardState extends State<UserDashboard> {
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
               children: [
                 Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  color: Colors.blue.shade200,
+                  shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Colors.blue, width: 1.5), 
+                      borderRadius: BorderRadius.circular(10)),
+                  color: Colors.blue.shade100,
                   child: ListTile(
-                    leading: const CircleAvatar(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue.shade300,
                       child: Text('YM'),
                     ),
                     title: Text(userData.isNotEmpty ? '${userData['firstname']} ${userData['lastname']}' : ''),

@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'bloc/connectivity/connectivity_bloc.dart';
 import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
+import 'bloc/connectivity/connectivity_bloc.dart';
+import 'bloc/beacon/beacon_bloc.dart';
 import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
 import 'bloc/issue/issue_bloc.dart';
@@ -36,6 +37,7 @@ Future<void> main() async {
         BlocProvider(create: (context) => IssueBloc(supabase)),
         BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
+        BlocProvider(create: (context) => BeaconBloc()),
       ],
       child: MyApp(),
     ),

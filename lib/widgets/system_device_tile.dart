@@ -55,7 +55,7 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
             side: BorderSide(color: Colors.blue, width: 2),
             borderRadius: BorderRadius.circular(10),
           ),
-          color: Colors.blue.shade200,
+          color: Colors.blue.shade100,
           child: ListTile(
             leading: const CircleAvatar(child: Icon(Icons.bluetooth_connected)),
             title: Text(widget.device.platformName ?? 'Desconocido'),

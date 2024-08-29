@@ -17,11 +17,13 @@ class _ScanResultTileState extends State<ScanResultTile> {
   BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
 
   late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
+  bool _isLedOn = false;
+  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
-
+    _startBlinking();
     _connectionStateSubscription = widget.result.device.connectionState.listen((state) {
       _connectionState = state;
       if (mounted) {
@@ -32,6 +34,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
 
   @override
   void dispose() {
+    _timer.cancel();
     _connectionStateSubscription.cancel();
     super.dispose();
   }
@@ -54,6 +57,14 @@ class _ScanResultTileState extends State<ScanResultTile> {
 
   bool get isConnected {
     return _connectionState == BluetoothConnectionState.connected;
+  }
+
+  void _startBlinking() {
+    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      setState(() {
+        _isLedOn = !_isLedOn; // Cambia el estado del LED
+      });
+    });
   }
 
   Widget _buildTitle(BuildContext context) {
@@ -113,10 +124,29 @@ class _ScanResultTileState extends State<ScanResultTile> {
   Widget build(BuildContext context) {
     var adv = widget.result.advertisementData;
     return ExpansionTile(
-      title: _buildTitle(context),
-      leading: Text(widget.result.rssi.toString()),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildTitle(context),
+        ],
+      ),
+      leading: (!adv.connectable)
+          ? AnimatedContainer(
+              margin: EdgeInsets.only(top: 0),
+              duration: Duration(milliseconds: 500),
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _isLedOn ? Colors.red.shade500 : Colors.blue.shade700, // Cambia el color según el estado
+              ),
+            )
+          : Text(widget.result.rssi.toString()),
       trailing: _buildConnectButton(context),
       children: <Widget>[
+        if (!adv.connectable) Icon(Icons.link_off_rounded, color: Colors.red.shade700),
+        if (adv.connectable) Icon(Icons.link_off_rounded, color: Colors.green.shade700),
         if (adv.advName.isNotEmpty) _buildAdvRow(context, 'Name', adv.advName),
         if (adv.txPowerLevel != null) _buildAdvRow(context, 'Tx Power Level', '${adv.txPowerLevel}'),
         if ((adv.appearance ?? 0) > 0) _buildAdvRow(context, 'Appearance', '0x${adv.appearance!.toRadixString(16)}'),
