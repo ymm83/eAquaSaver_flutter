@@ -16,10 +16,10 @@ class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  _MapScreenState createState() => _MapScreenState();
+  MapScreenState createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   static final MapController _mapController = MapController();
 
   static const _london = LatLng(51.5, -0.09);
@@ -28,7 +28,7 @@ class _MapScreenState extends State<MapScreen> {
 
   List<DragMarker> _markers = [];
 
-  bool _hasInternet = true;
+  bool hasInternet = true;
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
@@ -65,7 +65,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         size: const Size(40, 40),
         onLongDragEnd: (details, newPosition) {
-          print('_london marker moved to: $newPosition');
+          debugPrint('_london marker moved to: $newPosition');
         },
       ),
       DragMarker(
@@ -77,7 +77,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         size: const Size(40, 40),
         onLongDragEnd: (details, newPosition) {
-          print('_dublin marker moved to: $newPosition');
+          debugPrint('_dublin marker moved to: $newPosition');
         },
       ),
       DragMarker(
@@ -89,19 +89,19 @@ class _MapScreenState extends State<MapScreen> {
         ),
         size: const Size(40, 40),
         onLongDragEnd: (details, newPosition) {
-          print('_paris marker moved to: $newPosition');
+          debugPrint('_paris marker moved to: $newPosition');
         },
       ),
       DragMarker(
         point: _locationData,
         builder: (context, latLng, isDragging) => Icon(
           Icons.location_on,
-          color: Color.fromARGB(255, 4, 177, 47),
+          color: const Color.fromARGB(255, 4, 177, 47),
           size: isDragging ? 50 : 40,
         ),
         size: const Size(40, 40),
         onLongDragEnd: (details, newPosition) {
-          print('_locationData marker moved to: $newPosition');
+          debugPrint('_locationData marker moved to: $newPosition');
         },
       ),
     ];
@@ -150,7 +150,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _updateGPSStatus(ServiceStatus status) {
-    final bool isEnabled = status == ServiceStatus.enabled;
+    //final bool isEnabled = status == ServiceStatus.enabled;
     debugPrint('-------------status: $status');
     _isGpsEnabled = (status == ServiceStatus.enabled) ? true : false;
     setState(() {});
@@ -299,8 +299,8 @@ class _MapScreenState extends State<MapScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextButton.icon(
-                      icon: Icon(Icons.gps_fixed),
-                      label: Text(' Select method'),
+                      icon: const Icon(Icons.gps_fixed),
+                      label: const Text(' Select method'),
                       onPressed: _showLocationDialog,
                     ),
                   ],
@@ -378,7 +378,7 @@ class _MapScreenState extends State<MapScreen> {
 
   List<DragMarker> _markers = [];
 
-  bool _hasInternet = true;
+  bool hasInternet = true;
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
@@ -693,7 +693,7 @@ class _MapScreenState extends State<MapScreen> {
 
   List<DragMarker> _markers = []; // Cambia a una lista de DragMarker
 
-  bool _hasInternet = true;
+  bool hasInternet = true;
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
@@ -992,7 +992,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
     ),
   ];
-  bool _hasInternet = true;
+  bool hasInternet = true;
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;

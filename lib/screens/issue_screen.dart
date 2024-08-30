@@ -35,12 +35,14 @@ class _IssueScreenState extends State<IssueScreen> {
         _isLoading = false;
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unexpected error occurred'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
       setState(() {
         _isLoading = false;
       });
@@ -56,26 +58,30 @@ class _IssueScreenState extends State<IssueScreen> {
         setState(() {
           _issueData.removeWhere((issue) => issue['id'] == id);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Issue eliminado correctamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Issue eliminado correctamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: no se pudo eliminar'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Error: no se pudo eliminar'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       // Manejo de errores
     }
   }
 
-  void _saveIssue() async {
+  /*void _saveIssue() async {
     if (issueTitleController.text.isEmpty || issueBodyController.text.isEmpty) {
       return;
     }
@@ -109,7 +115,7 @@ class _IssueScreenState extends State<IssueScreen> {
         _isLoading = false;
       });
     }
-  }
+  }*/
 
   @override
   void initState() {
@@ -123,17 +129,17 @@ class _IssueScreenState extends State<IssueScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('¡Eliminación!'),
-            content: Text("¿Desea eliminar este Issue?"),
+            title: const Text('¡Eliminación!'),
+            content: const Text("¿Desea eliminar este Issue?"),
             actions: [
               TextButton(
-                  child: Text("Aceptar", style: TextStyle(color: Colors.red)),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.red)),
                   onPressed: () {
                     _deleteIssue(id);
                     Navigator.of(context).pop();
                   }),
               TextButton(
-                  child: Text("Cancelar", style: TextStyle(color: Colors.blue)),
+                  child: const Text("Cancelar", style: TextStyle(color: Colors.blue)),
                   onPressed: () {
                     Navigator.of(context).pop();
                   }),
@@ -313,7 +319,7 @@ class _IssueScreenState extends State<IssueScreen> {
         floatingActionButton: BlocBuilder<ConnectivityBloc, ConnectivityState>(
           builder: (context, connectivityState) {
             return Visibility(
-              visible: !(connectivityState is ConnectivityOffline),
+              visible: connectivityState is! ConnectivityOffline,
               child: FloatingActionButton(
                 onPressed: () {
                   setState(() {

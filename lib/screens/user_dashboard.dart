@@ -17,7 +17,7 @@ class UserDashboard extends StatefulWidget {
 class _UserDashboardState extends State<UserDashboard> {
   bool _loading = true;
   late Map userData;
-  FlutterSecureStorage _storage = FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late final StreamSubscription<AuthState> authSubscription;
 
   Future<Map> _getOnlineProfile() async {
@@ -68,7 +68,7 @@ class _UserDashboardState extends State<UserDashboard> {
       debugPrint('---- ${userData.toString()}');
       return userData;
     } catch (e) {
-      debugPrint('${e.toString()}');
+      debugPrint('Error: $e');
     } finally {
       /*if (mounted) {
         setState(() {
@@ -112,7 +112,7 @@ class _UserDashboardState extends State<UserDashboard> {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedOut) {
         if (mounted) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage())).then((_) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginPage())).then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           });
         }
@@ -158,7 +158,7 @@ class _UserDashboardState extends State<UserDashboard> {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.blue.shade300,
-                      child: Text('YM'),
+                      child: const Text('YM'),
                     ),
                     title: Text(userData.isNotEmpty ? '${userData['firstname']} ${userData['lastname']}' : ''),
                     subtitle: Text('${supabase.auth.currentUser!.email}'),

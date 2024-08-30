@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import "package:unorm_dart/unorm_dart.dart" as unorm;
 
-const String REVERSE_URL = 'https://nominatim.openstreetmap.org';
-const String QUALITY_URL = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable';
+const String reverseUrl = 'https://nominatim.openstreetmap.org';
+const String qualityUrl = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable';
 
 String upperAndClean(String str) {
   return unorm.nfd(str.toUpperCase()).replaceAll(RegExp(r'[\u0300-\u036f]'), '');
@@ -33,7 +33,7 @@ Future<String?> getPlaceByZipCode(String code) async {
 }
 
 Future<dynamic> franceEuaCommune(String commune) async {
-  final String apiUrl = '$QUALITY_URL/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2023';
+  final String apiUrl = '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2023';
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
@@ -107,7 +107,7 @@ Future<List<dynamic>> rawApiResults(String codeCommune) async {
 Future<Map<String, dynamic>> getReverseLocation(Map<String, dynamic> coord) async {
   final double lat = coord['latitude']!;
   final double lon = coord['longitude']!;
-  final String url = '$REVERSE_URL/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1';
+  final String url = '$reverseUrl/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1';
 
   final response = await http.get(
     Uri.parse(url),

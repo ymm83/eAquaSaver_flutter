@@ -60,7 +60,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
   }
 
   void _startBlinking() {
-    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       setState(() {
         _isLedOn = !_isLedOn; // Cambia el estado del LED
       });
@@ -95,7 +95,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
           foregroundColor: Colors.white,
         ),
         onPressed: (widget.result.advertisementData.connectable) ? widget.onTap : null,
-        child: isConnected ? Icon(Icons.link) : Icon(Icons.link_off));
+        child: isConnected ? const Icon(Icons.link) : const Icon(Icons.link_off));
   }
 
   Widget _buildAdvRow(BuildContext context, String title, String value) {
@@ -133,8 +133,8 @@ class _ScanResultTileState extends State<ScanResultTile> {
       ),
       leading: (!adv.connectable)
           ? AnimatedContainer(
-              margin: EdgeInsets.only(top: 0),
-              duration: Duration(milliseconds: 500),
+              margin: const EdgeInsets.only(top: 0),
+              duration: const Duration(milliseconds: 500),
               width: 9,
               height: 9,
               decoration: BoxDecoration(

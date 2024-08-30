@@ -10,13 +10,13 @@ class DeviceCharts extends StatefulWidget {
   final bool animate;
   final BluetoothDevice? device;
 
-  DeviceCharts({this.animate = false, this.device});
+  const DeviceCharts({super.key, this.animate = false, this.device});
 
   @override
-  _DeviceChartsState createState() => _DeviceChartsState();
+  DeviceChartsState createState() => DeviceChartsState();
 }
 
-class _DeviceChartsState extends State<DeviceCharts> {
+class DeviceChartsState extends State<DeviceCharts> {
   late Timer beaconTimer;
 
   @override
@@ -61,17 +61,17 @@ class _DeviceChartsState extends State<DeviceCharts> {
                     position: charts.BehaviorPosition.bottom,
                     outsideJustification: charts.OutsideJustification.middleDrawArea,
                     horizontalFirst: false,
-                    cellPadding: EdgeInsets.only(right: 60.0, left: 40, bottom: 20.0),
+                    cellPadding: const EdgeInsets.only(right: 60.0, left: 40, bottom: 20.0),
                     showMeasures: true,
                     legendDefaultMeasure: charts.LegendDefaultMeasure.lastValue,
                     measureFormatter: (num? value) {
-                      return value == null ? '-' : '${value} L';
+                      return value == null ? '-' : '$value L';
                     },
                   ),
                 ],
               ));
         } else {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
@@ -154,7 +154,7 @@ class DeviceCharts extends StatefulWidget {
   }
 
   @override
-  State<DeviceCharts> createState() => _DeviceChartsState();
+  State<DeviceCharts> createState() => DeviceChartsState();
 
   /// Create one series with sample hard coded data.
   static List<charts.Series<OrdinalSales, String>> _createSampleData() {
@@ -182,7 +182,7 @@ class DeviceCharts extends StatefulWidget {
   }
 }
 
-class _DeviceChartsState extends State<DeviceCharts> {
+class DeviceChartsState extends State<DeviceCharts> {
   final seriesList2 = DeviceCharts._createSampleData();
   StreamSubscription? _charSubscription;
   List<charts.Series<TimeSeriesValue, DateTime>> _seriesList = [];

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+//import 'dart:math';
 import "dart:typed_data";
 
 import "package:flutter/material.dart";
@@ -43,10 +43,10 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
 
   BluetoothCharacteristic get c => widget.characteristic;
 
-  List<int> _getRandomBytes() {
+  /*List<int> _getRandomBytes() {
     final math = Random();
     return [math.nextInt(255), math.nextInt(255), math.nextInt(255), math.nextInt(255)];
-  }
+  }*/
 
   Future onReadPressed() async {
     try {
@@ -66,7 +66,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
   }
 
   Future onWritePressed() async {
-    final String data = '400';
+    const String data = '400';
     try {
       await c.write(data.codeUnits, withoutResponse: c.properties.writeWithoutResponse);
       //await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);

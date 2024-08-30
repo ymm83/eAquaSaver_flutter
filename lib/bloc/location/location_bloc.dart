@@ -12,7 +12,7 @@ part 'location_state.dart';
 class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final GeolocatorPlatform _geolocator = GeolocatorPlatform.instance;
   late StreamSubscription<Position> _positionSubscription;
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   LocationBloc() : super(LocationInitial()) {
     on<LocationStarted>(_onLocationStarted);

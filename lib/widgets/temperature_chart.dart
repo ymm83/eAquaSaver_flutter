@@ -30,11 +30,15 @@ class TemperatureChart extends StatelessWidget {
               series,
               behaviors: [
                 LinePointHighlighter(
-                  showHorizontalFollowLine: LinePointHighlighterFollowLineType.nearest,
-                  showVerticalFollowLine: LinePointHighlighterFollowLineType.nearest,
+                  seriesIds: const ['10', '20', '30', '40', '50'],
+                  showHorizontalFollowLine: LinePointHighlighterFollowLineType.none,
+                  showVerticalFollowLine: LinePointHighlighterFollowLineType.none,
                 ),
               ],
               primaryMeasureAxis: const NumericAxisSpec(
+                renderSpec: SmallTickRendererSpec(
+                    // Tick and Label styling here.
+                    ),
                 tickProviderSpec: BasicNumericTickProviderSpec(
                   desiredTickCount: 6, // Número de ticks deseados
                 ),

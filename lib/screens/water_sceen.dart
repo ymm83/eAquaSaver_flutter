@@ -1,4 +1,4 @@
-import 'dart:convert';
+//import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -44,7 +44,7 @@ class _WaterScreenState extends State<WaterScreen> {
         _addressData = addressData;
         _address = _getAddressString(addressData);
       });
-      debugPrint('------ address:${_address}');
+      debugPrint('------ address:$_address');
       if (addressData['address']['country_code'] == 'fr') {
         final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
         final euaComune = await franceEuaCommune(nomCommune);
@@ -104,7 +104,7 @@ class _WaterScreenState extends State<WaterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(child: Text('Stored Location: \nLat: $latitude, \nLon: $longitude')),
-                  if (_address == null) Center(child: Text('Address: Loading...')),
+                  if (_address == null) const Center(child: Text('Address: Loading...')),
                   if (_address != null) Center(child: Text('Address: $_address')),
                   if (_nomReseau != '...') Center(child: Text('RESEAU: $_nomReseau')),
                   if (_potableData == null && _addressData['address']?['country_code'] == 'fr')

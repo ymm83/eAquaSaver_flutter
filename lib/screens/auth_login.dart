@@ -21,7 +21,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
-  final bool _redirecting = false;
   TextEditingController controller = TextEditingController();
   //bool _password2Visible = true;
   //bool _newpasswordVisible = true;
@@ -97,7 +96,9 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         errorMessage = error.message;
       }
-      _showSnackBar(context, errorMessage, 'error');
+      if (mounted) {
+        _showSnackBar(context, errorMessage, 'error');
+      }
     } catch (error) {
       if (mounted) {
         _showSnackBar(context, 'Unexpected error occurred', 'error');
@@ -136,8 +137,9 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text, /* captchaToken: _token*/
       );
-      final Session? session = res.session;
-      final User? user = res.user;
+      debugPrint('{{{{----------- res: $res }}}}');
+      //final Session? session = res.session;
+      //final User? user = res.user;
       //debugPrint('user**********************************');
       //debugPrint(user?.toJson());
       //debugPrint('session*******************************');
@@ -158,8 +160,9 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         errorMessage = error.message;
       }
-
-      _showSnackBar(context, errorMessage, 'error');
+      if (mounted) {
+        _showSnackBar(context, errorMessage, 'error');
+      }
     } catch (error) {
       if (mounted) {
         //_showSnackBar(context, 'Unexpected error occurred', 'error');
@@ -196,7 +199,9 @@ class _LoginPageState extends State<LoginPage> {
         //_emailController.t
       }
     } on AuthException catch (error) {
-      _showSnackBar(context, error.message, 'error');
+      if (mounted) {
+        _showSnackBar(context, error.message, 'error');
+      }
     } catch (error) {
       if (mounted) {
         _showSnackBar(context, 'Unexpected error occurred', 'error');
@@ -237,10 +242,14 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.updateUser(
         UserAttributes(password: _newpasswordController.text.trim()),
       );
-      _showSnackBar(context, 'Reset password successful!', 'success');
+      if (mounted) {
+        _showSnackBar(context, 'Reset password successful!', 'success');
+      }
       //await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
     } on AuthException catch (error) {
-      _showSnackBar(context, error.message, 'error');
+      if (mounted) {
+        _showSnackBar(context, error.message, 'error');
+      }
     } catch (error) {
       if (mounted) {
         _showSnackBar(context, 'Unexpected error occurred', 'error');
@@ -287,12 +296,6 @@ class _LoginPageState extends State<LoginPage> {
     _tokenController.dispose();
     _authStateSubscription.cancel();
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant LoginPage oldWidget) {
-    // TODO: implement didUpdateWidget
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

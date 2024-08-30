@@ -13,7 +13,7 @@ class MainTabs extends StatefulWidget {
 }
 
 class _MainTabsState extends State<MainTabs> {
-  int _pageChanged = 0;
+  int pageChanged = 0;
   String _pageTitle = 'Scan Devices';
   final PageController _pageController = PageController();
 
@@ -85,7 +85,7 @@ class _MainTabsState extends State<MainTabs> {
             pageSnapping: true,
             controller: _pageController,
             onPageChanged: (index) {
-              _pageChanged = index;
+              pageChanged = index;
               if (index == 0) {
                 setState(() {
                   _pageTitle = 'Scan Devices';

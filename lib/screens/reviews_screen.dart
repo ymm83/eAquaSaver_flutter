@@ -78,7 +78,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   Widget myCustomButton({required bool loading, required label, required IconData icon, required onTap}) {
-    final Color btn_default = (loading == true) ? Color.fromARGB(255, 166, 185, 176) : Color.fromARGB(255, 3, 99, 32);
+    final Color btnDefault = (loading == true) ? const Color.fromARGB(255, 166, 185, 176) : const Color.fromARGB(255, 3, 99, 32);
     return GestureDetector(
       onTap: onTap,
       child: Row(
@@ -93,19 +93,19 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 35, 0),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: btn_default,
+                    color: btnDefault,
                     width: 2,
                   ),
                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
                 ),
-                child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: btn_default)),
+                child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: btnDefault)),
               ),
               Positioned(
                 right: -5,
                 top: -6,
                 child: CircleAvatar(
                   maxRadius: 18,
-                  backgroundColor: btn_default,
+                  backgroundColor: btnDefault,
                   child: Icon(
                     icon,
                     color: Colors.white,

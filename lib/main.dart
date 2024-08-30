@@ -39,12 +39,14 @@ Future<void> main() async {
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
         BlocProvider(create: (context) => BeaconBloc()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

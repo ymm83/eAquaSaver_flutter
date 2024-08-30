@@ -9,8 +9,7 @@ class IssueForm extends StatefulWidget {
   final SupabaseClient supabase;
   final PageController pageController;
 
-  const IssueForm({Key? key, required this.typeForm, required this.supabase, required this.pageController})
-      : super(key: key);
+  const IssueForm({super.key, required this.typeForm, required this.supabase, required this.pageController});
 
   @override
   State<IssueForm> createState() => _IssueFormState();
@@ -20,7 +19,7 @@ class _IssueFormState extends State<IssueForm> {
   TextEditingController issueTitleController = TextEditingController();
   TextEditingController issueBodyController = TextEditingController();
   int selectedRadio = 1;
-  bool _isLoading = true;
+  late bool isLoading;
   late Map _issueData;
 
   @override
@@ -42,7 +41,6 @@ class _IssueFormState extends State<IssueForm> {
     super.initState();
   }
 
-
   @override
   void dispose() {
     issueTitleController.dispose();
@@ -51,7 +49,7 @@ class _IssueFormState extends State<IssueForm> {
     super.dispose();
   }
 
-  Future<Map> _getAsyncIssueById(int id) async {
+  /*Future<Map> _getAsyncIssueById(int id) async {
     try {
       final supabase = widget.supabase;
       final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
@@ -59,12 +57,12 @@ class _IssueFormState extends State<IssueForm> {
     } catch (error) {
       return Future.value({});
     }
-  }
+  }*/
 
   void _getIssueById(int id) async {
     try {
       setState(() {
-        _isLoading = true;
+        isLoading = true;
       });
       final supabase = widget.supabase;
       final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
@@ -77,20 +75,22 @@ class _IssueFormState extends State<IssueForm> {
             issueTitleController = TextEditingController(text: _issueData['summary']);
             issueBodyController = TextEditingController(text: _issueData['description']);
             selectedRadio = _issueData['target'] == 'app' ? 1 : 2;
-            _isLoading = false;
+            isLoading = false;
           });
         }
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unexpected error occurred'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
     }
   }
@@ -98,7 +98,7 @@ class _IssueFormState extends State<IssueForm> {
   void _addIssue() async {
     final supabase = widget.supabase;
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
     try {
       final List<dynamic> data = await supabase.schema('eaquasaver').from('issue').insert(
@@ -109,19 +109,21 @@ class _IssueFormState extends State<IssueForm> {
           'target': selectedRadio == 1 ? 'app' : 'device'
         },
       ).select();
-      if (data.length > 0) {
+      if (data.isNotEmpty) {
         debugPrint('Issue añadido correctamente!');
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $error'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
       Future.delayed(const Duration(seconds: 1), () {
         widget.pageController.jumpToPage(3);
@@ -132,7 +134,7 @@ class _IssueFormState extends State<IssueForm> {
 
   void _updateIssueById(int id, IssueBloc bloc) async {
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
     try {
       final supabase = widget.supabase;
@@ -158,15 +160,17 @@ class _IssueFormState extends State<IssueForm> {
       );*/
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unexpected error occurred'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
 
       Future.delayed(const Duration(seconds: 1), () {
@@ -241,14 +245,14 @@ class _IssueFormState extends State<IssueForm> {
       floatingActionButton: FloatingActionButton(
         elevation: 5,
         onPressed: () {
-                FocusScope.of(context).unfocus();
-                if (widget.typeForm == 'new') {
-                  _addIssue();
-                } else if (widget.typeForm == 'edit') {
-                  final issueBloc = BlocProvider.of<IssueBloc>(context);
-                  _updateIssueById(issueBloc.state.selectId, issueBloc);
-                }
-              },
+          FocusScope.of(context).unfocus();
+          if (widget.typeForm == 'new') {
+            _addIssue();
+          } else if (widget.typeForm == 'edit') {
+            final issueBloc = BlocProvider.of<IssueBloc>(context);
+            _updateIssueById(issueBloc.state.selectId, issueBloc);
+          }
+        },
         backgroundColor: Colors.green,
         shape: const CircleBorder(),
         child: const Icon(

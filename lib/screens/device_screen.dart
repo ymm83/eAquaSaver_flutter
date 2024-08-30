@@ -1,17 +1,17 @@
 import 'dart:async';
-import 'dart:math';
+//import 'dart:math';
+import 'package:atlas_icons/atlas_icons.dart';
 import 'package:eaquasaver_flutter_app/bloc/beacon/beacon_bloc.dart';
 import 'package:eaquasaver_flutter_app/utils/extra.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../protoc/eaquasaver_msg.pb.dart';
+//import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
 import '../utils/snackbar.dart';
-import '../widgets/temperature_chart.dart';
 
 class DeviceScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -36,7 +36,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
-  late Map<String, dynamic> _beaconData = {};
+  late final Map<String, dynamic> _beaconData = {};
   late Timer _beaconTimer;
 
   @override
@@ -90,7 +90,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     });
   }
 
-  void _processManufacturerData(AdvertisementData advertisementData) {
+  /*void _processManufacturerData(AdvertisementData advertisementData) {
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
         _decodeManufacturerData(value);
@@ -98,9 +98,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     } else {
       debugPrint('No hay datos de fabricante disponibles.');
     }
-  }
+  }*/
 
-  void _decodeManufacturerData(List<int> data) {
+  /*void _decodeManufacturerData(List<int> data) {
     debugPrint("Data: ${data}");
 
     if (data.isEmpty) {
@@ -135,7 +135,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     } catch (e) {
       debugPrint('Error al decodificar los datos: $e');
     }
-  }
+  }*/
 
   @override
   void dispose() {
@@ -153,7 +153,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return _connectionState == BluetoothConnectionState.connected;
   }
 
-  Future<void> _startBeaconScanning() async {
+  /*Future<void> _startBeaconScanning() async {
     // FAKE DATA
     debugPrint('------------GENERANDO DATOS FAKE---------------');
     _beaconData = {
@@ -184,7 +184,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         }
       }
     });*/
-  }
+  }*/
 
   Future<void> _stopBeaconScanning() async {
     await FlutterBluePlus.stopScan();
@@ -308,9 +308,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return IndexedStack(
       index: (_isDiscoveringServices) ? 1 : 0,
       children: <Widget>[
-        TextButton(
+        //SizedBox(height: 10),
+        OutlinedButton.icon(
           onPressed: onDiscoverServicesPressed,
-          child: const Text("Get Services"),
+          icon: const Icon(Icons.bluetooth_connected_outlined),
+          label: const Text("Get Services"),
         ),
         const IconButton(
           alignment: Alignment.topRight,
@@ -367,12 +369,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
-      List<Widget> beaconWidget = [];
-      if (state is BeaconLoaded) {
-        beaconWidget.add(Text('temperature: ${state.beaconData['temperature']}'));
-        beaconWidget.add(Text('hotTemperature: ${state.beaconData['hotTemperature']}'));
-        beaconWidget.add(Text('coldTemperature: ${state.beaconData['coldTemperature']}'));
-      }
       return ScaffoldMessenger(
         key: Snackbar.snackBarKeyC,
         child: Scaffold(
@@ -382,7 +378,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 const SizedBox(height: 7),
                 Card(
                   shape: RoundedRectangleBorder(
-                      side: BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
+                      side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
                   color: Colors.blue.shade100,
                   child: ListTile(
                     // leading: CircleAvatar(
@@ -391,46 +387,94 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     leading: buildRssiTile(context),
                     title: Text(
                       widget.device.platformName,
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(widget.device.remoteId.toString()),
                     trailing: buildConnectIcon(context),
                   ),
                 ),
 
-                //Center(child: buildConnectButton(context)),
-                buildGetServices(context),
-
-                //buildMtuTile(context),
-                ..._buildServiceTiles(context, widget.device),
                 // Mostrar datos de beacon
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(top: 8, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (state is BeaconLoaded)
-                        if (state.beaconData.isNotEmpty)
-                          const Text('Beacon Data:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      if (state is BeaconLoaded)
-                        if (beaconWidget.isNotEmpty) // Verificar si hay datos
-                          ...beaconWidget.map((widget) {
-                            return widget;
-                          }),
-                      if (state is BeaconLoading)
+                      if (state is BeaconLoaded) ...[
+                        Center(
+                            child: Text(
+                          'Temperature',
+                          style: TextStyle(color: Colors.blue.shade900, fontSize: 16, fontWeight: FontWeight.bold),
+                        )),
+                        Card(
+                          shape: RoundedRectangleBorder(
+                              side: const BorderSide(color: Color.fromARGB(255, 149, 172, 190), width: 1),
+                              borderRadius: BorderRadius.circular(10)),
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          child: ListTile(
+                              leading: Transform.flip(
+                                flipX: true,
+                                child: Icon(
+                                  Atlas.water_tap_thin,
+                                  size: 30,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                              title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text(
+                                  '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
+                                ),
+                                Text(
+                                  state.beaconData['temperature'].toString().split('.')[0],
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
+                                ),
+                                Text(
+                                  '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
+                                ),
+                              ]),
+                              subtitle: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text(
+                                  'cold pipe',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                                Text(
+                                  'current',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black),
+                                ),
+                                Text(
+                                  'hot pipe',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ]),
+                              trailing: Icon(
+                                Atlas.water_tap_thin,
+                                size: 30,
+                                color: Colors.red.shade500,
+                              )),
+                        ),
+                      ],
+                      if (state is BeaconLoading) ...[
                         const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
-                      if (state is BeaconLoading)
                         const Padding(
                             padding: EdgeInsets.only(left: 50, right: 50, top: 5),
                             child: LinearProgressIndicator(
                               color: Colors.blue,
                               backgroundColor: Colors.redAccent,
                             )),
-                      // Text(state.toString()),
-                      if (state is BeaconLoaded) TemperatureChart(beaconData: state.beaconData),
+                      ]
                     ],
                   ),
                 ),
+                //Center(child: buildConnectButton(context)),
+                buildGetServices(context),
+
+                //buildMtuTile(context),
+                ..._buildServiceTiles(context, widget.device),
               ],
             ),
           ),

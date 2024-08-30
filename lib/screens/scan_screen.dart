@@ -7,7 +7,7 @@ import '../utils/snackbar.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
-import '../protoc/eaquasaver_msg.pb.dart';
+//import '../protoc/eaquasaver_msg.pb.dart';
 
 class ScanScreen extends StatefulWidget {
   final PageController pageController;
@@ -21,14 +21,14 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
   late List<BluetoothDevice> _systemDevices = [];
-  late List<ScanResult> _scanResults = [];
-  Set<String> _uniqueRemoteIds = {}; // Conjunto para almacenar remoteId únicos
+  late final List<ScanResult> _scanResults = [];
+  final Set<String> _uniqueRemoteIds = {}; // Conjunto para almacenar remoteId únicos
   bool _isScanning = false;
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
   bool _initialScanCompleted = false;
 
-  void _processManufacturerData(AdvertisementData advertisementData) {
+  /*void _processManufacturerData(AdvertisementData advertisementData) {
     if (advertisementData.manufacturerData.isNotEmpty) {
       advertisementData.manufacturerData.forEach((key, value) {
         _decodeManufacturerData(value);
@@ -36,9 +36,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     } else {
       debugPrint('No hay datos de fabricante disponibles.');
     }
-  }
+  }*/
 
-  void _decodeManufacturerData(List<int> data) {
+  /*void _decodeManufacturerData(List<int> data) {
     if (data.isEmpty) {
       debugPrint('Error: Los datos están vacíos.');
       return;
@@ -58,7 +58,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     } catch (e) {
       debugPrint('Error al decodificar los datos: $e');
     }
-  }
+  }*/
 
   @override
   void initState() {
@@ -262,7 +262,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   ),
                 ),
               if (!_isScanning && _scanResults.isNotEmpty)
-                Center(child: Text('${_scanResults.length} dispositivos encontrados:', style: TextStyle())),
+                Center(child: Text('${_scanResults.length} dispositivos encontrados:', style: const TextStyle())),
               if (!_isScanning) ..._buildScanResultTiles(context),
             ],
           ),

@@ -36,7 +36,7 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
     });*/
   }
 
-  Future<void> _startBeaconScanning(StartScan event, Emitter<BeaconState> emit) async {
+  /*Future<void> _startBeaconScanning(StartScan event, Emitter<BeaconState> emit) async {
     debugPrint('------------GENERANDO DATOS FAKE---------------');
     var beaconData = {
       'fake': true,
@@ -52,7 +52,7 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
     if (!emit.isDone) {
       emit(BeaconLoaded(beaconData));
     }
-  }
+  }*/
 
   Map<String, dynamic> fakeManufacturerData() {
     var beaconData = {
@@ -111,11 +111,11 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
 
   Future<void> _onStartScan(StartScan event, Emitter<BeaconState> emit) async {
     final String remoteId = state.remoteId;
-    _scanTimer = Timer.periodic(Duration(seconds: 3), (timer) async {
+    _scanTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       await FlutterBluePlus.startScan(
         timeout: const Duration(seconds: 3),
       );
-      debugPrint('----------- _onStartScan>remoteId:${remoteId}'); // q
+      debugPrint('----------- _onStartScan>remoteId:$remoteId'); // q
 
       _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) async {
         for (ScanResult r in results) {
@@ -170,10 +170,10 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
   //   });
   // }
 
-  Future<void> _onStopScan(StopScan event, Emitter<BeaconState> emit) async {
+  /*Future<void> _onStopScan(StopScan event, Emitter<BeaconState> emit) async {
     //_stopBeaconScanning();
     if (!emit.isDone) {
       emit(BeaconState());
     } // Emitir estado inicial o cualquier otro estado relevante
-  }
+  }*/
 }

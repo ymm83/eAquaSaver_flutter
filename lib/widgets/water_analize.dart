@@ -34,7 +34,7 @@ Color analizeColor(String elem, double val) {
 class Analize extends StatelessWidget {
   final Map<String, dynamic> item;
 
-  const Analize({required this.item, Key? key}) : super(key: key);
+  const Analize({required this.item, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,43 +51,43 @@ class Analize extends StatelessWidget {
               Icon(Icons.science,
                   size: 16,
                   color: analizeColor(item['code_parametre_se'], item['resultat_numerique'])),
-              SizedBox(width: 5),
+              const SizedBox(width: 5),
               Text(
                 item['libelle_parametre'],
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
-              Spacer(),
+              const Spacer(),
               if (item['libelle_parametre'] == 'Potassium')
-                Text('Qualité < 12 mg/l', style: TextStyle(fontSize: 12)),
+                const Text('Qualité < 12 mg/l', style: TextStyle(fontSize: 12)),
               if (item['libelle_parametre'] == 'Titre hydrotimétrique')
-                Text('Qualité < 15 °f', style: TextStyle(fontSize: 12)),
+                const Text('Qualité < 15 °f', style: TextStyle(fontSize: 12)),
               if (item['libelle_parametre'] != 'Potassium' && item['reference_qualite_parametre'] != null)
-                Text('Qualité ${item['reference_qualite_parametre']}', style: TextStyle(fontSize: 12)),
+                Text('Qualité ${item['reference_qualite_parametre']}', style: const TextStyle(fontSize: 12)),
             ],
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 decoration: BoxDecoration(
                   color: analizeColor(item['code_parametre_se'], item['resultat_numerique']),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   item['resultat_alphanumerique'],
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
-              SizedBox(width: 5),
+              const SizedBox(width: 5),
               Text(item['libelle_unite']),
             ],
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 14, color: Colors.black),
-              SizedBox(width: 5),
+              const Icon(Icons.calendar_today, size: 14, color: Colors.black),
+              const SizedBox(width: 5),
               Text(item['date_prelevement'].substring(0, 10)),
             ],
           ),
