@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'package:community_charts_flutter/community_charts_flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../bloc/beacon/beacon_bloc.dart';
+import '../widgets/device_bar_chart.dart';
+import '../widgets/device_pie_chart.dart';
 
 class DeviceCharts extends StatefulWidget {
   final bool animate;
@@ -22,10 +23,10 @@ class DeviceChartsState extends State<DeviceCharts> {
   @override
   void initState() {
     super.initState();
-    context.read<BeaconBloc>().add(FakeData());
-    beaconTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      context.read<BeaconBloc>().add(FakeData());
-    });
+    //context.read<BeaconBloc>().add(FakeData());
+    //beaconTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    //context.read<BeaconBloc>().add(FakeData());
+    //});
   }
 
   @override
@@ -39,71 +40,24 @@ class DeviceChartsState extends State<DeviceCharts> {
     return BlocBuilder<BeaconBloc, BeaconState>(
       builder: (context, state) {
         if (state is BeaconLoaded) {
-          final data = _createData(state);
+          debugPrint('------ state.beaconData: ${state.beaconData.toString()}');
 
-          return SizedBox(
-              height: 100,
-              width: 100,
-              child: charts.PieChart<String>(
-                data,
-                animate: widget.animate,
-                defaultRenderer: charts.ArcRendererConfig<String>(
-                  arcWidth: 90,
-                  arcRendererDecorators: [
-                    charts.ArcLabelDecorator(
-                      insideLabelStyleSpec: const charts.TextStyleSpec(fontSize: 12),
-                      labelPosition: charts.ArcLabelPosition.auto, // Mostrar las etiquetas dentro
-                    ),
-                  ],
-                ),
-                behaviors: [
-                  charts.DatumLegend(
-                    position: charts.BehaviorPosition.bottom,
-                    outsideJustification: charts.OutsideJustification.middleDrawArea,
-                    horizontalFirst: false,
-                    cellPadding: const EdgeInsets.only(right: 60.0, left: 40, bottom: 20.0),
-                    showMeasures: true,
-                    legendDefaultMeasure: charts.LegendDefaultMeasure.lastValue,
-                    measureFormatter: (num? value) {
-                      return value == null ? '-' : '$value L';
-                    },
-                  ),
-                ],
-              ));
+          if (state.beaconData['totalRecovered'] == 0 &&
+              state.beaconData['totalHotUsed'] == 0 &&
+              state.beaconData['totalColdUsed'] == 0) {
+            return const Text('No hay datos para mostrar');
+          } else {
+            return DeviceBarChart(beaconData: state.beaconData);
+          }
         } else {
           return const Center(child: CircularProgressIndicator());
         }
       },
     );
   }
-
-  List<charts.Series<LinearData, String>> _createData(BeaconLoaded state) {
-    final data = [
-      LinearData('TotalRecovered', state.beaconData['totalRecovered'] ?? 0),
-      LinearData('TotalHotUsed', state.beaconData['totalHotUsed'] ?? 0),
-      LinearData('TotalColUsed', state.beaconData['totalColdUsed'] ?? 0),
-    ];
-
-    return [
-      charts.Series<LinearData, String>(
-        id: 'BeaconData',
-        domainFn: (LinearData data, _) => data.label,
-        measureFn: (LinearData data, _) => data.value,
-        data: data,
-        labelAccessorFn: (LinearData row, _) => '${row.value} L',
-        //labelAccessorFn: (LinearData row, _) => '${row.label}: ${row.value}',
-      )
-    ];
-  }
 }
 
 /// Data model for the chart
-class LinearData {
-  final String label;
-  final int value;
-
-  LinearData(this.label, this.value);
-}
 
 
 /*

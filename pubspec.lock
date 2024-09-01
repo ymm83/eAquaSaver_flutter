@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  atlas_icons:
+    dependency: "direct main"
+    description:
+      name: atlas_icons
+      sha256: f4790795c495cf9eabb91b75096a4f687aaa6f99ff907d18d18aa8b54a022adc
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.12"
   bloc:
     dependency: transitive
     description:
@@ -218,7 +226,7 @@ packages:
     source: hosted
     version: "7.0.0"
   fixnum:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fixnum
       sha256: "25517a4deb0c03aa0f32fd12db525856438902d9c16536311e76cdc57b31d7d1"

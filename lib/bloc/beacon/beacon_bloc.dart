@@ -17,7 +17,7 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
   late Timer _fakeTimer;
 
   BeaconBloc() : super(BeaconState()) {
-    on<ListenBeacon>((event, emit) => emit(state.copyWith(remoteId: event.remoteId)));
+    on<ListenBeacon>(_onListenBeacon);
     on<ClearBeacon>((event, emit) async {
       emit(state.copyWith(remoteId: ''));
       _scanTimer.cancel();
@@ -107,6 +107,10 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
     emit(BeaconLoaded(fakeManufacturerData()));
     // debugPrint('----------- _onRandomFake : {data.toString()}');
     //});
+  }
+
+  void _onListenBeacon(ListenBeacon event, Emitter<BeaconState> emit) {
+    emit(BeaconLoaded(event.beaconData));
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<BeaconState> emit) async {

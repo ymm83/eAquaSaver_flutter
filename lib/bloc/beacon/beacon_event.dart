@@ -4,8 +4,8 @@ part of 'beacon_bloc.dart';
 abstract class BeaconEvent {}
 
 class ListenBeacon extends BeaconEvent {
-  final String? remoteId;
-  ListenBeacon({this.remoteId});
+  final Map<String, dynamic> beaconData;
+  ListenBeacon({required this.beaconData});
 }
 
 class ClearBeacon extends BeaconEvent {}

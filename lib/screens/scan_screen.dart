@@ -75,28 +75,31 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         _uniqueRemoteIds.clear(); // Limpiar también los IDs únicos
 
         for (ScanResult r in results) {
-          //debugPrint('--------------------r.device.removeBond:${r.device.removeBond()}');
+          debugPrint('----------------START---------------');
+          debugPrint('--------------------r.device.advName:${r.device.advName}');
+          debugPrint('--------------------r.device.platformName:${r.device.platformName}');
+          debugPrint('--------------------r.device.remoteId:${r.device.remoteId}');
+          debugPrint('----------------END---------------\n');
+
           String name = r.device.platformName;
 
-          if (name.startsWith('eAquaS')) {
-            if (name == 'eAquaSaver') {
-              debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
-            }
-            if (name == 'eAquaS Beacon') {
-              debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName} remoteId: ${r.device.remoteId}');
-              //_processManufacturerData(r.advertisementData);
-            }
-
-            // Filtrar por remoteId único
-            // if (!_uniqueRemoteIds.contains(r.device.remoteId.toString())) {
-            if (!_isDeviceInSystem(r.device)) _scanResults.add(r); // Solo agregar dispositivos connectable
-            _uniqueRemoteIds.add(r.device.remoteId.toString());
-            // if (r.advertisementData.connectable) {
-            // } else {
-            //debugPrint('Dispositivo no connectable ignorado: ${r.device.remoteId}');
-            // }
-            //}
+          if (name.startsWith('eASs-')) {
+            debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
           }
+          if (name.startsWith('eASb-')) {
+            debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName} remoteId: ${r.device.remoteId}');
+            //_processManufacturerData(r.advertisementData);
+          }
+
+          // Filtrar por remoteId único
+          // if (!_uniqueRemoteIds.contains(r.device.remoteId.toString())) {
+          if (!_isDeviceInSystem(r.device)) _scanResults.add(r); // Solo agregar dispositivos connectable
+          //_uniqueRemoteIds.add(r.device.remoteId.toString());
+          // if (r.advertisementData.connectable) {
+          // } else {
+          //debugPrint('Dispositivo no connectable ignorado: ${r.device.remoteId}');
+          // }
+          //}
         }
 
         // Actualizar la UI
@@ -143,7 +146,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   Future onScanPressed() async {
-    debugPrint('_uniqueRemoteIds: ${_uniqueRemoteIds.length}');
+    //debugPrint('_uniqueRemoteIds: ${_uniqueRemoteIds.length}');
 
     try {
       _systemDevices = await FlutterBluePlus.systemDevices;
@@ -218,13 +221,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         device: d,
         onOpen: () {
           onConnectPressed(d);
-          context.read<BleBloc>().add(const DetailsOpen());
-          widget.pageController.jumpToPage(1);
+          // context.read<BleBloc>().add(const DetailsOpen());
+          // widget.pageController.jumpToPage(1);
         },
         onConnect: () {
           onConnectPressed(d);
-          context.read<BleBloc>().add(const DetailsOpen());
-          widget.pageController.jumpToPage(1);
+          // context.read<BleBloc>().add(const DetailsOpen());
+          // widget.pageController.jumpToPage(1);
         },
       );
     }).toList();

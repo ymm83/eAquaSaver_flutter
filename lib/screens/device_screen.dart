@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:atlas_icons/atlas_icons.dart';
 import 'package:eaquasaver_flutter_app/bloc/beacon/beacon_bloc.dart';
 import 'package:eaquasaver_flutter_app/utils/extra.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-//import '../protoc/eaquasaver_msg.pb.dart';
+import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
@@ -36,7 +37,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
-  late final Map<String, dynamic> _beaconData = {};
+  late Map<String, dynamic> _beaconData = {};
   late Timer _beaconTimer;
 
   @override
@@ -44,10 +45,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
     super.initState();
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
-    context.read<BeaconBloc>().add(FakeData());
-    _beaconTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      context.read<BeaconBloc>().add(FakeData());
-    });
+    //context.read<BeaconBloc>().add(FakeData());
+    //_beaconTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    //  context.read<BeaconBloc>().add(FakeData());
+    //});
     _connectionStateSubscription = widget.device.connectionState.listen((state) async {
       _connectionState = state;
       if (state == BluetoothConnectionState.connected) {
@@ -64,9 +65,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
 
-    /*_beaconTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      _startBeaconScanning();
-    });*/
+    _beaconTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      debugPrint('----------widget.device:${widget.device.platformName}');
+      startBeaconScanning();
+    });
 
     _mtuSubscription = widget.device.mtu.listen((value) {
       _mtuSize = value;
@@ -90,52 +92,41 @@ class _DeviceScreenState extends State<DeviceScreen> {
     });
   }
 
-  /*void _processManufacturerData(AdvertisementData advertisementData) {
-    if (advertisementData.manufacturerData.isNotEmpty) {
-      advertisementData.manufacturerData.forEach((key, value) {
-        _decodeManufacturerData(value);
-      });
-    } else {
-      debugPrint('No hay datos de fabricante disponibles.');
-    }
-  }*/
-
-  /*void _decodeManufacturerData(List<int> data) {
-    debugPrint("Data: ${data}");
-
-    if (data.isEmpty) {
-      debugPrint('Error: Los datos están vacíos.');
-      return;
-    }
-
+  Map<String, dynamic> _decodeManufacturerData(List<int> data) {
     try {
       int size = data[0];
       var protobufData = data.sublist(1, size + 1);
-      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+      eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
 
-      debugPrint("Tamaño del mensaje: $size");
-      debugPrint("\nMensaje decodificado: --- START ---\n $decodedMessage--- END ---");
+      //debugPrint("Tamaño del mensaje: $size");
+      debugPrint("\nMensaje decodificado: --- START ---\n $message--- END ---");
 
-      debugPrint('Temperatura caliente: ${decodedMessage.hotTemperature}');
-      debugPrint('Temperatura fría: ${decodedMessage.coldTemperature}');
-      if (mounted) {
-        setState(() {
-          _beaconData = {
-            'temperature': decodedMessage.temperature,
-            'hotTemperature': decodedMessage.hotTemperature / 10.0,
-            'coldTemperature': decodedMessage.coldTemperature / 10.0,
-            'currentHotUsed': decodedMessage.currentHotUsed,
-            'currentRecovered': decodedMessage.currentRecovered,
-            'totalColdUsed': decodedMessage.totalColdUsed,
-            'totalRecovered': decodedMessage.totalRecovered,
-            'totalHotUsed': decodedMessage.totalHotUsed,
-          };
-        });
-      }
+      debugPrint('Temperatura caliente: ${message.hotTemperature}');
+      debugPrint('\n----- message : ${message.totalRecovered.toString()}\n-------end message ----------\n');
+
+      Map<String, dynamic> beaconData = {
+        'temperature': message.temperature,
+        'hotTemperature': message.hotTemperature / 10.0,
+        'coldTemperature': message.coldTemperature / 10.0,
+        'currentHotUsed': message.currentHotUsed,
+        'currentRecovered': message.currentRecovered,
+        'totalColdUsed': message.totalColdUsed.toInt(),
+        'totalRecovered': message.totalRecovered.toInt(),
+        'totalHotUsed': message.totalHotUsed.toInt(),
+      };
+      debugPrint('------ beaconData: ${beaconData.toString()}');
+      return beaconData;
     } catch (e) {
-      debugPrint('Error al decodificar los datos: $e');
+      return {};
     }
-  }*/
+  }
+
+  int _safeToInt(dynamic value) {
+    if (value is num && value.isFinite) {
+      return value.toInt();
+    }
+    return 0;
+  }
 
   @override
   void dispose() {
@@ -153,38 +144,38 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return _connectionState == BluetoothConnectionState.connected;
   }
 
-  /*Future<void> _startBeaconScanning() async {
-    // FAKE DATA
-    debugPrint('------------GENERANDO DATOS FAKE---------------');
-    _beaconData = {
-      'fake': true,
-      'temperature': Random().nextInt(10) + 20,
-      'hotTemperature': double.parse((Random().nextDouble() * 25).toStringAsPrecision(2)) + 25,
-      'coldTemperature': double.parse((Random().nextDouble() * 25).toStringAsPrecision(2)),
-      'currentHotUsed': Random().nextInt(30) + 20,
-      'currentRecovered': Random().nextInt(19) + 1,
-      'totalColdUsed': Random().nextInt(500) + 10000,
-      'totalRecovered': Random().nextInt(500) + 10000,
-      'totalHotUsed': Random().nextInt(500) + 10000,
-    };
-    setState(() {});
-    // ******  END FAKE DATA *******, uncomment next for true
+  Future<void> startBeaconScanning() async {
+    //debugPrint('---------- replace: ${widget.device.platformName.replaceRange(3, 4, 'b')}');
+    String deviceName = widget.device.platformName;
+    String beaconName = 'eASb-${deviceName.split('-')[1]}';
 
-    /*await FlutterBluePlus.startScan(
-        withRemoteIds: [widget.device.remoteId.toString()], timeout: const Duration(seconds: 3));
+    await FlutterBluePlus.startScan();
     _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
-      for (ScanResult r in results) {
-        String name = r.device.advName;
-        if (name.startsWith('eAquaS')) {
-          if (name == 'eAquaS Beacon') {
-            if (r.device.remoteId == widget.device.remoteId) {
-              _processManufacturerData(r.advertisementData);
+      //debugPrint('---------- results.length: ${results.length}');
+
+      if (results.isNotEmpty) {
+        try {
+          for (var adv in results) {
+            if (adv.advertisementData.advName.substring(0, 17) == beaconName) {
+              debugPrint('----------siiiiiiiiiiiiiiiiiiiiii---------------');
+              if (adv.advertisementData.manufacturerData.isNotEmpty) {
+                adv.advertisementData.manufacturerData.forEach((key, value) {
+                  var decodedData = _decodeManufacturerData(value);
+                  context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
+                });
+              }
+            } else {
+              continue;
             }
           }
+        } catch (e) {
+          //debugPrint('Error al buscar el beacon: $e');
         }
+      } else {
+        //debugPrint('No se encontraron resultados en el escaneo.');
       }
-    });*/
-  }*/
+    });
+  }
 
   Future<void> _stopBeaconScanning() async {
     await FlutterBluePlus.stopScan();
