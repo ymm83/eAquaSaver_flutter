@@ -47,7 +47,10 @@ class DeviceChartsState extends State<DeviceCharts> {
               state.beaconData['totalColdUsed'] == 0) {
             return const Text('No hay datos para mostrar');
           } else {
-            return DeviceBarChart(beaconData: state.beaconData);
+            return ConstrainedBox(
+              constraints: BoxConstraints.expand(height: 150.0), 
+              child: DevicePieChart(beaconData: state.beaconData), 
+            );
           }
         } else {
           return const Center(child: CircularProgressIndicator());

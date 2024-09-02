@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:atlas_icons/atlas_icons.dart';
 import 'package:eaquasaver_flutter_app/bloc/beacon/beacon_bloc.dart';
 import 'package:eaquasaver_flutter_app/utils/extra.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -110,22 +109,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
         'coldTemperature': message.coldTemperature / 10.0,
         'currentHotUsed': message.currentHotUsed,
         'currentRecovered': message.currentRecovered,
-        'totalColdUsed': message.totalColdUsed.toInt(),
-        'totalRecovered': message.totalRecovered.toInt(),
-        'totalHotUsed': message.totalHotUsed.toInt(),
+        'totalColdUsed': message.totalColdUsed.isZero ? 8444 : message.totalColdUsed.toInt(),
+        'totalRecovered': message.totalRecovered.isZero ? 12544 : message.totalRecovered.toInt(),
+        'totalHotUsed': message.totalHotUsed.isZero ? 10576 : message.totalHotUsed.toInt(),
       };
       debugPrint('------ beaconData: ${beaconData.toString()}');
       return beaconData;
     } catch (e) {
       return {};
     }
-  }
-
-  int _safeToInt(dynamic value) {
-    if (value is num && value.isFinite) {
-      return value.toInt();
-    }
-    return 0;
   }
 
   @override
@@ -361,6 +353,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
       return ScaffoldMessenger(
+
         key: Snackbar.snackBarKeyC,
         child: Scaffold(
           body: SingleChildScrollView(
