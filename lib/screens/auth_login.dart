@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
   final TurnstileOptions _options = TurnstileOptions(
     size: TurnstileSize.normal,
     theme: TurnstileTheme.light,
-    refreshExpired: TurnstileRefreshExpired.manual,
+    refreshExpired: TurnstileRefreshExpired.auto,
     language: 'en',
     retryAutomatically: false,
   );
@@ -51,17 +51,19 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
     Color bgColor = Theme.of(context).colorScheme.primary;
-    if (backgroundColor == 'secondary') {
-      bgColor = Theme.of(argContext).colorScheme.secondary;
+    Color? textColor;
+    if (backgroundColor == 'warning') {
+      bgColor = Colors.yellow.shade700;
+      textColor = Colors.black87;
     } else if (backgroundColor == 'error') {
-      bgColor = Theme.of(argContext).colorScheme.error;
+      bgColor = Colors.red.shade500;
     } else if (backgroundColor == 'success') {
       bgColor = Colors.green;
     } else {
       bgColor = Theme.of(argContext).colorScheme.primary;
     }
     ScaffoldMessenger.of(argContext).showSnackBar(
-      SnackBar(content: Text(argMessage), backgroundColor: bgColor),
+      SnackBar(content: Text(argMessage, style: TextStyle(color: textColor ?? Colors.white)), backgroundColor: bgColor),
     );
   }
 
@@ -98,11 +100,13 @@ class _LoginPageState extends State<LoginPage> {
       }
       if (mounted) {
         _showSnackBar(context, errorMessage, 'error');
+        await _controller.refreshToken();
       }
     } catch (error) {
       if (mounted) {
         _showSnackBar(context, 'Unexpected error occurred', 'error');
       }
+      await _controller.refreshToken();
     } finally {
       if (mounted) {
         setState(() {
@@ -112,16 +116,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<bool> isEmailAvailable(String email) async {
-    try {
-      final response = await supabase.rpc('is_email_exist', params: {'email': email});
-      //return response['rpc_is_email_exist'];
-      return response;
-      // Si la consulta devuelve un resultado, el email ya está registrado
-    } catch (error) {
-      return false;
-    }
-  }
+  void validateLoginForm({String? email, String? password, String? confirm, String? token}) {}
 
   Future<void> _signUpWithEmail() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
@@ -133,22 +128,22 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      final res = await supabase.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text, /* captchaToken: _token*/
-      );
-      debugPrint('{{{{----------- res: $res }}}}');
-      //final Session? session = res.session;
-      //final User? user = res.user;
-      //debugPrint('user**********************************');
-      //debugPrint(user?.toJson());
-      //debugPrint('session*******************************');
-      //debugPrint(session?.toJson());
+      final res = await supabase.auth
+          .signUp(email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _token);
 
       if (mounted) {
-        _showSnackBar(context, 'Check your email for a login link!', 'success');
-        _emailController.clear();
-        _passwordController.clear();
+        if (res.user!.identities!.isEmpty) {
+          _showSnackBar(context, 'Your email is already registered.', 'warning');
+        } else {
+          _showSnackBar(context, 'Check your email for a login link!', 'success');
+        }
+        setState(() {
+          authStep = stepSignIn;
+        });
+        await _controller.refreshToken();
+        //_emailController.clear();
+        //_passwordController.clear();
+        _password2Controller.clear();
       }
     } on AuthException catch (error) {
       String errorMessage;
@@ -158,11 +153,14 @@ class _LoginPageState extends State<LoginPage> {
       } else if (error.message.contains('email not confirmed')) {
         errorMessage = 'Please confirm your email before logging in.';
       } else {
-        errorMessage = error.message;
+        errorMessage = 'error'; //error.message
       }
       if (mounted) {
-        _showSnackBar(context, errorMessage, 'error');
+        if (errorMessage != 'error') {
+          _showSnackBar(context, errorMessage, 'error');
+        }
       }
+      await _controller.refreshToken();
     } catch (error) {
       if (mounted) {
         //_showSnackBar(context, 'Unexpected error occurred', 'error');
@@ -196,6 +194,7 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           authStep = stepReset;
         });
+        await _controller.refreshToken();
         //_emailController.t
       }
     } on AuthException catch (error) {
@@ -245,6 +244,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         _showSnackBar(context, 'Reset password successful!', 'success');
       }
+      await _controller.refreshToken();
       //await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
     } on AuthException catch (error) {
       if (mounted) {
@@ -254,6 +254,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         _showSnackBar(context, 'Unexpected error occurred', 'error');
       }
+      await _controller.refreshToken();
     } finally {
       if (mounted) {
         setState(() {
@@ -326,6 +327,12 @@ class _LoginPageState extends State<LoginPage> {
               //hintText: 'The email address?',
               labelText: 'email',
             ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter some text';
+              }
+              return null;
+            },
           ),
           Offstage(
             offstage: authStep != stepReset,
@@ -401,17 +408,15 @@ class _LoginPageState extends State<LoginPage> {
             onTokenExpired: () async {
               await _controller.refreshToken();
             },
-            onError: (error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(error)),
-              );
-            },
+            /*onError: (error) async {
+              await _controller.refreshToken();
+            },*/
           ),
-          TextButton(
+          /*TextButton(
               onPressed: () async {
                 await _controller.refreshToken();
               },
-              child: const Text('Reload captcha', style: TextStyle(color: Color(0xFFEE8418)))),
+              child: const Text('Reload captcha', style: TextStyle(color: Color(0xFFEE8418)))),*/
           const SizedBox(height: 18),
           ElevatedButton(
             onPressed: _isLoading
