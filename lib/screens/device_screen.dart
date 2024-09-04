@@ -12,6 +12,7 @@ import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
 import '../utils/snackbar.dart';
+//import '../provider/supabase_provider.dart';
 
 class DeviceScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -36,12 +37,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
-  late Map<String, dynamic> _beaconData = {};
+  late final Map<String, dynamic> _beaconData = {};
   late Timer _beaconTimer;
 
   @override
   void initState() {
     super.initState();
+    //final supabaseClient = SupabaseProvider.of(context)?.supabaseClient;
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
     //context.read<BeaconBloc>().add(FakeData());
@@ -353,7 +355,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
       return ScaffoldMessenger(
-
         key: Snackbar.snackBarKeyC,
         child: Scaffold(
           body: SingleChildScrollView(

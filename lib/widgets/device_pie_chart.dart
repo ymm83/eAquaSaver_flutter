@@ -32,7 +32,7 @@ class _DevicePieChartState extends State<DevicePieChart> {
 
     return Column(
       children: [
-        SizedBox(
+        const SizedBox(
           height: 60,
         ),
         SizedBox(

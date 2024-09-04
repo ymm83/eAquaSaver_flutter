@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eaquasaver_flutter_app/provider/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -39,7 +40,7 @@ Future<void> main() async {
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
         BlocProvider(create: (context) => BeaconBloc()),
       ],
-      child: const MyApp(),
+      child: SupabaseProvider(supabaseClient: supabase, child: const MyApp()),
     ),
   );
 }
@@ -75,3 +76,29 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+/*
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class SupabaseProvider extends InheritedWidget {
+  final SupabaseClient supabaseClient;
+
+  SupabaseProvider({
+    Key? key,
+    required this.supabaseClient,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  static SupabaseProvider? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<SupabaseProvider>();
+  }
+
+  @override
+  bool updateShouldNotify(SupabaseProvider oldWidget) {
+    return supabaseClient != oldWidget.supabaseClient;
+  }
+}
+
+*/

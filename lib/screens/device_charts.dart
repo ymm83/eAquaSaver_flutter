@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../bloc/beacon/beacon_bloc.dart';
-import '../widgets/device_bar_chart.dart';
+//import '../widgets/device_bar_chart.dart';
 import '../widgets/device_pie_chart.dart';
 
 class DeviceCharts extends StatefulWidget {
@@ -48,7 +48,7 @@ class DeviceChartsState extends State<DeviceCharts> {
             return const Text('No hay datos para mostrar');
           } else {
             return ConstrainedBox(
-              constraints: BoxConstraints.expand(height: 150.0), 
+              constraints: const BoxConstraints.expand(height: 150.0), 
               child: DevicePieChart(beaconData: state.beaconData), 
             );
           }
