@@ -1,14 +1,14 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:eaquasaver_flutter_app/provider/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
+import 'provider/supabase_provider.dart';
 import 'bloc/connectivity/connectivity_bloc.dart';
 import 'bloc/beacon/beacon_bloc.dart';
 import 'bloc/ble/ble_bloc.dart';

@@ -27,7 +27,9 @@ class _UserDashboardState extends State<UserDashboard> {
     try {
       final userId = supabase.auth.currentUser!.id;
       userData = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
-      await _storage.write(key: 'myprofile', value: json.encode(userData));
+      debugPrint('----- userData: ${userData.toString()}');
+      //await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(userData));
+      setState(() {});
       return userData;
     } on PostgrestException catch (error) {
       if (mounted) {
@@ -37,13 +39,14 @@ class _UserDashboardState extends State<UserDashboard> {
         );
       }
       userData = {};
+      setState(() {});
     } catch (error) {
-      if (mounted) {
+      /*if (mounted) {
         SnackBar(
           content: const Text('Unexpected error occurred'),
           backgroundColor: Theme.of(context).colorScheme.error,
         );
-      }
+      }*/
     } finally {
       /*if (mounted) {
         setState(() {
@@ -60,7 +63,7 @@ class _UserDashboardState extends State<UserDashboard> {
       _loading = true;
     });*/
     try {
-      final data = await _storage.read(key: 'myprofile');
+      final data = await _storage.read(key: supabase.auth.currentUser!.id);
       debugPrint('---- Reading Secure Storage');
       //data = jsonDecode(onValue!);
       userData = json.decode(data!);
@@ -104,6 +107,38 @@ class _UserDashboardState extends State<UserDashboard> {
         _loading = true;
       });
     }
+  }
+
+  String avatarLetter(String name, String lastname) {
+    String letter = '';
+    String tmpName = '';
+    String tmpLastname = '';
+
+    if (name.isNotEmpty) {
+      tmpName = name.substring(0, 1).toUpperCase();
+    }
+    if (lastname.isNotEmpty) {
+      tmpLastname = lastname.substring(0, 1).toUpperCase();
+    }
+
+    if (tmpName.isNotEmpty && tmpLastname.isEmpty) {
+      letter = tmpName; // Solo toma la primera letra
+    } else if (tmpName.isEmpty && tmpLastname.isNotEmpty) {
+      letter = tmpLastname; // Solo toma la primera letra
+    } else if (tmpName.isNotEmpty && tmpLastname.isNotEmpty) {
+      letter = tmpName + tmpLastname; // Toma las dos letras
+    } else {
+      // Verifica si currentUser es null
+      //final currentUser = supabase.auth.currentUser;
+      //if (currentUser != null && currentUser.email != null) {
+      letter = "icon";
+      //letter = currentUser.email!.substring(0, 2).toUpperCase();
+      //} else {
+      //letter = "??"; // Valor por defecto si no hay usuario ni email
+      //}
+    }
+
+    return letter;
   }
 
   @override
@@ -152,17 +187,20 @@ class _UserDashboardState extends State<UserDashboard> {
               children: [
                 Card(
                   shape: RoundedRectangleBorder(
-                      side: const BorderSide(color: Colors.blue, width: 1.5), 
-                      borderRadius: BorderRadius.circular(10)),
+                      side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
                   color: Colors.blue.shade100,
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue.shade300,
-                      child: const Text('YM'),
-                    ),
-                    title: Text(userData.isNotEmpty ? '${userData['firstname']} ${userData['lastname']}' : ''),
-                    subtitle: Text('${supabase.auth.currentUser!.email}'),
-                  ),
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue.shade300,
+                        child: (userData['firstname'] == null && userData['lastname'] == null)
+                            ? const Icon(Icons.person)
+                            : Text(avatarLetter(userData['firstname'], userData['lastname'])),
+                      ),
+                      subtitle: userData.isEmpty ? Text('${supabase.auth.currentUser!.email}') : null,
+                      title: userData.isEmpty
+                          ? Text(
+                              '${userData['firstname'] == null || userData['firstname'] == ''} ${userData['lastname'] == null || userData['lastname'] == ''}')
+                          : Text('${supabase.auth.currentUser!.email}')),
                 ),
                 const SizedBox(height: 30),
                 TextButton.icon(

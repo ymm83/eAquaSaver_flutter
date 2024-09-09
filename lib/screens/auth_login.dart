@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:eaquasaver_flutter_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 
+import '../screens/main_screen.dart';
 import '../main.dart';
 import '../widgets/show_hide_password_field.dart';
 //hcaptcha

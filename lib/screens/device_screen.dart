@@ -1,12 +1,12 @@
 import 'dart:async';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
-import 'package:eaquasaver_flutter_app/bloc/beacon/beacon_bloc.dart';
-import 'package:eaquasaver_flutter_app/utils/extra.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../utils/extra.dart';
+import '../bloc/beacon/beacon_bloc.dart';
 import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';

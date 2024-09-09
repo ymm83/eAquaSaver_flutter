@@ -1,4 +1,4 @@
-package com.example.eaquasaver_flutter_app
+package com.santross.eaquasaver
 
 import io.flutter.embedding.android.FlutterActivity
 

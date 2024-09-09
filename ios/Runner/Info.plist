@@ -16,7 +16,7 @@
             CFBundleDisplayName
         </key>
         <string>
-            Eaquasaver Flutter App
+            eAquaSaver
         </string>
         <key>
             CFBundleExecutable
@@ -40,7 +40,7 @@
             CFBundleName
         </key>
         <string>
-            eaquasaver_flutter_app
+            eAquaSaver
         </string>
         <key>
             CFBundlePackageType
