@@ -27,9 +27,9 @@ class _UserDashboardState extends State<UserDashboard> {
     try {
       final userId = supabase.auth.currentUser!.id;
       userData = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
-      debugPrint('----- userData: ${userData.toString()}');
-      //await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(userData));
-      setState(() {});
+      debugPrint('----- userData online: ${userData.toString()}');
+      await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(userData));
+      //setState(() {});
       return userData;
     } on PostgrestException catch (error) {
       if (mounted) {
@@ -66,9 +66,10 @@ class _UserDashboardState extends State<UserDashboard> {
       final data = await _storage.read(key: supabase.auth.currentUser!.id);
       debugPrint('---- Reading Secure Storage');
       //data = jsonDecode(onValue!);
-      userData = json.decode(data!);
+
+      userData = json.decode(data!) ?? {};
       //userData['firstname'] = 'Loba';
-      debugPrint('---- ${userData.toString()}');
+      debugPrint('---userData offline - ${userData.toString()}');
       return userData;
     } catch (e) {
       debugPrint('Error: $e');
@@ -155,7 +156,9 @@ class _UserDashboardState extends State<UserDashboard> {
     });
     _getLocalProfile().then((localValue) {
       userData = localValue;
-      if (userData.isEmpty) {
+      if (userData.isEmpty ||
+          (userData['firstname'] == null && userData['lastname'] == null) ||
+          userData['firstname'] == '') {
         // get online profile
         _getOnlineProfile().then((onlineValue) {
           userData = onlineValue;
@@ -192,15 +195,28 @@ class _UserDashboardState extends State<UserDashboard> {
                   child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Colors.blue.shade300,
-                        child: (userData['firstname'] == null && userData['lastname'] == null)
+                        child: ((userData['firstname'] == null && userData['lastname'] == null) ||
+                                avatarLetter(userData['firstname'], userData['lastname']) == 'icon')
                             ? const Icon(Icons.person)
                             : Text(avatarLetter(userData['firstname'], userData['lastname'])),
                       ),
-                      subtitle: userData.isEmpty ? Text('${supabase.auth.currentUser!.email}') : null,
+                      subtitle: /*userData.isEmpty
+                          ? */Text(
+                              '${supabase.auth.currentUser!.email}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          //: null,
                       title: userData.isEmpty
-                          ? Text(
-                              '${userData['firstname'] == null || userData['firstname'] == ''} ${userData['lastname'] == null || userData['lastname'] == ''}')
-                          : Text('${supabase.auth.currentUser!.email}')),
+                          ? Text('${supabase.auth.currentUser!.email?.split('@')[0]}',
+                              style: const TextStyle(fontSize: 16))
+                          : (userData['firstname'] != '' && userData['lastname'] != '')
+                              ? Text('${userData['firstname']} ${userData['lastname']}')
+                              : (userData['firstname'] == '' && userData['lastname'] != '')
+                                  ? Text('${userData['lastname']}')
+                                  : (userData['firstname'] != '' && userData['lastname'] == '')
+                                      ? Text('${userData['firstname']}')
+                                      : Text('${supabase.auth.currentUser!.email?.split('@')[0]}',
+                                          style: const TextStyle(fontSize: 16))),
                 ),
                 const SizedBox(height: 30),
                 TextButton.icon(

@@ -9,8 +9,12 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
   final Connectivity _connectivity;
 
   ConnectivityBloc(this._connectivity) : super(ConnectivityInitial()) {
+    // Verificar el estado de conectividad inicial
+    _initializeConnectivity();
+
+    // Escuchar cambios en la conectividad
     _connectivity.onConnectivityChanged.listen((result) {
-      add(ConnectivityChanged(isConnected: result[0] != ConnectivityResult.none));
+      add(ConnectivityChanged(isConnected: result != ConnectivityResult.none));
     });
 
     on<ConnectivityChanged>((event, emit) {
@@ -20,5 +24,16 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
         emit(ConnectivityOffline());
       }
     });
+  }
+
+  void _initializeConnectivity() async {
+    // Obtener el estado de conectividad inicial
+    final result = await _connectivity.checkConnectivity();
+    bool isConnected = result[0] != ConnectivityResult.none;
+
+    // Debug: Mostrar el estado inicial
+    debugPrint('Estado de conectividad inicial: ${isConnected ? "Conectado" : "Desconectado"}');
+
+    add(ConnectivityChanged(isConnected: isConnected));
   }
 }

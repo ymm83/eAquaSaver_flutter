@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 
 import '../screens/main_screen.dart';
 import '../main.dart';
 import '../widgets/show_hide_password_field.dart';
+import '../bloc/connectivity/connectivity_bloc.dart';
 //hcaptcha
 //sitekey 001ee992-3a50-4a5a-bf5e-9b66a4a414e4
 //secret ES_c6f0da2654da477ba197f8f9fea93592
@@ -51,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
   String? _captchaToken;
   Map<String, dynamic> error = {};
 
-  void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
+  /*void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
     Color bgColor = Theme.of(context).colorScheme.primary;
     Color? textColor;
     if (backgroundColor == 'warning') {
@@ -67,6 +69,56 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(argContext).showSnackBar(
       SnackBar(content: Text(argMessage, style: TextStyle(color: textColor ?? Colors.white)), backgroundColor: bgColor),
     );
+  }*/
+
+  void _showSnackBar(
+    BuildContext argContext,
+    String argMessage,
+    String? backgroundColor, {
+    Duration? duration, // Hacer duración opcional
+    SnackBarAction? action,
+    VoidCallback? onHideCallback, // Parámetro para el callback
+  }) {
+    Color bgColor = Theme.of(argContext).colorScheme.primary;
+    Color? textColor;
+
+    // Determina el color de fondo y el color del texto según el tipo
+    if (backgroundColor == 'warning') {
+      bgColor = Colors.yellow.shade700;
+      textColor = Colors.black87;
+    } else if (backgroundColor == 'error') {
+      bgColor = Colors.red.shade500;
+      textColor = Colors.white;
+    } else if (backgroundColor == 'success') {
+      bgColor = Colors.green;
+      textColor = Colors.white;
+    } else {
+      bgColor = Colors.blueAccent;
+      textColor = Colors.black87;
+    }
+
+    // Si no se proporciona duración, usa el valor por defecto
+    Duration snackBarDuration = duration ?? const Duration(seconds: 3);
+
+    // Crea el SnackBar
+    final snackBar = SnackBar(
+      content: Text(
+        argMessage,
+        style: TextStyle(color: textColor),
+      ),
+      backgroundColor: bgColor,
+      duration: snackBarDuration,
+      action: action,
+    );
+
+    // Muestra el SnackBar
+    ScaffoldMessenger.of(argContext).showSnackBar(snackBar);
+
+    Future.delayed(snackBarDuration, () {
+      if (onHideCallback != null) {
+        onHideCallback();
+      }
+    });
   }
 
   /*class _toggleIcon extends Widget() {
@@ -317,70 +369,38 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.updateUser(
         UserAttributes(password: _newpasswordController.text.trim()),
       );
-      Future<void> _resetPassword() async {
-        var validateError = validateLoginForm(email: true, code: true, newpass: true);
-        if (validateError.isNotEmpty) {
-          setState(() {});
-          return;
-        }
-
-        try {
-          setState(() {
-            _isLoading = true;
-          });
-
-          await supabase.auth.verifyOTP(
-              email: _emailController.text,
-              token: _codeController.text,
-              type: OtpType.recovery,
-              captchaToken: _captchaToken);
-
-          await supabase.auth.updateUser(
-            UserAttributes(password: _newpasswordController.text.trim()),
-          );
-          if (mounted) {
-            _showSnackBar(context, 'Reset password successful!', 'success');
-            setState(() {});
-          }
-          //await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
-        } on AuthException catch (error) {
-          /*if (mounted) {
-            if (error.message.startsWith('New password should be different')) {
-              _showSnackBar(context, 'Your lost password is: "${_newpasswordController.text}"', 'warning');
-              setState(() {
-                _captchaToken = null;
-              });
-            }
-          } else {
-            if (mounted) {
-              _showSnackBar(context, error.message, 'error');
-              setState(() {
-                _captchaToken = null;
-              });
-            }
-          }*/
-        } catch (error) {
-          if (mounted) {
-            _showSnackBar(context, 'Unexpected error occurred', 'error');
-          }
-        } finally {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _captchaToken = null;
-            });
-          }
-          await _controller.refreshToken();
-        }
-      }
 
       if (mounted) {
-        _showSnackBar(context, 'Reset password successful!', 'success');
+        _showSnackBar(context, 'Reset password successful!', 'success', onHideCallback: () {
+          //debugPrint('..................entrando......................');
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          });
+        });
+        //setState(() {});
       }
       //await supabase.auth.resetPasswordForEmail(_emailController.text.trim());
     } on AuthException catch (error) {
       if (mounted) {
-        _showSnackBar(context, error.message, 'error');
+        if (error.message.startsWith('New password should be different')) {
+          _showSnackBar(context, 'Your lost password is: "${_newpasswordController.text}"', 'warning',
+              onHideCallback: () {
+            //debugPrint('..................entrando......................');
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            });
+          });
+          // setState(() {
+          //   _captchaToken = null;
+          // });
+        }
+      } else {
+        if (mounted) {
+          _showSnackBar(context, error.message, 'error');
+          // setState(() {
+          //   _captchaToken = null;
+          // });
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -416,24 +436,24 @@ class _LoginPageState extends State<LoginPage> {
             });
           }
         }
-        if (event == AuthChangeEvent.userUpdated) {
+        /*if (event == AuthChangeEvent.userUpdated) {
           if (mounted) {
             //Future.delayed(const Duration(seconds: 2)).then((val) {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-             });
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            });
             //});
           }
-        }
-        if (event == AuthChangeEvent.passwordRecovery) {
+        }*/
+        /*if (event == AuthChangeEvent.passwordRecovery) {
           if (mounted) {
             //Future.delayed(const Duration(seconds: 2)).then((val) {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              });
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            });
             //});
           }
-        }
+        }*/
       });
     });
   }
@@ -451,21 +471,38 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 237, 243, 250),
       appBar: AppBar(
-        //title: ,
+        backgroundColor: const Color.fromARGB(255, 214, 236, 235),
+        title: const Center(
+          child: Text(
+            'eAquaSaver',
+            style: TextStyle(letterSpacing: 4),
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(top: 15, bottom: 15, left: 10, right: 10),
-        children: [
-          const Positioned(
-            top: 0,
-            child: Image(
-              image: AssetImage('assets/company_logo.png'),
-              width: 100,
-              height: 150,
-            ),
+      body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
+        builder: (context, state) {
+          return _buildLoginForm(context, state);
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoginForm(BuildContext context, ConnectivityState state) {
+    return ListView(
+      padding: const EdgeInsets.only(top: 15, bottom: 15, left: 10, right: 10),
+      children: [
+        const Positioned(
+          top: 0,
+          child: Image(
+            image: AssetImage('assets/company_logo.png'),
+            width: 100,
+            height: 150,
           ),
+        ),
+        if (state is ConnectivityOnline) ...[
           Center(
             child: Text(
               authStep['title']!,
@@ -473,6 +510,21 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           const SizedBox(height: 18),
+        ],
+        if (state is ConnectivityOffline) ...[
+          const SizedBox(height: 150),
+          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Center(
+                child: Text(
+              'No internet connection',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.red.shade500),
+            )),
+            Center(
+                child: TextButton.icon(
+                    icon: const Icon(Icons.cloud_off_outlined), label: const Text('Offline'), onPressed: null))
+          ])
+        ],
+        if (state is ConnectivityOnline) ...[
           TextFormField(
             enabled: authStep != stepReset,
             controller: _emailController,
@@ -590,22 +642,24 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           const SizedBox(height: 20.0),
-          CloudFlareTurnstile(
-            siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
-            options: _options,
-            controller: _controller,
-            onTokenRecived: (token) {
-              error.remove('captcha');
-              setState(() {
-                _captchaToken = token;
-              });
-            },
-            onTokenExpired: () async {
-              await _controller.refreshToken();
-            },
-            /*onError: (error) async {
-              await _controller.refreshToken();
-            },*/
+          Center(
+            child: CloudFlareTurnstile(
+              siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
+              options: _options,
+              controller: _controller,
+              onTokenRecived: (token) {
+                error.remove('captcha');
+                setState(() {
+                  _captchaToken = token;
+                });
+              },
+              onTokenExpired: () async {
+                await _controller.refreshToken();
+              },
+              onError: (error) async {
+                await _controller.refreshToken();
+              },
+            ),
           ),
           Row(
             children: [
@@ -634,20 +688,25 @@ class _LoginPageState extends State<LoginPage> {
               },
               child: const Text('Reload captcha', style: TextStyle(color: Color(0xFFEE8418)))),*/
           const SizedBox(height: 18),
-          ElevatedButton(
-            onPressed: _isLoading
-                ? null
-                : authStep == stepSignIn
-                    ? _signIn
-                    : authStep == stepSignUp
-                        ? _signUpWithEmail
-                        : authStep == stepForgot
-                            ? _signInRecoveryByEmail
-                            : authStep == stepReset
-                                ? _resetPassword
-                                : null,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: Text(_isLoading ? 'Loading' : authStep['btn']!),
+          Container(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 70.0,
+            ),
+            child: ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : authStep == stepSignIn
+                      ? _signIn
+                      : authStep == stepSignUp
+                          ? _signUpWithEmail
+                          : authStep == stepForgot
+                              ? _signInRecoveryByEmail
+                              : authStep == stepReset
+                                  ? _resetPassword
+                                  : null,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade500, fixedSize: Size(150, 10)),
+              child: Text(_isLoading ? 'Loading' : authStep['btn']!),
+            ),
           ),
           Offstage(
             offstage: authStep == stepSignIn,
@@ -700,8 +759,8 @@ class _LoginPageState extends State<LoginPage> {
                   )),
             ),
           ),
-        ],
-      ),
+        ]
+      ],
     );
   }
 }

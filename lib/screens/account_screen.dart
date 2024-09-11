@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 
@@ -12,7 +15,7 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final _firstnameController = TextEditingController();
   final _lastnameController = TextEditingController();
-
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   var _loading = true;
 
   /// Called once a user id is received within `onAuthenticated()`
@@ -26,6 +29,7 @@ class _AccountScreenState extends State<AccountScreen> {
       final data = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
       _firstnameController.text = (data['firstname'] ?? '') as String;
       _lastnameController.text = (data['lastname'] ?? '') as String;
+      await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(data));
     } on PostgrestException catch (error) {
       if (mounted) {
         SnackBar(
