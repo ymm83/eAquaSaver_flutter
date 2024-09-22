@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../utils/snackbar_helper.dart';
 import 'auth_login.dart';
 import '../main.dart';
 import 'dart:convert';
@@ -17,8 +18,77 @@ class UserDashboard extends StatefulWidget {
 class _UserDashboardState extends State<UserDashboard> {
   bool _loading = true;
   late Map userData;
+  late Widget titleWidget;
+  bool _isDeleting = false;
+  int _countdown = 11;
+  Timer? _timer;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late final StreamSubscription<AuthState> authSubscription;
+
+  void _startCountdown() {
+    setState(() {
+      _isDeleting = true;
+      _countdown = 10;
+    });
+
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_countdown > 0) {
+        setState(() {
+          _countdown--;
+        });
+      } else {
+        _timer?.cancel();
+        /*setState(() {
+          _isDeleting = false; 
+        });*/
+      }
+    });
+  }
+
+  Future<void> _executeDeleteAction() async {
+    late Map message;
+    try {
+      final resp = await supabase.auth.updateUser(UserAttributes(data: {'pending_delete': true}));
+      //.updateUserById(userid, attributes: AdminUserAttributes(userMetadata: ));
+
+      //debugPrint('response: ${resp.user.toString()}');
+      //debugPrint('Pending delete status: ${resp.user!.userMetadata!['pending_delete']}');
+      if (resp.user?.userMetadata!['pending_delete'] == true) {
+        message = {
+          'text': 'Your deletion request will be completed within an hour! Your session will close in 5 seconds!',
+          'type': 'success'
+        };
+      } else {
+        message = {'text': 'An error was ocurred, try again later!', 'type': 'error'};
+      }
+    } catch (e) {
+      message = {'text': 'An error was ocurred, try again later!', 'type': 'error'};
+    }
+    // Aquí puedes ejecutar la acción de eliminación
+    if (message['type'] == 'success') {
+      showSnackBar(
+        context,
+        message['text'],
+        message['type'],
+        duration: const Duration(seconds: 5),
+        onHideCallback: () {
+          _signOut();
+        },
+      );
+    } else {
+      showSnackBar(
+        context,
+        message['text'],
+        message['type'],
+        onHideCallback: () {
+          setState(() {
+            _isDeleting = false;
+            _countdown = 11;
+          });
+        },
+      );
+    }
+  }
 
   Future<Map> _getOnlineProfile() async {
     /*setState(() {
@@ -27,7 +97,18 @@ class _UserDashboardState extends State<UserDashboard> {
     try {
       final userId = supabase.auth.currentUser!.id;
       userData = await supabaseEAS.from('user_profile').select().eq('id', userId).single();
+      if (userData['firstname'].runtimeType == Null) {
+        userData.remove('firstname');
+        userData = {'firstname': '', ...userData};
+      }
+
+      if (userData['lastname'].runtimeType == Null) {
+        userData.remove('lastname');
+        userData = {'lastname': '', ...userData};
+      }
+
       debugPrint('----- userData online: ${userData.toString()}');
+      await _storage.delete(key: supabase.auth.currentUser!.id);
       await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(userData));
       //setState(() {});
       return userData;
@@ -110,6 +191,43 @@ class _UserDashboardState extends State<UserDashboard> {
     }
   }
 
+  Future<void> accountDelete() async {
+    setState(() {
+      _loading = true;
+    });
+    final userId = supabase.auth.currentUser!.id;
+    try {
+      await supabase.auth.admin
+          .updateUserById(userId, attributes: AdminUserAttributes(userMetadata: {'pending_delete': true}));
+      await supabase.auth.signOut();
+    } on AuthException catch (error) {
+      if (mounted) {
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        SnackBar(
+          content: const Text('Unexpected error occurred'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        );
+      }
+    } finally {
+      setState(() {
+        _loading = true;
+      });
+    }
+  }
+
+  bool isset(String? value) {
+    return value != null && value.isNotEmpty;
+  }
+  // bool isset(List<String?> values) {
+  //   return values.every((value) => value != null && value.isNotEmpty);
+  // }
+
   String avatarLetter(String name, String lastname) {
     String letter = '';
     String tmpName = '';
@@ -156,12 +274,30 @@ class _UserDashboardState extends State<UserDashboard> {
     });
     _getLocalProfile().then((localValue) {
       userData = localValue;
-      if (userData.isEmpty ||
-          (userData['firstname'] == null && userData['lastname'] == null) ||
-          userData['firstname'] == '') {
+
+      if (userData.isEmpty || (!isset(userData['firstname']) && !isset(userData['lastname']))) {
+        titleWidget = Text('${supabase.auth.currentUser!.email?.split('@')[0]}', style: const TextStyle(fontSize: 16));
+      } else if (isset(userData['firstname']) && isset(userData['lastname'])) {
+        titleWidget = Text('${userData['firstname']} ${userData['lastname']}');
+      } else if (!isset(userData['firstname']) && isset(userData['lastname'])) {
+        titleWidget = Text('${userData['lastname']}');
+      } else {
+        titleWidget = Text('${userData['firstname']}');
+      }
+      if (userData.isEmpty || (userData['firstname'] == null && userData['lastname'] == null)) {
         // get online profile
         _getOnlineProfile().then((onlineValue) {
           userData = onlineValue;
+          if (userData.isEmpty || (!isset(userData['firstname']) && !isset(userData['lastname']))) {
+            titleWidget =
+                Text('${supabase.auth.currentUser!.email?.split('@')[0]}', style: const TextStyle(fontSize: 16));
+          } else if (isset(userData['firstname']) && isset(userData['lastname'])) {
+            titleWidget = Text('${userData['firstname']} ${userData['lastname']}');
+          } else if (!isset(userData['firstname']) && isset(userData['lastname'])) {
+            titleWidget = Text('${userData['lastname']}');
+          } else {
+            titleWidget = Text('${userData['firstname']}');
+          }
           setState(() {
             _loading = false;
           });
@@ -177,6 +313,7 @@ class _UserDashboardState extends State<UserDashboard> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -201,26 +338,83 @@ class _UserDashboardState extends State<UserDashboard> {
                             : Text(avatarLetter(userData['firstname'], userData['lastname'])),
                       ),
                       subtitle: /*userData.isEmpty
-                          ? */Text(
-                              '${supabase.auth.currentUser!.email}',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                          //: null,
-                      title: userData.isEmpty
-                          ? Text('${supabase.auth.currentUser!.email?.split('@')[0]}',
-                              style: const TextStyle(fontSize: 16))
-                          : (userData['firstname'] != '' && userData['lastname'] != '')
-                              ? Text('${userData['firstname']} ${userData['lastname']}')
-                              : (userData['firstname'] == '' && userData['lastname'] != '')
-                                  ? Text('${userData['lastname']}')
-                                  : (userData['firstname'] != '' && userData['lastname'] == '')
-                                      ? Text('${userData['firstname']}')
-                                      : Text('${supabase.auth.currentUser!.email?.split('@')[0]}',
-                                          style: const TextStyle(fontSize: 16))),
+                          ? */
+                          Text(
+                        '${supabase.auth.currentUser!.email}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      //: null,
+                      title: titleWidget),
                 ),
                 const SizedBox(height: 30),
                 TextButton.icon(
                     onPressed: _signOut, label: const Text('Sign Out'), icon: const Icon(Icons.exit_to_app_outlined)),
+                const SizedBox(
+                  height: 200,
+                ),
+                Offstage(
+                  offstage: !_isDeleting,
+                  child: const Center(
+                      child:
+                          Text('Are you sure you want to delete your account?', style: TextStyle(color: Colors.red))),
+                ),
+                Offstage(
+                  offstage: _isDeleting,
+                  child: TextButton.icon(
+                      onPressed: _startCountdown,
+                      label: const Text(
+                        'Delete account',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      )),
+                ),
+                Column(
+                  children: [
+                    Offstage(
+                      offstage: (_countdown == 0 || _countdown == 11),
+                      child: ElevatedButton(
+                        onPressed: null, // Botón deshabilitado
+                        child: Text('Confirmar ($_countdown s)'),
+                      ),
+                    ),
+                    Offstage(
+                      offstage: _countdown != 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _isDeleting = false;
+                                  _countdown = 11;
+                                }); // Ejecutar la acción al confirmar
+                              },
+                              label: const Text(
+                                'cancel',
+                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                              ),
+                              icon: const Icon(
+                                Icons.cancel,
+                                color: Colors.blue,
+                              )),
+                          TextButton.icon(
+                              onPressed: _executeDeleteAction,
+                              label: const Text(
+                                'confirm',
+                                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                              ),
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
     );

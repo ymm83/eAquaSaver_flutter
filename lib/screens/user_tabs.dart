@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/issue/issue_bloc.dart';
-import '../bloc/connectivity/connectivity_bloc.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -31,7 +30,7 @@ class _UserTabsState extends State<UserTabs> {
       setState(() {
         connectivityResult = result[0];
       });
-      debugPrint('---- conexion ${connectivityResult}');
+      debugPrint('---- conexion $connectivityResult');
     });
     super.initState();
   }

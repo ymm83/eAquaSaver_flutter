@@ -125,8 +125,17 @@ class _LoginPageState extends State<LoginPage> {
     return _showPassword ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off_outlined);
   }*/
 
+  Future<bool> userDeleting(String email) async {
+    try {
+      final bool pending = await supabase.rpc('check_user_pending_deletion', params: {'email': email});
+      return pending;
+      // ignore: empty_catches
+    } catch (e) {}
+    return false;
+  }
+
   Future<void> _signIn() async {
-    var validateError = validateLoginForm(email: true, password: true);
+    var validateError = await validateLoginForm(email: true, password: true);
     if (validateError.isNotEmpty) {
       setState(() {});
       return;
@@ -136,7 +145,6 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-
       await supabase.auth.signInWithPassword(
           email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _captchaToken);
 
@@ -145,17 +153,19 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.clear();
       }
     } on AuthException catch (error) {
-      String errorMessage;
+      String errorMessage = '';
 
       if (error.message.contains('invalid login credentials')) {
         errorMessage = 'Invalid email or password. Please try again.';
       } else if (error.message.contains('email not confirmed')) {
         errorMessage = 'Please confirm your email before logging in.';
       } else {
-        errorMessage = error.message;
+        errorMessage = '';
       }
       if (mounted) {
-        _showSnackBar(context, errorMessage, 'error');
+        if (errorMessage.isNotEmpty) {
+          _showSnackBar(context, errorMessage, 'error');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -172,16 +182,20 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Map<String, dynamic> validateLoginForm(
+  Future<Map<String, dynamic>> validateLoginForm(
       {bool email = false,
       bool password = false,
       bool confirm = false,
       bool newpass = false,
       bool code = false,
-      bool captcha = true}) {
+      bool captcha = true}) async {
     if (email == true) {
+      final pending = await userDeleting(_emailController.text.trim());
       if (_emailController.text.isEmpty) {
         error['email_empty'] = 'Email is required!';
+      }
+      if (pending == true) {
+        error['email_wrong'] = 'The email is pending deletion!';
       } else {
         if (_isValidEmail(_emailController.text) == false) {
           error['email_wrong'] = 'The email is invalid!';
@@ -250,7 +264,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signUpWithEmail() async {
-    var validateError = validateLoginForm(email: true, password: true, confirm: true);
+    var validateError = await validateLoginForm(email: true, password: true, confirm: true);
     if (validateError.isNotEmpty) {
       setState(() {});
       return;
@@ -308,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signInRecoveryByEmail() async {
-    var validateError = validateLoginForm(email: true);
+    var validateError = await validateLoginForm(email: true);
     if (validateError.isNotEmpty) {
       setState(() {});
       return;
@@ -350,7 +364,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _resetPassword() async {
-    var validateError = validateLoginForm(email: true, code: true, newpass: true);
+    var validateError = await validateLoginForm(email: true, code: true, newpass: true);
     if (validateError.isNotEmpty) {
       setState(() {});
       return;
@@ -471,7 +485,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 237, 243, 250),
+      backgroundColor: const Color.fromARGB(255, 237, 243, 250),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 214, 236, 235),
         title: const Center(
@@ -704,7 +718,7 @@ class _LoginPageState extends State<LoginPage> {
                               : authStep == stepReset
                                   ? _resetPassword
                                   : null,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade500, fixedSize: Size(150, 10)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade500, fixedSize: const Size(150, 10)),
               child: Text(_isLoading ? 'Loading' : authStep['btn']!),
             ),
           ),
