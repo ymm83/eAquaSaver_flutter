@@ -86,7 +86,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
         ],
       );
     } else {
-      return Text(widget.result.device.remoteId.str);
+      return Text(widget.result.device.advName.toString());
     }
   }
 
@@ -133,8 +133,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
 
       //debugPrint('Temperatura caliente: ${message.hotTemperature[0].toString()}');
       //debugPrint('\n----- message : ${message.state[0]}\n-------end message ----------\n');
-      debugPrint(
-          '\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
+      debugPrint('\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature, //double.parse(message.temperature.join('.').toString()),
         // 'hotTemperature': double.parse(message.hotTemperature.join('.')),
@@ -195,12 +194,14 @@ class _ScanResultTileState extends State<ScanResultTile> {
         if (!adv.connectable) Icon(Icons.link_off_rounded, color: Colors.red.shade700),
         if (adv.connectable) Icon(Icons.link_off_rounded, color: Colors.green.shade700),
         if (adv.advName.isNotEmpty) _buildAdvRow(context, 'Name', adv.advName),
-        if (adv.manufacturerData.isNotEmpty) Text('keys: ${adv.manufacturerData.values}'),
-        if (adv.manufacturerData.isNotEmpty)
-          Text('keys: ${decodedMessage(adv.manufacturerData.values.first).toString()}'),
+        if (!adv.connectable && adv.manufacturerData.isNotEmpty)
+          Text('adv.manufacturerData.values: \n ${adv.manufacturerData.values}'),
+        if (!adv.connectable && adv.manufacturerData.isNotEmpty)
+          Text('adv.manufacturerData.values.first: \n${decodedMessage(adv.manufacturerData.values.first).toString()}'),
         if (adv.txPowerLevel != null) _buildAdvRow(context, 'Tx Power Level', '${adv.txPowerLevel}'),
         if ((adv.appearance ?? 0) > 0) _buildAdvRow(context, 'Appearance', '0x${adv.appearance!.toRadixString(16)}'),
-        if (adv.msd.isNotEmpty) _buildAdvRow(context, 'Manufacturer Data', getNiceManufacturerData(adv.msd)),
+        if (!adv.connectable && adv.msd.isNotEmpty)
+          _buildAdvRow(context, 'Manufacturer Data', getNiceManufacturerData(adv.msd)),
         if (adv.serviceUuids.isNotEmpty) _buildAdvRow(context, 'Service UUIDs', getNiceServiceUuids(adv.serviceUuids)),
         if (adv.serviceData.isNotEmpty) _buildAdvRow(context, 'Service Data', getNiceServiceData(adv.serviceData)),
       ],

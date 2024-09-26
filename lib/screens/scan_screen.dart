@@ -76,19 +76,17 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         _uniqueRemoteIds.clear(); // Limpiar también los IDs únicos
 
         for (ScanResult r in results) {
-          debugPrint('----------------START---------------');
+          /*debugPrint('----------------START---------------');
           debugPrint('--------------------r.device.advName:${r.device.advName}');
           debugPrint('--------------------r.device.platformName:${r.device.platformName}');
           debugPrint('--------------------r.device.remoteId:${r.device.remoteId}');
-          debugPrint('----------------END---------------\n');
+          debugPrint('----------------END---------------\n');*/
 
-          String name = r.device.platformName;
-
-          if (name.startsWith('eASs-')) {
-            debugPrint('eAquaSaver Device encontrado: ${r.device.advName}');
+          if (r.device.platformName.toString().startsWith('eASs-', 0)) {
+            debugPrint('---- eAquaSaver Device encontrado: ${r.device.advName} ------');
           }
-          if (name.startsWith('eASb-')) {
-            debugPrint('eAquaS Beacon encontrado: ${r.advertisementData.advName} remoteId: ${r.device.remoteId}');
+          if (r.device.advName.startsWith('ASb-', 1)) {
+            debugPrint('---- eAquaS Beacon encontrado: ${r.advertisementData.advName}  ------');
             //_processManufacturerData(r.advertisementData);
           }
 
@@ -155,6 +153,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       Snackbar.show(ABC.b, prettyException("System Devices Error:", e), success: false);
     }
     try {
+      _scanResults.clear();
       await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
     } catch (e) {
       Snackbar.show(ABC.b, prettyException("Start Scan Error:", e), success: false);
@@ -235,18 +234,15 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
-    debugPrint('-----------------------_scanResults.length: ${_scanResults.length}');
-    debugPrint('---------------------_systemDevices.length: ${_systemDevices.length}');
     return _scanResults
+        .where((r) => (r.device.advName.toString().startsWith('ASb-', 1) ||
+            r.device.platformName.toString().startsWith('eASs-', 0)))
         .map((r) => ScanResultTile(
               result: r,
               onTap: () => onConnectPressed(r.device),
             ))
         .toList();
   }
-
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -268,8 +264,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                     backgroundColor: Colors.redAccent,
                   ),
                 ),
-              if (!_isScanning && _scanResults.isNotEmpty)
-                Center(child: Text('${_scanResults.length} dispositivos encontrados:', style: const TextStyle())),
+              /*if (!_isScanning && _scanResults.isNotEmpty)
+                Center(child: Text('${_scanResults.length} dispositivos encontrados:', style: const TextStyle())),*/
               if (!_isScanning) ..._buildScanResultTiles(context),
             ],
           ),
