@@ -354,6 +354,10 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 Offstage(
                   offstage: !_isDeleting,
+                  child: const Center(child: Icon(Icons.warning_amber_sharp, color: Colors.red, size: 60,)),
+                ),
+                Offstage(
+                  offstage: !_isDeleting,
                   child: const Center(
                       child:
                           Text('Are you sure you want to delete your account?', style: TextStyle(color: Colors.red))),

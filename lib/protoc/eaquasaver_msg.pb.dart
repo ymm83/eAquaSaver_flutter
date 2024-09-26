@@ -11,20 +11,25 @@
 
 import 'dart:core' as $core;
 
-import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
+
+export 'eaquasaver_msg.pbenum.dart';
 
 class eAquaSaverMessage extends $pb.GeneratedMessage {
   factory eAquaSaverMessage({
-    $core.int? temperature,
-    $core.int? hotTemperature,
-    $core.int? coldTemperature,
+    $core.List<$core.int>? temperature,
+    $core.List<$core.int>? hotTemperature,
+    $core.List<$core.int>? coldTemperature,
     $core.int? currentRecovered,
     $core.int? currentColdUsed,
     $core.int? currentHotUsed,
-    $fixnum.Int64? totalRecovered,
-    $fixnum.Int64? totalColdUsed,
-    $fixnum.Int64? totalHotUsed,
+    $core.int? totalRecovered,
+    $core.int? totalColdUsed,
+    $core.int? totalHotUsed,
+    $core.List<$core.int>? targetTemperature,
+    $core.List<$core.int>? minimalTemperature,
+    $core.List<$core.int>? ambientTemperature,
+    $core.List<$core.int>? state,
   }) {
     final $result = create();
     if (temperature != null) {
@@ -54,6 +59,18 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
     if (totalHotUsed != null) {
       $result.totalHotUsed = totalHotUsed;
     }
+    if (targetTemperature != null) {
+      $result.targetTemperature = targetTemperature;
+    }
+    if (minimalTemperature != null) {
+      $result.minimalTemperature = minimalTemperature;
+    }
+    if (ambientTemperature != null) {
+      $result.ambientTemperature = ambientTemperature;
+    }
+    if (state != null) {
+      $result.state = state;
+    }
     return $result;
   }
   eAquaSaverMessage._() : super();
@@ -61,15 +78,19 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
   factory eAquaSaverMessage.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'eAquaSaverMessage', createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'temperature', $pb.PbFieldType.OU3)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'hotTemperature', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'coldTemperature', $pb.PbFieldType.OU3)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'temperature', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'hotTemperature', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'coldTemperature', $pb.PbFieldType.OY)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'currentRecovered', $pb.PbFieldType.OU3)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'currentColdUsed', $pb.PbFieldType.OU3)
     ..a<$core.int>(6, _omitFieldNames ? '' : 'currentHotUsed', $pb.PbFieldType.OU3)
-    ..a<$fixnum.Int64>(7, _omitFieldNames ? '' : 'totalRecovered', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$fixnum.Int64>(8, _omitFieldNames ? '' : 'totalColdUsed', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$fixnum.Int64>(9, _omitFieldNames ? '' : 'totalHotUsed', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.int>(7, _omitFieldNames ? '' : 'totalRecovered', $pb.PbFieldType.OU3)
+    ..a<$core.int>(8, _omitFieldNames ? '' : 'totalColdUsed', $pb.PbFieldType.OU3)
+    ..a<$core.int>(9, _omitFieldNames ? '' : 'totalHotUsed', $pb.PbFieldType.OU3)
+    ..a<$core.List<$core.int>>(10, _omitFieldNames ? '' : 'targetTemperature', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(11, _omitFieldNames ? '' : 'minimalTemperature', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(12, _omitFieldNames ? '' : 'ambientTemperature', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(13, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -94,37 +115,37 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
   static eAquaSaverMessage getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<eAquaSaverMessage>(create);
   static eAquaSaverMessage? _defaultInstance;
 
-  /// Mixtured water temperature in x10 Celsius degrees.
+  /// Mixtured water temperature in x10 Celsius degrees
   @$pb.TagNumber(1)
-  $core.int get temperature => $_getIZ(0);
+  $core.List<$core.int> get temperature => $_getN(0);
   @$pb.TagNumber(1)
-  set temperature($core.int v) { $_setUnsignedInt32(0, v); }
+  set temperature($core.List<$core.int> v) { $_setBytes(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasTemperature() => $_has(0);
   @$pb.TagNumber(1)
   void clearTemperature() => clearField(1);
 
-  /// Hot Pipe Water Temperature in x10 Celsius degrees.
+  /// Hot Pipe Water Temperature in x10 Celsius degrees
   @$pb.TagNumber(2)
-  $core.int get hotTemperature => $_getIZ(1);
+  $core.List<$core.int> get hotTemperature => $_getN(1);
   @$pb.TagNumber(2)
-  set hotTemperature($core.int v) { $_setUnsignedInt32(1, v); }
+  set hotTemperature($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasHotTemperature() => $_has(1);
   @$pb.TagNumber(2)
   void clearHotTemperature() => clearField(2);
 
-  /// Cold Pipe WaterTemperature in x10 Celsius degrees.
+  /// Cold Pipe WaterTemperature in x10 Celsius degrees
   @$pb.TagNumber(3)
-  $core.int get coldTemperature => $_getIZ(2);
+  $core.List<$core.int> get coldTemperature => $_getN(2);
   @$pb.TagNumber(3)
-  set coldTemperature($core.int v) { $_setUnsignedInt32(2, v); }
+  set coldTemperature($core.List<$core.int> v) { $_setBytes(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasColdTemperature() => $_has(2);
   @$pb.TagNumber(3)
   void clearColdTemperature() => clearField(3);
 
-  /// Current recovered water.
+  /// Current recovered water in centilitres
   @$pb.TagNumber(4)
   $core.int get currentRecovered => $_getIZ(3);
   @$pb.TagNumber(4)
@@ -134,7 +155,7 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearCurrentRecovered() => clearField(4);
 
-  /// Current wasted cold water.
+  /// Current wasted cold water in centilitres
   @$pb.TagNumber(5)
   $core.int get currentColdUsed => $_getIZ(4);
   @$pb.TagNumber(5)
@@ -144,7 +165,7 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearCurrentColdUsed() => clearField(5);
 
-  /// Current wasted hot water.
+  /// Current wasted hot water in centilitres
   @$pb.TagNumber(6)
   $core.int get currentHotUsed => $_getIZ(5);
   @$pb.TagNumber(6)
@@ -154,35 +175,75 @@ class eAquaSaverMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearCurrentHotUsed() => clearField(6);
 
-  /// Total recovered water.
+  /// Total recovered water in centilitres
   @$pb.TagNumber(7)
-  $fixnum.Int64 get totalRecovered => $_getI64(6);
+  $core.int get totalRecovered => $_getIZ(6);
   @$pb.TagNumber(7)
-  set totalRecovered($fixnum.Int64 v) { $_setInt64(6, v); }
+  set totalRecovered($core.int v) { $_setUnsignedInt32(6, v); }
   @$pb.TagNumber(7)
   $core.bool hasTotalRecovered() => $_has(6);
   @$pb.TagNumber(7)
   void clearTotalRecovered() => clearField(7);
 
-  /// Total wasted cold water.
+  /// Total wasted cold water in centilitres
   @$pb.TagNumber(8)
-  $fixnum.Int64 get totalColdUsed => $_getI64(7);
+  $core.int get totalColdUsed => $_getIZ(7);
   @$pb.TagNumber(8)
-  set totalColdUsed($fixnum.Int64 v) { $_setInt64(7, v); }
+  set totalColdUsed($core.int v) { $_setUnsignedInt32(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasTotalColdUsed() => $_has(7);
   @$pb.TagNumber(8)
   void clearTotalColdUsed() => clearField(8);
 
-  /// Total wasted hot water.
+  /// Total wasted hot water in centilitres
   @$pb.TagNumber(9)
-  $fixnum.Int64 get totalHotUsed => $_getI64(8);
+  $core.int get totalHotUsed => $_getIZ(8);
   @$pb.TagNumber(9)
-  set totalHotUsed($fixnum.Int64 v) { $_setInt64(8, v); }
+  set totalHotUsed($core.int v) { $_setUnsignedInt32(8, v); }
   @$pb.TagNumber(9)
   $core.bool hasTotalHotUsed() => $_has(8);
   @$pb.TagNumber(9)
   void clearTotalHotUsed() => clearField(9);
+
+  /// User setted temperature in x10 Celsius degrees
+  @$pb.TagNumber(10)
+  $core.List<$core.int> get targetTemperature => $_getN(9);
+  @$pb.TagNumber(10)
+  set targetTemperature($core.List<$core.int> v) { $_setBytes(9, v); }
+  @$pb.TagNumber(10)
+  $core.bool hasTargetTemperature() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearTargetTemperature() => clearField(10);
+
+  /// Minimal temperature, device will not deliver water below this amount, in x10 Celsius degrees
+  @$pb.TagNumber(11)
+  $core.List<$core.int> get minimalTemperature => $_getN(10);
+  @$pb.TagNumber(11)
+  set minimalTemperature($core.List<$core.int> v) { $_setBytes(10, v); }
+  @$pb.TagNumber(11)
+  $core.bool hasMinimalTemperature() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearMinimalTemperature() => clearField(11);
+
+  /// Ambient temperature in x10 Celsius degrees
+  @$pb.TagNumber(12)
+  $core.List<$core.int> get ambientTemperature => $_getN(11);
+  @$pb.TagNumber(12)
+  set ambientTemperature($core.List<$core.int> v) { $_setBytes(11, v); }
+  @$pb.TagNumber(12)
+  $core.bool hasAmbientTemperature() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearAmbientTemperature() => clearField(12);
+
+  /// Device current state
+  @$pb.TagNumber(13)
+  $core.List<$core.int> get state => $_getN(12);
+  @$pb.TagNumber(13)
+  set state($core.List<$core.int> v) { $_setBytes(12, v); }
+  @$pb.TagNumber(13)
+  $core.bool hasState() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearState() => clearField(13);
 }
 
 

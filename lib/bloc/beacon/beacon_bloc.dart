@@ -80,8 +80,8 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
       eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
       _beaconData = {
         'temperature': decodedMessage.temperature,
-        'hotTemperature': decodedMessage.hotTemperature / 10.0,
-        'coldTemperature': decodedMessage.coldTemperature / 10.0,
+        'hotTemperature': decodedMessage.hotTemperature,
+        'coldTemperature': decodedMessage.coldTemperature,
         'currentHotUsed': decodedMessage.currentHotUsed,
         'currentRecovered': decodedMessage.currentRecovered,
         'totalColdUsed': decodedMessage.totalColdUsed,

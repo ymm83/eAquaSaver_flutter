@@ -14,13 +14,15 @@ class WaterTabs extends StatefulWidget {
 class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMixin {
   late PageController _pageController;
   String pageTitle = 'Water';
-
   int pageChanged = 0;
+  late ConnectivityBloc connectivityBloc;
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
-    super.initState();
+    connectivityBloc = BlocProvider.of<ConnectivityBloc>(context);
     _pageController = PageController(initialPage: pageChanged);
+    super.initState();
   }
 
   @override
@@ -29,20 +31,23 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  void _navigateToPage(int page) {
-    // Verifica el estado de conectividad
-    final connectivityState = BlocProvider.of<ConnectivityBloc>(context).state;
+  void connectionOffMessage() {
+    scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+    scaffoldMessengerKey.currentState?.showSnackBar(
+      const SnackBar(
+        content: Center(child: Text('You are offline!')),
+        backgroundColor: Colors.red,
+        showCloseIcon: true,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
-    if (connectivityState is ConnectivityOnline) {
+  void _navigateToPage(int page) {
+    if (connectivityBloc.state is ConnectivityOnline) {
       _pageController.jumpToPage(page);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay conexión a Internet.'),
-          backgroundColor: Colors.red,
-          showCloseIcon: true,
-        ),
-      );
+      connectionOffMessage();
     }
   }
 
@@ -62,7 +67,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
             },
           ),
           IconButton(
-            icon:  Icon(Icons.location_on_outlined, color: Colors.blue[900]),
+            icon: Icon(Icons.location_on_outlined, color: Colors.blue[900]),
             onPressed: () {
               setState(() {
                 pageTitle = 'Location';

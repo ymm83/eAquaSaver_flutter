@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/issue/issue_bloc.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
@@ -22,16 +23,11 @@ class _UserTabsState extends State<UserTabs> {
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-  ConnectivityResult connectivityResult = ConnectivityResult.none;
+  late ConnectivityBloc connectivityBloc;
 
   @override
   void initState() {
-    Connectivity().onConnectivityChanged.listen((result) {
-      setState(() {
-        connectivityResult = result[0];
-      });
-      debugPrint('---- conexion $connectivityResult');
-    });
+    connectivityBloc = BlocProvider.of<ConnectivityBloc>(context);
     super.initState();
   }
 
@@ -39,7 +35,7 @@ class _UserTabsState extends State<UserTabs> {
     scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
     scaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(
-        content: Text('No hay conexión a Internet.'),
+        content: Center(child: Text('You are offline!')),
         backgroundColor: Colors.red,
         showCloseIcon: true,
         duration: Duration(seconds: 2),
@@ -48,10 +44,10 @@ class _UserTabsState extends State<UserTabs> {
   }
 
   void _navigateToPage(int page) {
-    if (connectivityResult == ConnectivityResult.none) {
-      connectionOffMessage();
-    } else {
+    if (connectivityBloc.state is ConnectivityOnline) {
       _userTabController.jumpToPage(page);
+    } else {
+      connectionOffMessage();
     }
   }
 

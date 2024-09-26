@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utils/extra.dart';
+import '../protoc/eaquasaver_msg.pb.dart';
 import '../utils/snackbar.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';
@@ -243,6 +244,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ))
         .toList();
   }
+
+
+  
 
   @override
   Widget build(BuildContext context) {

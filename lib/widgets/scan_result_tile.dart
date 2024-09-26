@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../protoc/eaquasaver_msg.pbserver.dart';
+
 class ScanResultTile extends StatefulWidget {
   const ScanResultTile({super.key, required this.result, this.onTap});
 
@@ -120,6 +122,51 @@ class _ScanResultTileState extends State<ScanResultTile> {
     );
   }
 
+  Map<String, dynamic> _decodeManufacturerData(List<int> data) {
+    try {
+      int size = data[0];
+      var protobufData = data.sublist(1, size + 1);
+      eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
+
+      //debugPrint("Tamaño del mensaje: $size");
+      debugPrint("\nMensaje decodificado: --- START ---:\n ${message.toString()} --- END ---");
+
+      //debugPrint('Temperatura caliente: ${message.hotTemperature[0].toString()}');
+      //debugPrint('\n----- message : ${message.state[0]}\n-------end message ----------\n');
+      debugPrint(
+          '\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
+      Map<String, dynamic> beaconData = {
+        'temperature': message.temperature, //double.parse(message.temperature.join('.').toString()),
+        // 'hotTemperature': double.parse(message.hotTemperature.join('.')),
+        // 'coldTemperature': double.parse(message.coldTemperature.join('.')),
+        // 'targetTemperature': double.parse(message.targetTemperature.join('.')),
+        // 'minimalTemperature': double.parse(message.minimalTemperature.join('.')),
+        // 'ambientTemperature': double.parse(message.ambientTemperature.join('.')),
+        'currentHotUsed': message.currentHotUsed,
+        'currentRecovered': message.currentRecovered,
+        'currentColdUsed': message.currentColdUsed,
+        'totalColdUsed': message.totalColdUsed,
+        'totalRecovered': message.totalRecovered,
+        'totalHotUsed': message.totalHotUsed,
+        // 'state': message.state
+      };
+      debugPrint('------ beaconData: ${beaconData['temperature']}');
+      return beaconData;
+    } catch (e) {
+      debugPrint('Error----->: $e');
+      return {};
+    }
+  }
+
+  Map<String, dynamic> decodedMessage(List<int> manufacturerData) {
+    //Map<String, dynamic> results = {};
+    /*if (adv.manufacturerData.isNotEmpty) {
+      adv.manufacturerData.forEach((key, value) {*/
+    var decodedData = _decodeManufacturerData(manufacturerData);
+    debugPrint("\nMensaje ***********: --- START ---\n ${decodedData.toString()} --- END ---");
+    return decodedData;
+  }
+
   @override
   Widget build(BuildContext context) {
     var adv = widget.result.advertisementData;
@@ -148,6 +195,9 @@ class _ScanResultTileState extends State<ScanResultTile> {
         if (!adv.connectable) Icon(Icons.link_off_rounded, color: Colors.red.shade700),
         if (adv.connectable) Icon(Icons.link_off_rounded, color: Colors.green.shade700),
         if (adv.advName.isNotEmpty) _buildAdvRow(context, 'Name', adv.advName),
+        if (adv.manufacturerData.isNotEmpty) Text('keys: ${adv.manufacturerData.values}'),
+        if (adv.manufacturerData.isNotEmpty)
+          Text('keys: ${decodedMessage(adv.manufacturerData.values.first).toString()}'),
         if (adv.txPowerLevel != null) _buildAdvRow(context, 'Tx Power Level', '${adv.txPowerLevel}'),
         if ((adv.appearance ?? 0) > 0) _buildAdvRow(context, 'Appearance', '0x${adv.appearance!.toRadixString(16)}'),
         if (adv.msd.isNotEmpty) _buildAdvRow(context, 'Manufacturer Data', getNiceManufacturerData(adv.msd)),

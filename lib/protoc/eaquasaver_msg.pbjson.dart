@@ -13,29 +13,54 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use deviceStateDescriptor instead')
+const DeviceState$json = {
+  '1': 'DeviceState',
+  '2': [
+    {'1': 'SLEEP', '2': 0},
+    {'1': 'IDLE', '2': 1},
+    {'1': 'TEMP_AJUST', '2': 2},
+    {'1': 'RECOVERING', '2': 3},
+  ],
+};
+
+/// Descriptor for `DeviceState`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List deviceStateDescriptor = $convert.base64Decode(
+    'CgtEZXZpY2VTdGF0ZRIJCgVTTEVFUBAAEggKBElETEUQARIOCgpURU1QX0FKVVNUEAISDgoKUk'
+    'VDT1ZFUklORxAD');
+
 @$core.Deprecated('Use eAquaSaverMessageDescriptor instead')
 const eAquaSaverMessage$json = {
   '1': 'eAquaSaverMessage',
   '2': [
-    {'1': 'temperature', '3': 1, '4': 1, '5': 13, '10': 'temperature'},
-    {'1': 'hot_temperature', '3': 2, '4': 1, '5': 13, '10': 'hotTemperature'},
-    {'1': 'cold_temperature', '3': 3, '4': 1, '5': 13, '10': 'coldTemperature'},
-    {'1': 'current_recovered', '3': 4, '4': 1, '5': 13, '10': 'currentRecovered'},
-    {'1': 'current_cold_used', '3': 5, '4': 1, '5': 13, '10': 'currentColdUsed'},
-    {'1': 'current_hot_used', '3': 6, '4': 1, '5': 13, '10': 'currentHotUsed'},
-    {'1': 'total_recovered', '3': 7, '4': 1, '5': 4, '10': 'totalRecovered'},
-    {'1': 'total_cold_used', '3': 8, '4': 1, '5': 4, '10': 'totalColdUsed'},
-    {'1': 'total_hot_used', '3': 9, '4': 1, '5': 4, '10': 'totalHotUsed'},
+    {'1': 'temperature', '3': 1, '4': 1, '5': 12, '8': {}, '10': 'temperature'},
+    {'1': 'hot_temperature', '3': 2, '4': 1, '5': 12, '8': {}, '10': 'hotTemperature'},
+    {'1': 'cold_temperature', '3': 3, '4': 1, '5': 12, '8': {}, '10': 'coldTemperature'},
+    {'1': 'current_recovered', '3': 4, '4': 1, '5': 13, '8': {}, '10': 'currentRecovered'},
+    {'1': 'current_cold_used', '3': 5, '4': 1, '5': 13, '8': {}, '10': 'currentColdUsed'},
+    {'1': 'current_hot_used', '3': 6, '4': 1, '5': 13, '8': {}, '10': 'currentHotUsed'},
+    {'1': 'total_recovered', '3': 7, '4': 1, '5': 13, '10': 'totalRecovered'},
+    {'1': 'total_cold_used', '3': 8, '4': 1, '5': 13, '10': 'totalColdUsed'},
+    {'1': 'total_hot_used', '3': 9, '4': 1, '5': 13, '10': 'totalHotUsed'},
+    {'1': 'target_temperature', '3': 10, '4': 1, '5': 12, '8': {}, '10': 'targetTemperature'},
+    {'1': 'minimal_temperature', '3': 11, '4': 1, '5': 12, '8': {}, '10': 'minimalTemperature'},
+    {'1': 'ambient_temperature', '3': 12, '4': 1, '5': 12, '8': {}, '10': 'ambientTemperature'},
+    {'1': 'state', '3': 13, '4': 1, '5': 12, '8': {}, '10': 'state'},
   ],
 };
 
 /// Descriptor for `eAquaSaverMessage`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List eAquaSaverMessageDescriptor = $convert.base64Decode(
-    'ChFlQXF1YVNhdmVyTWVzc2FnZRIgCgt0ZW1wZXJhdHVyZRgBIAEoDVILdGVtcGVyYXR1cmUSJw'
-    'oPaG90X3RlbXBlcmF0dXJlGAIgASgNUg5ob3RUZW1wZXJhdHVyZRIpChBjb2xkX3RlbXBlcmF0'
-    'dXJlGAMgASgNUg9jb2xkVGVtcGVyYXR1cmUSKwoRY3VycmVudF9yZWNvdmVyZWQYBCABKA1SEG'
-    'N1cnJlbnRSZWNvdmVyZWQSKgoRY3VycmVudF9jb2xkX3VzZWQYBSABKA1SD2N1cnJlbnRDb2xk'
-    'VXNlZBIoChBjdXJyZW50X2hvdF91c2VkGAYgASgNUg5jdXJyZW50SG90VXNlZBInCg90b3RhbF'
-    '9yZWNvdmVyZWQYByABKARSDnRvdGFsUmVjb3ZlcmVkEiYKD3RvdGFsX2NvbGRfdXNlZBgIIAEo'
-    'BFINdG90YWxDb2xkVXNlZBIkCg50b3RhbF9ob3RfdXNlZBgJIAEoBFIMdG90YWxIb3RVc2Vk');
+    'ChFlQXF1YVNhdmVyTWVzc2FnZRIqCgt0ZW1wZXJhdHVyZRgBIAEoDEIIkj8FCAK4AQFSC3RlbX'
+    'BlcmF0dXJlEjEKD2hvdF90ZW1wZXJhdHVyZRgCIAEoDEIIkj8FCAK4AQFSDmhvdFRlbXBlcmF0'
+    'dXJlEjMKEGNvbGRfdGVtcGVyYXR1cmUYAyABKAxCCJI/BQgCuAEBUg9jb2xkVGVtcGVyYXR1cm'
+    'USMgoRY3VycmVudF9yZWNvdmVyZWQYBCABKA1CBZI/AjgQUhBjdXJyZW50UmVjb3ZlcmVkEjEK'
+    'EWN1cnJlbnRfY29sZF91c2VkGAUgASgNQgWSPwI4EFIPY3VycmVudENvbGRVc2VkEi8KEGN1cn'
+    'JlbnRfaG90X3VzZWQYBiABKA1CBZI/AjgQUg5jdXJyZW50SG90VXNlZBInCg90b3RhbF9yZWNv'
+    'dmVyZWQYByABKA1SDnRvdGFsUmVjb3ZlcmVkEiYKD3RvdGFsX2NvbGRfdXNlZBgIIAEoDVINdG'
+    '90YWxDb2xkVXNlZBIkCg50b3RhbF9ob3RfdXNlZBgJIAEoDVIMdG90YWxIb3RVc2VkEjQKEnRh'
+    'cmdldF90ZW1wZXJhdHVyZRgKIAEoDEIFkj8CCAJSEXRhcmdldFRlbXBlcmF0dXJlEjYKE21pbm'
+    'ltYWxfdGVtcGVyYXR1cmUYCyABKAxCBZI/AggCUhJtaW5pbWFsVGVtcGVyYXR1cmUSNgoTYW1i'
+    'aWVudF90ZW1wZXJhdHVyZRgMIAEoDEIFkj8CCAJSEmFtYmllbnRUZW1wZXJhdHVyZRIbCgVzdG'
+    'F0ZRgNIAEoDEIFkj8CCAFSBXN0YXRl');
 

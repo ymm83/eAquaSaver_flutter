@@ -102,18 +102,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
       //debugPrint("Tamaño del mensaje: $size");
       debugPrint("\nMensaje decodificado: --- START ---\n $message--- END ---");
 
-      debugPrint('Temperatura caliente: ${message.hotTemperature}');
+      debugPrint('Temperatura caliente: ${message.hotTemperature.join()}');
       debugPrint('\n----- message : ${message.totalRecovered.toString()}\n-------end message ----------\n');
 
+      var hotTemperature = double.parse("${message.hotTemperature.join('.')}");
+      debugPrint('hotTemperature: ${hotTemperature}');
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature,
-        'hotTemperature': message.hotTemperature / 10.0,
-        'coldTemperature': message.coldTemperature / 10.0,
+        'hotTemperature': message.hotTemperature,
+        'coldTemperature': message.coldTemperature,
         'currentHotUsed': message.currentHotUsed,
         'currentRecovered': message.currentRecovered,
-        'totalColdUsed': message.totalColdUsed.isZero ? 8444 : message.totalColdUsed.toInt(),
-        'totalRecovered': message.totalRecovered.isZero ? 12544 : message.totalRecovered.toInt(),
-        'totalHotUsed': message.totalHotUsed.isZero ? 10576 : message.totalHotUsed.toInt(),
+        'totalColdUsed': message.totalColdUsed == 0 ? 8444 : message.totalColdUsed,
+        'totalRecovered': message.totalRecovered==0 ? 12544 : message.totalRecovered,
+        'totalHotUsed': message.totalHotUsed==0 ? 10576 : message.totalHotUsed,
+        
       };
       debugPrint('------ beaconData: ${beaconData.toString()}');
       return beaconData;
@@ -155,6 +158,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
+                  debugPrint('--- decoded: \n $decodedData');
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
