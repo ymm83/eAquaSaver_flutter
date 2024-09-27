@@ -82,10 +82,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           debugPrint('--------------------r.device.remoteId:${r.device.remoteId}');
           debugPrint('----------------END---------------\n');*/
 
-          if (r.device.platformName.toString().startsWith('eASs-', 0)) {
+          if (r.device.platformName.toString().startsWith('eASs', 0)) {
             debugPrint('---- eAquaSaver Device encontrado: ${r.device.advName} ------');
           }
-          if (r.device.advName.startsWith('ASb-', 1)) {
+          if (r.device.advName.startsWith('eASb', 0)) {
             debugPrint('---- eAquaS Beacon encontrado: ${r.advertisementData.advName}  ------');
             //_processManufacturerData(r.advertisementData);
           }
@@ -235,8 +235,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
-        .where((r) => (r.device.advName.toString().startsWith('ASb-', 1) ||
-            r.device.platformName.toString().startsWith('eASs-', 0)))
+        .where((r) => (r.device.advName.toString().startsWith('eASb', 0) ||
+            r.device.platformName.toString().startsWith('eASs', 0)))
         .map((r) => ScanResultTile(
               result: r,
               onTap: () => onConnectPressed(r.device),

@@ -76,7 +76,8 @@ class _ScanResultTileState extends State<ScanResultTile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            widget.result.device.platformName,
+            'eAquaSaver',
+            //widget.result.device.platformName,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
@@ -125,15 +126,15 @@ class _ScanResultTileState extends State<ScanResultTile> {
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
     try {
       int size = data[0];
-      var protobufData = data.sublist(1, size + 1);
+      var protobufData = data.sublist(1, size+1);
       eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
 
-      //debugPrint("Tamaño del mensaje: $size");
-      debugPrint("\nMensaje decodificado: --- START ---:\n ${message.toString()} --- END ---");
+      debugPrint("Tamaño del mensaje: $size");
+      //debugPrint("\nMensaje decodificado: --- START ---:\n ${message.toString()} --- END ---");
 
       //debugPrint('Temperatura caliente: ${message.hotTemperature[0].toString()}');
       //debugPrint('\n----- message : ${message.state[0]}\n-------end message ----------\n');
-      debugPrint('\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
+      //debugPrint('\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature, //double.parse(message.temperature.join('.').toString()),
         // 'hotTemperature': double.parse(message.hotTemperature.join('.')),
@@ -149,7 +150,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
         'totalHotUsed': message.totalHotUsed,
         // 'state': message.state
       };
-      debugPrint('------ beaconData: ${beaconData['temperature']}');
+      //debugPrint('------ beaconData: ${beaconData['temperature']}');
       return beaconData;
     } catch (e) {
       debugPrint('Error----->: $e');

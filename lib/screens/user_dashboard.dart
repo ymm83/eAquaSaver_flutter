@@ -308,6 +308,44 @@ class _UserDashboardState extends State<UserDashboard> {
         });
       }
     });
+    debugPrint('---- userid: ${supabase.auth.currentUser!.id}');
+    supabase
+        .channel('notification')
+        .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'eaquasaver',
+            table: 'notification',
+            filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq, column: 'userid', value: supabase.auth.currentUser!.id.toString()),
+            callback: (payload) {
+              //final String notice = payload['new']['notice'];
+              /*ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Notification: $notice'))
+              )*/
+              debugPrint('payload: ${payload.newRecord['notice']}');
+            })
+        .subscribe();
+
+    /*supabase
+        .channel('my_channel')
+        .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'messages',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'notice',
+              value: 200,
+            ),
+            callback: (payload, [ref]) {
+              //final String notice = payload[new]['notice'];
+              /*ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Notification: $notice'))
+              )*/
+              print('payload: $payload');
+            })
+        .subscribe();*/
+
     super.initState();
   }
 
@@ -354,7 +392,12 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 Offstage(
                   offstage: !_isDeleting,
-                  child: const Center(child: Icon(Icons.warning_amber_sharp, color: Colors.red, size: 60,)),
+                  child: const Center(
+                      child: Icon(
+                    Icons.warning_amber_sharp,
+                    color: Colors.red,
+                    size: 60,
+                  )),
                 ),
                 Offstage(
                   offstage: !_isDeleting,

@@ -77,21 +77,26 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       color: Colors.greenAccent,
       home: Scaffold(
         appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/company_logo.png',
-                fit: BoxFit.cover,
-                height: 40,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/company_logo.png',
+                  fit: BoxFit.cover,
+                  height: 40,
+                ),
+                Image.asset('assets/app_title.png', fit: BoxFit.cover)
+              ],
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.green[100],
+            actions: const [
+              Padding(
+                padding: EdgeInsets.only(right: 10), 
+                child: Icon(Icons.notifications_active)
               ),
-              Image.asset('assets/app_title.png', fit: BoxFit.cover)
-            ],
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.green[100],
-        ),
+            ]),
         body: screens[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           selectedItemColor: Colors.blue.shade600,
