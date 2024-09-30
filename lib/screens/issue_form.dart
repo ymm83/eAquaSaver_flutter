@@ -1,3 +1,4 @@
+import 'package:eaquasaver/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -84,12 +85,7 @@ class _IssueFormState extends State<IssueForm> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Unexpected error occurred'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       setState(() {
@@ -116,12 +112,7 @@ class _IssueFormState extends State<IssueForm> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $error'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showSnackBar('Error: $error', theme: 'error');
       }
     } finally {
       setState(() {
@@ -152,21 +143,11 @@ class _IssueFormState extends State<IssueForm> {
           .single();
       if (data.isNotEmpty) {
         debugPrint('Issue actualizado correctamente!');
-        /*ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Issue updated successfully'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );*/
+        showSnackBar('Issue updated successfully', theme:'success');
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Unexpected error occurred'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       setState(() {

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../provider/supabase_provider.dart';
+import '../utils/snackbar_helper.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -22,7 +23,6 @@ class _UserTabsState extends State<UserTabs> {
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
-  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   late ConnectivityBloc connectivityBloc;
 
   @override
@@ -35,15 +35,7 @@ class _UserTabsState extends State<UserTabs> {
   }
 
   void connectionOffMessage() {
-    scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Center(child: Text('You are offline!')),
-        backgroundColor: Colors.red,
-        showCloseIcon: true,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    showSnackBar('You are offline!', theme: 'error', icon: Icons.cloud_off_outlined);
   }
 
   void _navigateToPage(int page) {

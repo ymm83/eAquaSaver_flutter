@@ -33,7 +33,7 @@ class _UserDashboardState extends State<UserDashboard> {
       _countdown = 10;
     });
 
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown > 0) {
         setState(() {
           _countdown--;
@@ -69,9 +69,8 @@ class _UserDashboardState extends State<UserDashboard> {
     // Aquí puedes ejecutar la acción de eliminación
     if (message['type'] == 'success') {
       showSnackBar(
-        context,
         message['text'],
-        message['type'],
+        theme: message['type'],
         duration: const Duration(seconds: 5),
         onHideCallback: () {
           _signOut();
@@ -79,9 +78,8 @@ class _UserDashboardState extends State<UserDashboard> {
       );
     } else {
       showSnackBar(
-        context,
         message['text'],
-        message['type'],
+        theme: message['type'],
         onHideCallback: () {
           setState(() {
             _isDeleting = false;
@@ -312,41 +310,6 @@ class _UserDashboardState extends State<UserDashboard> {
         });
       }
     });
-    debugPrint('---- userid: ${supabase.auth.currentUser!.id}');
-    // supabase
-    //     .channel('notification')
-    //     .onPostgresChanges(
-    //         event: PostgresChangeEvent.all,
-    //         schema: 'eaquasaver',
-    //         table: 'notification',
-    //         filter: PostgresChangeFilter(
-    //             type: PostgresChangeFilterType.eq, column: 'userid', value: supabase.auth.currentUser!.id.toString()),
-    //         callback: (payload) {
-    //           final String notice = payload.newRecord['notice'];
-    //           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Notification: $notice')));
-    //           debugPrint('payload: ${payload.newRecord['notice']}');
-    //         })
-    //     .subscribe();
-
-    supabase
-        .channel('my_channel')
-        .onPostgresChanges(
-            event: PostgresChangeEvent.all,
-            schema: 'public',
-            table: 'messages',
-            filter: PostgresChangeFilter(
-              type: PostgresChangeFilterType.eq,
-              column: 'notice',
-              value: 200,
-            ),
-            callback: (payload, [ref]) {
-              //final String notice = payload[new]['notice'];
-              /*ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Notification: $notice'))
-              )*/
-              print('payload: $payload');
-            })
-        .subscribe();
 
     super.initState();
   }

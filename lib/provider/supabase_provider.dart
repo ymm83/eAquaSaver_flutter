@@ -7,8 +7,7 @@ class SupabaseProvider extends StatelessWidget {
   final SupabaseClient client;
   final SupabaseQuerySchema eASclient;
 
-  const SupabaseProvider({required this.client, required this.child, required this.eASclient, Key? key})
-      : super(key: key);
+  const SupabaseProvider({required this.client, required this.child, required this.eASclient, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -15,8 +15,8 @@ class ReviewsScreen extends StatefulWidget {
 class _ReviewsScreenState extends State<ReviewsScreen> {
   final commentController = TextEditingController();
   bool loading = true;
-  bool working_comment = false;
-  bool working_rating = false;
+  bool workingComment = false;
+  bool workingRating = false;
   late List opinion;
   late int rating;
   late SupabaseClient supabase;
@@ -70,7 +70,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   },
                 ),
                 myCustomButton(
-                    loading: working_rating, label: 'save rating', icon: Icons.save_as_outlined, onTap: saveRating),
+                    loading: workingRating, label: 'save rating', icon: Icons.save_as_outlined, onTap: saveRating),
                 const SizedBox(height: 50),
                 const Text('Comment'),
                 const SizedBox(height: 20),
@@ -86,7 +86,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                 ),
                 myCustomButton(
-                    loading: working_comment, label: 'save comment', icon: Icons.save_as_outlined, onTap: saveComment),
+                    loading: workingComment, label: 'save comment', icon: Icons.save_as_outlined, onTap: saveComment),
               ],
             )),
       );
@@ -165,7 +165,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     FocusScope.of(context).unfocus();
     debugPrint('saveComment called !!!!!!!!!!!');
     setState(() {
-      working_comment = true;
+      workingComment = true;
     });
     try {
       final userId = supabase.auth.currentUser!.id;
@@ -180,14 +180,14 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       debugPrint('PostgrestException: $e');
     } finally {
       setState(() {
-        working_comment = false;
+        workingComment = false;
       });
     }
   }
 
   void saveRating() async {
     setState(() {
-      working_rating = true;
+      workingRating = true;
     });
     try {
       final userId = supabase.auth.currentUser!.id;
@@ -202,7 +202,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       debugPrint('PostgrestException: $e');
     } finally {
       setState(() {
-        working_rating = false;
+        workingRating = false;
       });
     }
   }

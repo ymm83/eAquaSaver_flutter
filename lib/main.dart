@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'eAquaSaver',
+      
       theme: ThemeData.light().copyWith(
         primaryColor: Colors.green,
         textButtonTheme: TextButtonThemeData(

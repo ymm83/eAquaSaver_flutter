@@ -75,7 +75,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
+          const Text(
             'eAquaSaver',
             //widget.result.device.platformName,
             overflow: TextOverflow.ellipsis,
@@ -136,19 +136,19 @@ class _ScanResultTileState extends State<ScanResultTile> {
       //debugPrint('\n----- message : ${message.state[0]}\n-------end message ----------\n');
       //debugPrint('\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
       Map<String, dynamic> beaconData = {
-        'temperature': message.temperature/10,
-        'hotTemperature': message.hotTemperature/10,
-        'coldTemperature': message.coldTemperature/10,
-        'targetTemperature': message.targetTemperature/10,
-        'minimalTemperature': message.minimalTemperature/10,
-        'ambientTemperature': message.ambientTemperature/10,
-        'currentHotUsed': message.currentHotUsed,
-        'currentRecovered': message.currentRecovered/100,
-        'currentColdUsed': message.currentColdUsed,
-        'totalColdUsed': message.totalColdUsed,
-        'totalRecovered': message.totalRecovered/100,
-        'totalHotUsed': message.totalHotUsed,
-        'state': message.state
+        'temperature': message.temperature.toInt()/10,
+        'hotTemperature': message.hotTemperature.toInt()/10,
+        'coldTemperature': message.coldTemperature.toInt()/10,
+        'targetTemperature': message.targetTemperature.toInt()/10,
+        'minimalTemperature': message.minimalTemperature.toInt()/10,
+        'ambientTemperature': message.ambientTemperature.toInt()/10,
+        'currentHotUsed': message.currentHotUsed.toInt()/100,
+        'currentRecovered': message.currentRecovered.toInt()/100,
+        'currentColdUsed': message.currentColdUsed.toInt()/100,
+        'totalColdUsed': message.totalColdUsed.toInt()/100,
+        'totalRecovered': message.totalRecovered.toInt()/100,
+        'totalHotUsed': message.totalHotUsed.toInt()/100,
+        'state': message.state.toInt()
       };
       //debugPrint('------ beaconData: ${beaconData['temperature']}');
       return beaconData;

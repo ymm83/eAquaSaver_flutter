@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../utils/snackbar_helper.dart';
 import 'bluetooth_off_screen.dart';
 import 'water_tabs.dart';
 import 'main_tabs.dart';
@@ -56,11 +57,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           callback: (payload) {
             final String notice = payload.newRecord['notice'];
             debugPrint('payload main: ${payload.newRecord['notice']}');
-           
-              ScaffoldMessenger.of(super.context).showSnackBar(
-                SnackBar(content: Text('Main Notification: $notice')),
-              );
-            
+            showSnackBar('Realtime: $notice', theme: 'notify');
           },
         )
         .subscribe();
@@ -102,6 +99,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
     ];
 
     return MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       color: Colors.greenAccent,
       home: Scaffold(
         appBar: AppBar(

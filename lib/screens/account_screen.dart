@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../provider/supabase_provider.dart';
+import '../utils/snackbar_helper.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -73,30 +74,15 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Perfil actualizado con éxito'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSnackBar('Perfil actualizado con éxito!', theme: 'success');
       }
     } on PostgrestException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.message),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showSnackBar(error.message, theme: 'error');
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ocurrió un error inesperado'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showSnackBar('Ocurrió un error inesperado', theme: 'error');
       }
     } finally {
       if (mounted) {

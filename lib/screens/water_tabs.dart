@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
+import '../utils/snackbar_helper.dart';
 import 'map_sceen.dart';
 import 'water_sceen.dart';
 
@@ -32,15 +33,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
   }
 
   void connectionOffMessage() {
-    scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Center(child: Text('You are offline!')),
-        backgroundColor: Colors.red,
-        showCloseIcon: true,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    showSnackBar('You are offline!', theme: 'error', icon: Icons.cloud_off_outlined);
   }
 
   void _navigateToPage(int page) {

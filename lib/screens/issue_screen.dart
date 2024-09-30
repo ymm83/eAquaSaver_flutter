@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/issue/issue_bloc.dart';
 import '../provider/supabase_provider.dart';
+import '../utils/snackbar_helper.dart';
 
 class IssueColor {
   Color error = Colors.red;
@@ -38,12 +39,7 @@ class _IssueScreenState extends State<IssueScreen> {
       });
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Unexpected error occurred'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
       setState(() {
         _isLoading = false;
@@ -60,21 +56,11 @@ class _IssueScreenState extends State<IssueScreen> {
           _issueData.removeWhere((issue) => issue['id'] == id);
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Issue eliminado correctamente'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showSnackBar('Issue eliminado correctamente', theme: 'success');
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Error: no se pudo eliminar'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+          showSnackBar('Error: no se pudo eliminar', theme: 'error');
         }
       }
     } catch (e) {

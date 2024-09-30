@@ -30,8 +30,8 @@ class _WaterScreenState extends State<WaterScreen> {
 
   Future<void> _fetchLocationAndAddress() async {
     final data = await _storage.read(key: 'storageLocation');
+    final locationData = testCoord['b']; // for test
     if (data != null) {
-      final locationData = testCoord['b']; // for test
       setState(() {
         _locationData = locationData;
       });
@@ -49,7 +49,7 @@ class _WaterScreenState extends State<WaterScreen> {
         final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
         final euaComune = await franceEuaCommune(nomCommune);
         //setState(() {
-          _nomReseau = euaComune['nom_reseau'];
+        _nomReseau = euaComune['nom_reseau'];
         //});
 
         if (euaComune.containsKey('code_commune')) {
@@ -59,6 +59,10 @@ class _WaterScreenState extends State<WaterScreen> {
           });
         }
       }
+    } else {
+      setState(() {
+        _locationData = locationData;
+      });
     }
   }
 

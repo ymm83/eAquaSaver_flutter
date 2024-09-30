@@ -6,6 +6,7 @@ import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 
 import '../screens/main_screen.dart';
 import '../provider/supabase_provider.dart';
+import '../utils/snackbar_helper.dart';
 import '../widgets/show_hide_password_field.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 //hcaptcha
@@ -54,74 +55,6 @@ class _LoginPageState extends State<LoginPage> {
   Map<String, dynamic> error = {};
   late SupabaseClient supabase;
 
-  /*void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
-    Color bgColor = Theme.of(context).colorScheme.primary;
-    Color? textColor;
-    if (backgroundColor == 'warning') {
-      bgColor = Colors.yellow.shade700;
-      textColor = Colors.black87;
-    } else if (backgroundColor == 'error') {
-      bgColor = Colors.red.shade500;
-    } else if (backgroundColor == 'success') {
-      bgColor = Colors.green;
-    } else {
-      bgColor = Theme.of(argContext).colorScheme.primary;
-    }
-    ScaffoldMessenger.of(argContext).showSnackBar(
-      SnackBar(content: Text(argMessage, style: TextStyle(color: textColor ?? Colors.white)), backgroundColor: bgColor),
-    );
-  }*/
-
-  void _showSnackBar(
-    BuildContext argContext,
-    String argMessage,
-    String? backgroundColor, {
-    Duration? duration, // Hacer duración opcional
-    SnackBarAction? action,
-    VoidCallback? onHideCallback, // Parámetro para el callback
-  }) {
-    Color bgColor = Theme.of(argContext).colorScheme.primary;
-    Color? textColor;
-
-    // Determina el color de fondo y el color del texto según el tipo
-    if (backgroundColor == 'warning') {
-      bgColor = Colors.yellow.shade700;
-      textColor = Colors.black87;
-    } else if (backgroundColor == 'error') {
-      bgColor = Colors.red.shade500;
-      textColor = Colors.white;
-    } else if (backgroundColor == 'success') {
-      bgColor = Colors.green;
-      textColor = Colors.white;
-    } else {
-      bgColor = Colors.blueAccent;
-      textColor = Colors.black87;
-    }
-
-    // Si no se proporciona duración, usa el valor por defecto
-    Duration snackBarDuration = duration ?? const Duration(seconds: 3);
-
-    // Crea el SnackBar
-    final snackBar = SnackBar(
-      content: Text(
-        argMessage,
-        style: TextStyle(color: textColor),
-      ),
-      backgroundColor: bgColor,
-      duration: snackBarDuration,
-      action: action,
-    );
-
-    // Muestra el SnackBar
-    ScaffoldMessenger.of(argContext).showSnackBar(snackBar);
-
-    Future.delayed(snackBarDuration, () {
-      if (onHideCallback != null) {
-        onHideCallback();
-      }
-    });
-  }
-
   /*class _toggleIcon extends Widget() {
     return _showPassword ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off_outlined);
   }*/
@@ -165,12 +98,12 @@ class _LoginPageState extends State<LoginPage> {
       }
       if (mounted) {
         if (errorMessage.isNotEmpty) {
-          _showSnackBar(context, errorMessage, 'error');
+          showSnackBar(errorMessage, theme: 'error');
         }
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar(context, 'Unexpected error occurred', 'error');
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -280,9 +213,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         if (res.user!.identities!.isEmpty) {
-          _showSnackBar(context, 'Your email is already registered.', 'warning');
+          showSnackBar('Your email is already registered.', theme:'warning');
         } else {
-          _showSnackBar(context, 'Check your email for a login link!', 'success');
+          showSnackBar('Check your email for a login link!', theme:'success');
         }
         setState(() {
           authStep = stepSignIn;
@@ -303,13 +236,13 @@ class _LoginPageState extends State<LoginPage> {
       }
       if (mounted) {
         if (errorMessage != 'error') {
-          _showSnackBar(context, errorMessage, 'error');
+          showSnackBar(errorMessage, theme:'error');
         }
       }
     } catch (error) {
       if (mounted) {
         //_showSnackBar(context, 'Unexpected error occurred', 'error');
-        _showSnackBar(context, error.toString(), 'error');
+        showSnackBar(error.toString(), theme:'error');
       }
     } finally {
       if (mounted) {
@@ -336,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _captchaToken);
 
       if (mounted) {
-        _showSnackBar(context, 'Check your email for reset code!', 'success');
+        showSnackBar('Check your email for reset code!', theme:'success');
         _newpasswordController.clear();
         _codeController.clear();
         setState(() {
@@ -347,11 +280,11 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (error) {
       if (mounted) {
-        _showSnackBar(context, error.message, 'error');
+        showSnackBar(error.message, theme:'error');
       }
     } catch (error) {
       if (mounted) {
-        _showSnackBar(context, 'Unexpected error occurred', 'error');
+        showSnackBar('Unexpected error occurred', theme:'error');
       }
     } finally {
       if (mounted) {
@@ -386,7 +319,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        _showSnackBar(context, 'Reset password successful!', 'success', onHideCallback: () {
+        showSnackBar('Reset password successful!', theme:'success', onHideCallback: () {
           //debugPrint('..................entrando......................');
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -398,7 +331,7 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (error) {
       if (mounted) {
         if (error.message.startsWith('New password should be different')) {
-          _showSnackBar(context, 'Your lost password is: "${_newpasswordController.text}"', 'warning',
+          showSnackBar('Your lost password is: "${_newpasswordController.text}"', theme:'warning',
               onHideCallback: () {
             //debugPrint('..................entrando......................');
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
@@ -411,15 +344,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         if (mounted) {
-          _showSnackBar(context, error.message, 'error');
-          // setState(() {
-          //   _captchaToken = null;
-          // });
+          showSnackBar(error.message, theme:'error');
         }
       }
     } catch (error) {
       if (mounted) {
-        _showSnackBar(context, 'Unexpected error occurred', 'error');
+        showSnackBar('Unexpected error occurred', theme:'error');
       }
     } finally {
       if (mounted) {
