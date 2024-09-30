@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 //import '../bloc/issue/issue_bloc.dart';
 import '../bloc/issue/issue_bloc.dart';
+import '../provider/supabase_provider.dart';
 
 class IssueForm extends StatefulWidget {
   final String typeForm;
-  final SupabaseClient supabase;
   final PageController pageController;
 
-  const IssueForm({super.key, required this.typeForm, required this.supabase, required this.pageController});
+  const IssueForm({super.key, required this.typeForm, required this.pageController});
 
   @override
   State<IssueForm> createState() => _IssueFormState();
@@ -21,11 +21,15 @@ class _IssueFormState extends State<IssueForm> {
   int selectedRadio = 1;
   late bool isLoading;
   late Map _issueData;
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
 
   @override
   void initState() {
     issueTitleController.text = '';
     issueBodyController.text = '';
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     if (widget.typeForm == 'edit') {
       final issueId = context.read<IssueBloc>().state.selectId;
       //_issueData = _getAsyncIssueById(issueId);
@@ -64,8 +68,7 @@ class _IssueFormState extends State<IssueForm> {
       setState(() {
         isLoading = true;
       });
-      final supabase = widget.supabase;
-      final data = await supabase.schema('eaquasaver').from('issue').select().eq('id', id).single();
+      final data = await supabaseEAS.from('issue').select().eq('id', id).single();
       if (data.isNotEmpty) {
         if (mounted) {
           setState(() {
@@ -96,12 +99,11 @@ class _IssueFormState extends State<IssueForm> {
   }
 
   void _addIssue() async {
-    final supabase = widget.supabase;
     setState(() {
       isLoading = true;
     });
     try {
-      final List<dynamic> data = await supabase.schema('eaquasaver').from('issue').insert(
+      final List<dynamic> data = await supabaseEAS.from('issue').insert(
         {
           'submitter': supabase.auth.currentUser?.id,
           'summary': issueTitleController.text,
@@ -137,9 +139,7 @@ class _IssueFormState extends State<IssueForm> {
       isLoading = true;
     });
     try {
-      final supabase = widget.supabase;
-      final data = await supabase
-          .schema('eaquasaver')
+      final data = await supabaseEAS
           .from('issue')
           .update({
             'submitter': supabase.auth.currentUser!.id,

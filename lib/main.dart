@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'screens/splash_screen.dart';
@@ -14,22 +13,17 @@ import 'bloc/beacon/beacon_bloc.dart';
 import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
 import 'bloc/issue/issue_bloc.dart';
-import 'api/secure_storage.dart';
 
-final supabase = Supabase.instance.client;
-final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
+//final supabase = Supabase.instance.client;
+//final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
 final FlutterBluePlus flutterBlue = FlutterBluePlus();
 final connectivity = Connectivity();
 
 Future<void> main() async {
-  await Supabase.initialize(
-    url: dbUrl,
-    anonKey: dbAnonKey,
-    authOptions: FlutterAuthClientOptions(localStorage: MySecureStorage()),
-    storageOptions: const StorageClientOptions(
-      retryAttempts: 5,
-    ),
-  );
+  await SupabaseConfig.initializeSupabase();
+  final supabase = SupabaseConfig.getClient();
+  final supabaseEAS = SupabaseConfig.getEasClient();
+  //final supabase = Supabase.instance.client;
   //runApp(const MyApp());
   runApp(
     MultiBlocProvider(
@@ -40,7 +34,11 @@ Future<void> main() async {
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
         BlocProvider(create: (context) => BeaconBloc()),
       ],
-      child: SupabaseProvider(supabaseClient: supabase, child: const MyApp()),
+      child: SupabaseProvider(
+        client: supabase,
+        eASclient: supabaseEAS,
+        child: const MyApp(),
+      ),
     ),
   );
 }

@@ -4,6 +4,7 @@ import 'package:moment_dart/moment_dart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/issue/issue_bloc.dart';
+import '../provider/supabase_provider.dart';
 
 class IssueColor {
   Color error = Colors.red;
@@ -11,8 +12,7 @@ class IssueColor {
 
 class IssueScreen extends StatefulWidget {
   final PageController pageController;
-  final SupabaseClient supabase;
-  const IssueScreen({super.key, required this.pageController, required this.supabase});
+  const IssueScreen({super.key, required this.pageController});
 
   @override
   State<IssueScreen> createState() => _IssueScreenState();
@@ -25,11 +25,13 @@ class _IssueScreenState extends State<IssueScreen> {
   bool _newIssue = false;
   TextEditingController issueTitleController = TextEditingController();
   TextEditingController issueBodyController = TextEditingController();
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
 
   void _getIssues() async {
-    final userid = widget.supabase.auth.currentUser!.id;
+    final userid = supabase.auth.currentUser!.id;
     try {
-      final data = await widget.supabase.schema('eaquasaver').from('issue').select().eq('submitter', userid);
+      final data = await supabaseEAS.from('issue').select().eq('submitter', userid);
       setState(() {
         _issueData = data;
         _isLoading = false;
@@ -52,8 +54,7 @@ class _IssueScreenState extends State<IssueScreen> {
   void _deleteIssue(int id) async {
     debugPrint('Id eliminado: $id');
     try {
-      final response =
-          await widget.supabase.schema('eaquasaver').from('issue').delete().eq('id', id).eq('status', 'new').select();
+      final response = await supabaseEAS.from('issue').delete().eq('id', id).eq('status', 'new').select();
       if (response.length == 1) {
         setState(() {
           _issueData.removeWhere((issue) => issue['id'] == id);
@@ -119,8 +120,10 @@ class _IssueScreenState extends State<IssueScreen> {
 
   @override
   void initState() {
-    super.initState();
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     _getIssues();
+    super.initState();
   }
 
   void _showAlertDialog(BuildContext context, id) {

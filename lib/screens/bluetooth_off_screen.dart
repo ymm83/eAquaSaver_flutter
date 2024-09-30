@@ -26,10 +26,10 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
 
   @override
   void initState() {
-    super.initState();
     _checkLocationServices();
     _listenForServiceStatusChanges();
     _listenForBluetoothStateChanges();
+    super.initState();
   }
 
   @override
@@ -129,34 +129,31 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldMessenger(
-      key: Snackbar.snackBarKeyA,
-      child: Scaffold(
-        backgroundColor: Colors.lightBlue,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _bluetoothAdapterState == BluetoothAdapterState.off
-                  ? const Icon(Icons.bluetooth_disabled, size: 100.0, color: Colors.white70)
-                  : const Icon(Icons.bluetooth_connected_outlined, size: 100.0, color: Colors.white70),
-              buildTitle(context),
-              if (Platform.isAndroid) buildTurnOnButton(context),
-              _locationEnabled
-                  ? const Icon(Icons.location_on_outlined, size: 100, color: Colors.white70)
-                  : const Icon(Icons.location_off_outlined, size: 100, color: Colors.white70),
-              Text('Location status: $_locationStatus',
-                  style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
-              const SizedBox(height: 10),
-              Text('Permission status: $_permissionStatus',
-                  style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _locationEnabled ? null : _openLocationSettings,
-                child: const Text('TURN ON'),
-              ),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.lightBlue,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _bluetoothAdapterState == BluetoothAdapterState.off
+                ? const Icon(Icons.bluetooth_disabled, size: 100.0, color: Colors.white70)
+                : const Icon(Icons.bluetooth_connected_outlined, size: 100.0, color: Colors.white70),
+            buildTitle(context),
+            if (Platform.isAndroid) buildTurnOnButton(context),
+            _locationEnabled
+                ? const Icon(Icons.location_on_outlined, size: 100, color: Colors.white70)
+                : const Icon(Icons.location_off_outlined, size: 100, color: Colors.white70),
+            Text('Location status: $_locationStatus',
+                style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
+            const SizedBox(height: 10),
+            Text('Permission status: $_permissionStatus',
+                style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _locationEnabled ? null : _openLocationSettings,
+              child: const Text('TURN ON'),
+            ),
+          ],
         ),
       ),
     );

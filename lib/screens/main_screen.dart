@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'bluetooth_off_screen.dart';
 import 'water_tabs.dart';
 import 'main_tabs.dart';
 import 'user_tabs.dart';
+import '../provider/supabase_provider.dart';
 
 class BLEMainScreen extends StatefulWidget {
   const BLEMainScreen({super.key});
@@ -22,10 +24,11 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
   late StreamSubscription<ServiceStatus>? _serviceStatusStream;
   int _currentIndex = 0; // Índice para la barra de navegación inferior
+  late final SupabaseClient supabase;
 
   @override
   void initState() {
-    super.initState();
+    supabase = SupabaseProvider.getClient(context);
     _adapterStateStateSubscription = FlutterBluePlus.adapterState.listen((state) {
       _adapterState = state;
       if (mounted) {
@@ -38,6 +41,30 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       });
     });
     _initializeState();
+    debugPrint('---- userid: ${supabase.auth.currentUser!.id}');
+    supabase
+        .channel('notification')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'eaquasaver',
+          table: 'notification',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'userid',
+            value: supabase.auth.currentUser!.id.toString(),
+          ),
+          callback: (payload) {
+            final String notice = payload.newRecord['notice'];
+            debugPrint('payload main: ${payload.newRecord['notice']}');
+           
+              ScaffoldMessenger.of(super.context).showSnackBar(
+                SnackBar(content: Text('Main Notification: $notice')),
+              );
+            
+          },
+        )
+        .subscribe();
+    super.initState();
   }
 
   Future<void> _initializeState() async {
@@ -56,6 +83,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   void dispose() {
     _adapterStateStateSubscription.cancel();
     _serviceStatusStream?.cancel();
+    supabase.channel('notification').unsubscribe();
     super.dispose();
   }
 
@@ -92,10 +120,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             centerTitle: true,
             backgroundColor: Colors.green[100],
             actions: const [
-              Padding(
-                padding: EdgeInsets.only(right: 10), 
-                child: Icon(Icons.notifications_active)
-              ),
+              Padding(padding: EdgeInsets.only(right: 10), child: Icon(Icons.notifications_active)),
             ]),
         body: screens[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(

@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
+import '../provider/supabase_provider.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -17,6 +18,9 @@ class _AccountScreenState extends State<AccountScreen> {
   final _lastnameController = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   var _loading = true;
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
+  late StreamSubscription authSubscription;
 
   /// Called once a user id is received within `onAuthenticated()`
   Future<void> _getProfile() async {
@@ -52,13 +56,6 @@ class _AccountScreenState extends State<AccountScreen> {
       }
     }
   }
-
-  final authSubscription = supabase.auth.onAuthStateChange.listen((data) {
-    final AuthChangeEvent event = data.event;
-    if (event == AuthChangeEvent.signedOut) {
-      //Navigator.of(context).pushReplacementNamed('/login');
-    }
-  });
 
   /// Called when user taps `Update` button
   Future<void> _updateProfile() async {
@@ -112,8 +109,16 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   void initState() {
-    super.initState();
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     _getProfile();
+    authSubscription = supabase.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.signedOut) {
+        //Navigator.of(context).pushReplacementNamed('/login');
+      }
+    });
+    super.initState();
   }
 
   @override

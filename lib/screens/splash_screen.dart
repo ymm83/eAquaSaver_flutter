@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../provider/supabase_provider.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -9,8 +10,11 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  late SupabaseClient supabase;
+
   @override
   void initState() {
+    supabase = SupabaseProvider.getClient(context);
     super.initState();
     _redirect();
   }

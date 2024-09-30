@@ -1,12 +1,12 @@
+import 'package:eaquasaver/provider/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ReviewsScreen extends StatefulWidget {
-  final SupabaseClient supabase;
   final PageController pageController;
 
-  const ReviewsScreen({super.key, required this.supabase, required this.pageController});
+  const ReviewsScreen({super.key, required this.pageController});
 
   @override
   State<ReviewsScreen> createState() => _ReviewsScreenState();
@@ -15,12 +15,18 @@ class ReviewsScreen extends StatefulWidget {
 class _ReviewsScreenState extends State<ReviewsScreen> {
   final commentController = TextEditingController();
   bool loading = true;
-  bool working = false;
+  bool working_comment = false;
+  bool working_rating = false;
   late List opinion;
   late int rating;
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
 
   @override
   void initState() {
+    rating=0;
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     fetchOpinion();
     super.initState();
   }
@@ -36,16 +42,25 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text('Rating $rating'),
+                //Text('Rating ${rating}'),
                 RatingBar(
                   initialRating: rating.toDouble(),
                   direction: Axis.horizontal,
                   allowHalfRating: true,
                   itemCount: 5,
                   ratingWidget: RatingWidget(
-                    full: const Icon(Icons.star_rate, color: Colors.redAccent,),
-                    half: const Icon(Icons.star_half_outlined, color: Colors.redAccent,),
-                    empty: const Icon(Icons.star_outline_outlined, color: Colors.redAccent,),
+                    full: const Icon(
+                      Icons.star_rate,
+                      color: Colors.redAccent,
+                    ),
+                    half: const Icon(
+                      Icons.star_half_outlined,
+                      color: Colors.redAccent,
+                    ),
+                    empty: const Icon(
+                      Icons.star_outline_outlined,
+                      color: Colors.redAccent,
+                    ),
                   ),
                   itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
                   onRatingUpdate: (ratingValue) {
@@ -54,7 +69,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     });
                   },
                 ),
-                myCustomButton(loading: working, label: 'save rating', icon: Icons.save_as_outlined, onTap: saveRating),
+                myCustomButton(
+                    loading: working_rating, label: 'save rating', icon: Icons.save_as_outlined, onTap: saveRating),
                 const SizedBox(height: 50),
                 const Text('Comment'),
                 const SizedBox(height: 20),
@@ -70,7 +86,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                 ),
                 myCustomButton(
-                    loading: working, label: 'save comment', icon: Icons.save_as_outlined, onTap: saveComment),
+                    loading: working_comment, label: 'save comment', icon: Icons.save_as_outlined, onTap: saveComment),
               ],
             )),
       );
@@ -78,7 +94,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   Widget myCustomButton({required bool loading, required label, required IconData icon, required onTap}) {
-    final Color btnDefault = (loading == true) ? const Color.fromARGB(255, 166, 185, 176) : const Color.fromARGB(255, 3, 99, 32);
+    final Color btnDefault =
+        (loading == true) ? const Color.fromARGB(255, 166, 185, 176) : const Color.fromARGB(255, 3, 99, 32);
     return GestureDetector(
       onTap: onTap,
       child: Row(
@@ -120,10 +137,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   void fetchOpinion() async {
-    final userId = widget.supabase.auth.currentUser!.id;
+    final userId = supabase.auth.currentUser!.id;
     try {
-      final data =
-          await widget.supabase.schema('eaquasaver').from('opinion').select('comment, rating').eq('submitter', userId);
+      final data = await supabaseEAS.from('opinion').select('comment, rating').eq('submitter', userId);
       if (data.isNotEmpty) {
         debugPrint("{$data[0]}");
         setState(() {
@@ -149,12 +165,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     FocusScope.of(context).unfocus();
     debugPrint('saveComment called !!!!!!!!!!!');
     setState(() {
-      working = true;
+      working_comment = true;
     });
     try {
-      final userId = widget.supabase.auth.currentUser!.id;
-      final data = await widget.supabase
-          .schema('eaquasaver')
+      final userId = supabase.auth.currentUser!.id;
+      final data = await supabaseEAS
           .from('opinion')
           .upsert({'submitter': userId, 'comment': commentController.text}, onConflict: 'submitter').select();
 
@@ -165,19 +180,18 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       debugPrint('PostgrestException: $e');
     } finally {
       setState(() {
-        working = false;
+        working_comment = false;
       });
     }
   }
 
   void saveRating() async {
     setState(() {
-      working = true;
+      working_rating = true;
     });
     try {
-      final userId = widget.supabase.auth.currentUser!.id;
-      final data = await widget.supabase
-          .schema('eaquasaver')
+      final userId = supabase.auth.currentUser!.id;
+      final data = await supabaseEAS
           .from('opinion')
           .upsert({'submitter': userId, 'rating': rating}, onConflict: 'submitter').select();
 
@@ -188,7 +202,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       debugPrint('PostgrestException: $e');
     } finally {
       setState(() {
-        working = false;
+        working_rating = false;
       });
     }
   }

@@ -136,19 +136,19 @@ class _ScanResultTileState extends State<ScanResultTile> {
       //debugPrint('\n----- message : ${message.state[0]}\n-------end message ----------\n');
       //debugPrint('\n----- message : ${message.temperature.toString()}\n-------end message ----------\n');
       Map<String, dynamic> beaconData = {
-        'temperature': message.temperature, //double.parse(message.temperature.join('.').toString()),
-        // 'hotTemperature': double.parse(message.hotTemperature.join('.')),
-        // 'coldTemperature': double.parse(message.coldTemperature.join('.')),
-        // 'targetTemperature': double.parse(message.targetTemperature.join('.')),
-        // 'minimalTemperature': double.parse(message.minimalTemperature.join('.')),
-        // 'ambientTemperature': double.parse(message.ambientTemperature.join('.')),
+        'temperature': message.temperature/10,
+        'hotTemperature': message.hotTemperature/10,
+        'coldTemperature': message.coldTemperature/10,
+        'targetTemperature': message.targetTemperature/10,
+        'minimalTemperature': message.minimalTemperature/10,
+        'ambientTemperature': message.ambientTemperature/10,
         'currentHotUsed': message.currentHotUsed,
-        'currentRecovered': message.currentRecovered,
+        'currentRecovered': message.currentRecovered/100,
         'currentColdUsed': message.currentColdUsed,
         'totalColdUsed': message.totalColdUsed,
-        'totalRecovered': message.totalRecovered,
+        'totalRecovered': message.totalRecovered/100,
         'totalHotUsed': message.totalHotUsed,
-        // 'state': message.state
+        'state': message.state
       };
       //debugPrint('------ beaconData: ${beaconData['temperature']}');
       return beaconData;

@@ -1,12 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/snackbar_helper.dart';
 import 'auth_login.dart';
-import '../main.dart';
-import 'dart:convert';
+import '../provider/supabase_provider.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -24,6 +24,8 @@ class _UserDashboardState extends State<UserDashboard> {
   Timer? _timer;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late final StreamSubscription<AuthState> authSubscription;
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
 
   void _startCountdown() {
     setState(() {
@@ -262,6 +264,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
   @override
   void initState() {
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     authSubscription = supabase.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedOut) {
@@ -309,24 +313,22 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     });
     debugPrint('---- userid: ${supabase.auth.currentUser!.id}');
-    supabase
-        .channel('notification')
-        .onPostgresChanges(
-            event: PostgresChangeEvent.all,
-            schema: 'eaquasaver',
-            table: 'notification',
-            filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq, column: 'userid', value: supabase.auth.currentUser!.id.toString()),
-            callback: (payload) {
-              //final String notice = payload['new']['notice'];
-              /*ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Notification: $notice'))
-              )*/
-              debugPrint('payload: ${payload.newRecord['notice']}');
-            })
-        .subscribe();
+    // supabase
+    //     .channel('notification')
+    //     .onPostgresChanges(
+    //         event: PostgresChangeEvent.all,
+    //         schema: 'eaquasaver',
+    //         table: 'notification',
+    //         filter: PostgresChangeFilter(
+    //             type: PostgresChangeFilterType.eq, column: 'userid', value: supabase.auth.currentUser!.id.toString()),
+    //         callback: (payload) {
+    //           final String notice = payload.newRecord['notice'];
+    //           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Notification: $notice')));
+    //           debugPrint('payload: ${payload.newRecord['notice']}');
+    //         })
+    //     .subscribe();
 
-    /*supabase
+    supabase
         .channel('my_channel')
         .onPostgresChanges(
             event: PostgresChangeEvent.all,
@@ -344,7 +346,7 @@ class _UserDashboardState extends State<UserDashboard> {
               )*/
               print('payload: $payload');
             })
-        .subscribe();*/
+        .subscribe();
 
     super.initState();
   }
@@ -352,6 +354,7 @@ class _UserDashboardState extends State<UserDashboard> {
   @override
   void dispose() {
     _timer?.cancel();
+    supabase.channel('notification').unsubscribe();
     super.dispose();
   }
 

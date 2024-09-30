@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 
 import '../screens/main_screen.dart';
-import '../main.dart';
+import '../provider/supabase_provider.dart';
 import '../widgets/show_hide_password_field.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 //hcaptcha
@@ -52,6 +52,7 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _captchaToken;
   Map<String, dynamic> error = {};
+  late SupabaseClient supabase;
 
   /*void _showSnackBar(BuildContext argContext, String argMessage, String? backgroundColor) {
     Color bgColor = Theme.of(context).colorScheme.primary;
@@ -438,7 +439,7 @@ class _LoginPageState extends State<LoginPage> {
       //_showPassword = true;
       //_password2Visible = true;
       //_newpasswordVisible = true;
-
+      supabase = SupabaseProvider.getClient(context);
       authStep = stepSignIn;
       _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
         final AuthChangeEvent event = data.event;

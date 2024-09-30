@@ -102,21 +102,24 @@ class _DeviceScreenState extends State<DeviceScreen> {
       //debugPrint("Tamaño del mensaje: $size");
       debugPrint("\nMensaje decodificado: --- START ---\n $message--- END ---");
 
-      debugPrint('Temperatura caliente: ${message.hotTemperature.join()}');
+      debugPrint('Temperatura caliente: ${message.hotTemperature}');
       debugPrint('\n----- message : ${message.totalRecovered.toString()}\n-------end message ----------\n');
 
-      var hotTemperature = double.parse("${message.hotTemperature.join('.')}");
-      debugPrint('hotTemperature: ${hotTemperature}');
+      //debugPrint('hotTemperature: $hotTemperature');
       Map<String, dynamic> beaconData = {
-        'temperature': message.temperature,
-        'hotTemperature': message.hotTemperature,
-        'coldTemperature': message.coldTemperature,
+        'temperature': message.temperature/10,
+        'hotTemperature': message.hotTemperature/10,
+        'coldTemperature': message.coldTemperature/10,
+        'targetTemperature': message.targetTemperature/10,
+        'minimalTemperature': message.minimalTemperature/10,
+        'ambientTemperature': message.ambientTemperature/10,
         'currentHotUsed': message.currentHotUsed,
-        'currentRecovered': message.currentRecovered,
-        'totalColdUsed': message.totalColdUsed == 0 ? 8444 : message.totalColdUsed,
-        'totalRecovered': message.totalRecovered==0 ? 12544 : message.totalRecovered,
-        'totalHotUsed': message.totalHotUsed==0 ? 10576 : message.totalHotUsed,
-        
+        'currentRecovered': message.currentRecovered/100,
+        'currentColdUsed': message.currentColdUsed,
+        'totalColdUsed': message.totalColdUsed,
+        'totalRecovered': message.totalRecovered/100,
+        'totalHotUsed': message.totalHotUsed,
+        'state': message.state
       };
       debugPrint('------ beaconData: ${beaconData.toString()}');
       return beaconData;

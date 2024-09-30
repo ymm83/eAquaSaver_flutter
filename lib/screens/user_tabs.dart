@@ -1,9 +1,8 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
-import '../bloc/issue/issue_bloc.dart';
+import '../provider/supabase_provider.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -22,12 +21,16 @@ class _UserTabsState extends State<UserTabs> {
   int _currentPage = 0;
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   late ConnectivityBloc connectivityBloc;
 
   @override
   void initState() {
     connectivityBloc = BlocProvider.of<ConnectivityBloc>(context);
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
+
     super.initState();
   }
 
@@ -83,8 +86,6 @@ class _UserTabsState extends State<UserTabs> {
 
   @override
   Widget build(BuildContext context) {
-    final SupabaseClient supa = BlocProvider.of<IssueBloc>(context).supabase;
-
     return ScaffoldMessenger(
         key: scaffoldMessengerKey,
         child: Scaffold(
@@ -118,10 +119,10 @@ class _UserTabsState extends State<UserTabs> {
             children: [
               const UserDashboard(),
               const AccountScreen(),
-              ReviewsScreen(supabase: supa, pageController: _userTabController),
-              IssueScreen(pageController: _userTabController, supabase: supa),
-              IssueForm(typeForm: 'new', supabase: supa, pageController: _userTabController),
-              IssueForm(typeForm: 'edit', supabase: supa, pageController: _userTabController),
+              ReviewsScreen(pageController: _userTabController),
+              IssueScreen(pageController: _userTabController),
+              IssueForm(typeForm: 'new', pageController: _userTabController),
+              IssueForm(typeForm: 'edit', pageController: _userTabController),
             ],
           ),
         ));
