@@ -420,7 +420,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               children: [
                                 TextSpan(
                                   text: deviceState,
-                                  style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 2),
+                                  style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1),
                                 ),
                               ],
                             ),
