@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../utils/snackbar_helper.dart';
 import 'auth_login.dart';
 import '../provider/supabase_provider.dart';
+import '../utils/snackbar_helper.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -114,19 +114,13 @@ class _UserDashboardState extends State<UserDashboard> {
       return userData;
     } on PostgrestException catch (error) {
       if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar(error.message, theme: 'error');
       }
       userData = {};
       setState(() {});
     } catch (error) {
       /*if (mounted) {
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }*/
     } finally {
       /*if (mounted) {
@@ -172,17 +166,11 @@ class _UserDashboardState extends State<UserDashboard> {
       await supabase.auth.signOut();
     } on AuthException catch (error) {
       if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar(error.message, theme: 'error');
       }
     } catch (error) {
       if (mounted) {
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       setState(() {
@@ -202,17 +190,11 @@ class _UserDashboardState extends State<UserDashboard> {
       await supabase.auth.signOut();
     } on AuthException catch (error) {
       if (mounted) {
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar(error.message, theme: 'error');
       }
     } catch (error) {
       if (mounted) {
-        SnackBar(
-          content: const Text('Unexpected error occurred'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       setState(() {
@@ -317,7 +299,6 @@ class _UserDashboardState extends State<UserDashboard> {
   @override
   void dispose() {
     _timer?.cancel();
-    supabase.channel('notification').unsubscribe();
     super.dispose();
   }
 

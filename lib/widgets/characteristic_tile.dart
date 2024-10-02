@@ -5,8 +5,7 @@ import "dart:typed_data";
 import "package:flutter/material.dart";
 import "package:flutter_blue_plus/flutter_blue_plus.dart";
 
-import "../utils/snackbar.dart";
-
+import "../utils/snackbar_helper.dart";
 import "descriptor_tile.dart";
 
 class CharacteristicTile extends StatefulWidget {
@@ -54,9 +53,9 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
         debugPrint('*********fromCharCodes: ${String.fromCharCodes(onValue)}');
         debugPrint('${_convertData(onValue)}');
       });
-     // Snackbar.show(ABC.c, "Read: Success", success: true);
+      // showSnackBar("Read: Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Read Error:", e), success: false);
+      showSnackBar("Read Error: $e", theme: 'error');
     }
   }
 
@@ -70,12 +69,12 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
     try {
       await c.write(data.codeUnits, withoutResponse: c.properties.writeWithoutResponse);
       //await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);
-      Snackbar.show(ABC.c, "Write: Success", success: true);
+      showSnackBar("Write: Success", theme: 'success');
       if (c.properties.read) {
         await c.read();
       }
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Write Error:", e), success: false);
+      showSnackBar("Write Error: $e", theme: 'error');
     }
   }
 
@@ -83,7 +82,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
     try {
       String op = c.isNotifying == false ? "Subscribe" : "Unubscribe";
       await c.setNotifyValue(c.isNotifying == false);
-      Snackbar.show(ABC.c, "$op : Success", success: true);
+      showSnackBar("$op : Success", theme: 'success');
       if (c.properties.read) {
         await c.read();
       }
@@ -91,7 +90,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
         setState(() {});
       }
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Subscribe Error:", e), success: false);
+      showSnackBar("Subscribe Error: $e", theme: 'success');
     }
   }
 

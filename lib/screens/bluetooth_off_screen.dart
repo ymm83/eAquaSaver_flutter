@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
-
-import '../utils/snackbar.dart';
+import '../utils/snackbar_helper.dart';
 
 class BluetoothOffScreen extends StatefulWidget {
   const BluetoothOffScreen({super.key, this.adapterState});
@@ -120,7 +119,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
               await FlutterBluePlus.turnOn();
             }
           } catch (e) {
-            Snackbar.show(ABC.a, prettyException("Error Turning On:", e), success: false);
+            showSnackBar("Error Turning On: $e", theme: 'error');
           }
         },
       ),

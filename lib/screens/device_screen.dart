@@ -5,14 +5,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../utils/snackbar_helper.dart';
 import '../utils/extra.dart';
 import '../bloc/beacon/beacon_bloc.dart';
 import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
-import '../utils/snackbar.dart';
-//import '../provider/supabase_provider.dart';
+
+enum DeviceState {
+  sleep,
+  idle,
+  tempAdjust,
+  recovering,
+}
+
+String getDeviceState(int value) {
+  switch (value) {
+    case 0:
+      return 'sleep'; //DeviceState.sleep;
+    case 1:
+      return 'idle'; //DeviceState.idle;
+    case 2:
+      return 'tempAdjust'; //DeviceState.tempAdjust;
+    case 3:
+      return 'recovering'; //DeviceState.recovering;
+    default:
+      return "unknow"; // throw Exception("unknow");
+  }
+}
 
 class DeviceScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -39,6 +60,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
   late Timer _beaconTimer;
+  late String deviceState;
 
   @override
   void initState() {
@@ -107,18 +129,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
       //debugPrint('hotTemperature: $hotTemperature');
       Map<String, dynamic> beaconData = {
-        'temperature': message.temperature/10,
-        'hotTemperature': message.hotTemperature/10,
-        'coldTemperature': message.coldTemperature/10,
-        'targetTemperature': message.targetTemperature/10,
-        'minimalTemperature': message.minimalTemperature/10,
-        'ambientTemperature': message.ambientTemperature/10,
-        'currentHotUsed': message.currentHotUsed,
-        'currentRecovered': message.currentRecovered/100,
-        'currentColdUsed': message.currentColdUsed,
-        'totalColdUsed': message.totalColdUsed,
-        'totalRecovered': message.totalRecovered/100,
-        'totalHotUsed': message.totalHotUsed,
+        'temperature': message.temperature / 10,
+        'hotTemperature': message.hotTemperature / 10,
+        'coldTemperature': message.coldTemperature / 10,
+        'targetTemperature': message.targetTemperature / 10,
+        'minimalTemperature': message.minimalTemperature / 10,
+        'ambientTemperature': message.ambientTemperature / 10,
+        'currentHotUsed': message.currentHotUsed / 100,
+        'currentRecovered': message.currentRecovered / 100,
+        'currentColdUsed': message.currentColdUsed / 100,
+        'totalColdUsed': message.totalColdUsed / 100,
+        'totalRecovered': message.totalRecovered / 100,
+        'totalHotUsed': message.totalHotUsed / 100,
         'state': message.state
       };
       debugPrint('------ beaconData: ${beaconData.toString()}');
@@ -145,19 +167,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<void> startBeaconScanning() async {
-    //debugPrint('---------- replace: ${widget.device.platformName.replaceRange(3, 4, 'b')}');
-    String deviceName = widget.device.platformName;
-    String beaconName = 'eASb-${deviceName.split('-')[1]}';
+    //debugPrint('---------- replace: ${widget.device.platformName.replaceRange(3, 4, 'b').length}');
+    // String deviceName = widget.device.platformName;
+    String beaconName = widget.device.platformName.replaceRange(3, 4, 'b');
+    //debugPrint('---------- deviceName: ${deviceName.length}');
 
-    await FlutterBluePlus.startScan();
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
     _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
-      //debugPrint('---------- results.length: ${results.length}');
+      //debugPrint('---------- results: ${results.length}');
 
       if (results.isNotEmpty) {
         try {
           for (var adv in results) {
-            if (adv.advertisementData.advName.substring(0, 17) == beaconName) {
-              debugPrint('----------siiiiiiiiiiiiiiiiiiiiii---------------');
+            //debugPrint('---------- adv.advertisementData.advName: ${adv.advertisementData.advName.substring(0, 16)}');
+            if (adv.advertisementData.advName.substring(0, 16) == beaconName) {
+              debugPrint('----------send adversiting data---------------');
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
@@ -170,7 +194,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             }
           }
         } catch (e) {
-          //debugPrint('Error al buscar el beacon: $e');
+          debugPrint('Error al buscar el beacon: $e');
         }
       } else {
         //debugPrint('No se encontraron resultados en el escaneo.');
@@ -187,12 +211,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Future onConnectPressed() async {
     try {
       await widget.device.connectAndUpdateStream();
-      Snackbar.show(ABC.c, "Connect: Success", success: true);
+      showSnackBar("Connect: Success", theme: 'success');
     } catch (e) {
       if (e is FlutterBluePlusException && e.code == FbpErrorCode.connectionCanceled.index) {
         // Ignorar conexiones canceladas por el usuario
       } else {
-        Snackbar.show(ABC.c, prettyException("Connect Error:", e), success: false);
+        showSnackBar("Connect Error: $e", theme: 'error');
       }
     }
   }
@@ -202,18 +226,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
       await widget.device.disconnect(queue: true);
       //await widget.device.removeBond();
       await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
-      Snackbar.show(ABC.c, "Cancel: Success", success: true);
+      showSnackBar("Cancel: Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Cancel Error:", e), success: false);
+      showSnackBar("Cancel Error: $e", theme: 'error');
     }
   }
 
   Future onDisconnectPressed() async {
     try {
       await widget.device.disconnect();
-      Snackbar.show(ABC.c, "Disconnect: Success", success: true);
+      showSnackBar("Disconnect: Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Disconnect Error:", e), success: false);
+      showSnackBar("Disconnect Error: $e", theme: 'error');
     }
   }
 
@@ -225,9 +249,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
     try {
       _services = await widget.device.discoverServices();
-      Snackbar.show(ABC.c, "Discover Services: Success", success: true);
+      showSnackBar("Discover Services: Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Discover Services Error:", e), success: false);
+      showSnackBar("Discover Services Error:", theme: 'error');
     }
     if (mounted) {
       setState(() {
@@ -239,9 +263,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Future onRequestMtuPressed() async {
     try {
       await widget.device.requestMtu(223, predelay: 0);
-      Snackbar.show(ABC.c, "Request Mtu: Success", success: true);
+      showSnackBar("Request Mtu: Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Change Mtu Error:", e), success: false);
+      showSnackBar("Change Mtu Error: $e", theme: 'error');
     }
   }
 
@@ -361,8 +385,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
+      if (state is BeaconLoaded) {
+        deviceState = getDeviceState(state.beaconData['state'] ?? 7);
+      } else {
+        deviceState = 'unknow';
+      }
       return ScaffoldMessenger(
-        key: Snackbar.snackBarKeyC,
         child: Scaffold(
           body: SingleChildScrollView(
             child: Column(
@@ -377,15 +405,45 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     //   child: Icon(isConnected ? Icons.bluetooth_connected_outlined : Icons.bluetooth_disabled_outlined),
                     // ),
                     leading: buildRssiTile(context),
-                    title: Text(
-                      widget.device.platformName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: const Text(
+                      'eAquaSaver', //widget.device.platformName,
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text(widget.device.remoteId.toString()),
+                    //subtitle: Text(widget.device.remoteId.toString()),
+                    subtitle: (state is BeaconLoaded)
+                        //? Text(widget.device.remoteId.toString())
+                        ? RichText(
+                            text: TextSpan(
+                              text: 'status: ',
+                              style: const TextStyle(
+                                  fontSize: 11, color: Color.fromARGB(255, 5, 69, 85), fontWeight: FontWeight.bold),
+                              children: [
+                                TextSpan(
+                                  text: deviceState,
+                                  style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 2),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Text(widget.device.remoteId.toString()),
                     trailing: buildConnectIcon(context),
                   ),
                 ),
-
+                if (state is BeaconLoaded) ...[
+                  RichText(
+                    text: TextSpan(
+                      text: 'status: ',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color.fromARGB(255, 5, 69, 85), fontWeight: FontWeight.bold),
+                      children: [
+                        TextSpan(
+                          text: '${state.beaconData['state']} ',
+                          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 // Mostrar datos de beacon
                 Padding(
                   padding: const EdgeInsets.only(top: 8, bottom: 10),
@@ -413,21 +471,42 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 ),
                               ),
                               title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text(
-                                  '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
-                                ),
-                                Text(
-                                  state.beaconData['temperature'].toString().split('.')[0],
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
-                                ),
-                                Text(
-                                  '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
-                                ),
+                                if (state.beaconData['coldTemperature'].toString() == 'null')
+                                  Text(
+                                    '0 °C',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
+                                  ),
+                                if (state.beaconData['coldTemperature'].toString() != 'null')
+                                  Text(
+                                    '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
+                                  ),
+                                if (state.beaconData['temperature'].toString() == 'null')
+                                  Text(
+                                    '0',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
+                                  ),
+                                if (state.beaconData['temperature'].toString() != 'null')
+                                  Text(
+                                    state.beaconData['temperature'].toString().split('.')[0],
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
+                                  ),
+                                if (state.beaconData['hotTemperature'].toString() == 'null')
+                                  Text(
+                                    '0 °C',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
+                                  ),
+                                if (state.beaconData['hotTemperature'].toString() != 'null')
+                                  Text(
+                                    '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
+                                  ),
                               ]),
                               subtitle: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                 Text(

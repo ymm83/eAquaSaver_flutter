@@ -42,14 +42,16 @@ class DeviceChartsState extends State<DeviceCharts> {
         if (state is BeaconLoaded) {
           debugPrint('------ state.beaconData: ${state.beaconData.toString()}');
 
-          if (state.beaconData['totalRecovered'] == 0 &&
+          if (state.beaconData.isEmpty) {
+            return const Text('No hay datos para mostrar');
+          } else if (state.beaconData['totalRecovered'] == 0 &&
               state.beaconData['totalHotUsed'] == 0 &&
               state.beaconData['totalColdUsed'] == 0) {
             return const Text('No hay datos para mostrar');
           } else {
             return ConstrainedBox(
-              constraints: const BoxConstraints.expand(height: 150.0), 
-              child: DevicePieChart(beaconData: state.beaconData), 
+              constraints: const BoxConstraints.expand(height: 150.0),
+              child: DevicePieChart(beaconData: state.beaconData),
             );
           }
         } else {

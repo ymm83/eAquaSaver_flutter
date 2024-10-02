@@ -79,44 +79,44 @@ class _UserTabsState extends State<UserTabs> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
-        key: scaffoldMessengerKey,
+        //key: scaffoldMessengerKey,
         child: Scaffold(
-          appBar: AppBar(
-            leading: _currentPage > 0
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back_outlined),
-                    onPressed: () => _navigateToPage(0),
-                  )
-                : null,
-            leadingWidth: 40,
-            actions: _currentPage == 0
-                ? _actionsDefault(context)
-                : ([3, 4, 5].contains(_currentPage))
-                    ? _actionsIssue(context)
-                    : _actionsDefault(context),
-            backgroundColor: Colors.green[100],
-            elevation: 0,
-            title: Text(_pageTitle),
-          ),
-          body: PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            pageSnapping: false,
-            controller: _userTabController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-                _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
-              });
-            },
-            children: [
-              const UserDashboard(),
-              const AccountScreen(),
-              ReviewsScreen(pageController: _userTabController),
-              IssueScreen(pageController: _userTabController),
-              IssueForm(typeForm: 'new', pageController: _userTabController),
-              IssueForm(typeForm: 'edit', pageController: _userTabController),
-            ],
-          ),
-        ));
+      appBar: AppBar(
+        leading: _currentPage > 0
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_outlined),
+                onPressed: () => _navigateToPage(0),
+              )
+            : null,
+        leadingWidth: 40,
+        actions: _currentPage == 0
+            ? _actionsDefault(context)
+            : ([3, 4, 5].contains(_currentPage))
+                ? _actionsIssue(context)
+                : _actionsDefault(context),
+        backgroundColor: Colors.green[100],
+        elevation: 0,
+        title: Text(_pageTitle),
+      ),
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        pageSnapping: false,
+        controller: _userTabController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentPage = index;
+            _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
+          });
+        },
+        children: [
+          const UserDashboard(),
+          const AccountScreen(),
+          ReviewsScreen(pageController: _userTabController),
+          IssueScreen(pageController: _userTabController),
+          IssueForm(typeForm: 'new', pageController: _userTabController),
+          IssueForm(typeForm: 'edit', pageController: _userTabController),
+        ],
+      ),
+    ));
   }
 }

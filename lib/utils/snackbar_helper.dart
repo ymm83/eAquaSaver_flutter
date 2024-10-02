@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class SnackBarTheme {
   final Color bgColor;
   final Color textColor;
@@ -30,7 +32,7 @@ final Map<String, SnackBarTheme> snackBarThemes = {
     icon: Icons.info_outline,
   ),
   'notify': SnackBarTheme(
-    bgColor: Colors.grey.shade400,
+    bgColor: Colors.grey.shade200,
     textColor: Colors.grey.shade900,
     icon: Icons.notifications_active,
   ),
@@ -39,8 +41,6 @@ final Map<String, SnackBarTheme> snackBarThemes = {
     textColor: Colors.blue.shade900,
   ),
 };
-
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void showSnackBar(
   String message, {
@@ -51,6 +51,7 @@ void showSnackBar(
   IconData? icon,
   bool showCloseIcon = false,
 }) {
+
   final SnackBarTheme myTheme = snackBarThemes[theme] ?? snackBarThemes['default']!;
 
   final IconData? selectedIcon = icon ?? myTheme.icon;
@@ -67,9 +68,10 @@ void showSnackBar(
           Icon(selectedIcon, color: myTheme.textColor),
           const SizedBox(width: 10),
         ],
-        Text(
+        Expanded(child: Text(
           message,
           style: TextStyle(color: myTheme.textColor), // Aplica el color del texto
+        ),
         ),
       ],
     ),
@@ -82,9 +84,9 @@ void showSnackBar(
     duration: snackBarDuration,
     showCloseIcon: showCloseIcon,
     action: action,
-    padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+    padding: const EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 7),
     behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.symmetric(horizontal: 10.0),
+    margin: const EdgeInsets.only(left: 10.0, right: 10.0), //bottom: 300 manual center
     shape: RoundedRectangleBorder(
       side: BorderSide(color: myTheme.textColor, width: 1),
       borderRadius: BorderRadius.circular(12),

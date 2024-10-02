@@ -77,16 +77,21 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
     try {
       int size = data[0]; // Tamaño del mensaje
       var protobufData = data.sublist(1, size + 1); // decodedMessage
-      eAquaSaverMessage decodedMessage = eAquaSaverMessage.fromBuffer(protobufData);
+      eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
       _beaconData = {
-        'temperature': decodedMessage.temperature,
-        'hotTemperature': decodedMessage.hotTemperature,
-        'coldTemperature': decodedMessage.coldTemperature,
-        'currentHotUsed': decodedMessage.currentHotUsed,
-        'currentRecovered': decodedMessage.currentRecovered,
-        'totalColdUsed': decodedMessage.totalColdUsed,
-        'totalRecovered': decodedMessage.totalRecovered,
-        'totalHotUsed': decodedMessage.totalHotUsed,
+        'temperature': message.temperature / 10,
+        'hotTemperature': message.hotTemperature / 10,
+        'coldTemperature': message.coldTemperature / 10,
+        'targetTemperature': message.targetTemperature / 10,
+        'minimalTemperature': message.minimalTemperature / 10,
+        'ambientTemperature': message.ambientTemperature / 10,
+        'currentHotUsed': message.currentHotUsed / 100,
+        'currentRecovered': message.currentRecovered / 100,
+        'currentColdUsed': message.currentColdUsed / 100,
+        'totalColdUsed': message.totalColdUsed / 100,
+        'totalRecovered': message.totalRecovered / 100,
+        'totalHotUsed': message.totalHotUsed / 100,
+        'state': message.state
       };
       return _beaconData;
     } catch (e) {

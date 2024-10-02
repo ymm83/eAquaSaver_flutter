@@ -95,7 +95,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
     final List<Widget> screens = [
       mainScreen,
       const WaterTabs(),
-      const UserTabs(),
+      const UserTabs(
+        key: Key('userTabs'),
+      ),
     ];
 
     return MaterialApp(

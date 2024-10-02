@@ -230,7 +230,7 @@ class _IssueScreenState extends State<IssueScreen> {
                       return Card(
                         color: const Color.fromARGB(255, 191, 241, 239),
                         child: ListTile(
-                          key: GlobalKey(),
+                          key: UniqueKey(),
                           title: Text(
                             '${_issueData[index]['id']}-${_issueData[index]['summary']}',
                             style: const TextStyle(fontWeight: FontWeight.w400, color: Color.fromARGB(255, 1, 24, 43)),

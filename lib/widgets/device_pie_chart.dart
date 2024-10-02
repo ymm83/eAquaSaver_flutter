@@ -22,9 +22,9 @@ class _DevicePieChartState extends State<DevicePieChart> {
 
   @override
   Widget build(BuildContext context) {
-    final totalRecovered = bData['totalRecovered']?.toDouble() ?? 0.0;
-    final totalHotUsed = bData['totalHotUsed']?.toDouble() ?? 0.0;
-    final totalColdUsed = bData['totalColdUsed']?.toDouble() ?? 0.0;
+    final totalRecovered = bData['totalRecovered'];
+    final totalHotUsed = bData['totalHotUsed'];
+    final totalColdUsed = bData['totalColdUsed'];
 
     if (totalRecovered == 0 && totalHotUsed == 0 && totalColdUsed == 0) {
       return const Text('No hay datos para mostrar');
@@ -43,27 +43,27 @@ class _DevicePieChartState extends State<DevicePieChart> {
               sections: [
                 if (totalRecovered > 0)
                   PieChartSectionData(
-                    color: Colors.blue,
+                    color: Colors.blueAccent.shade100,
                     value: totalRecovered,
                     title: '${totalRecovered.toInt()} L',
                     radius: 140,
-                    titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
+                    titleStyle: TextStyle(fontSize: 16, color: Colors.blue.shade900),
                   ),
                 if (totalHotUsed > 0)
                   PieChartSectionData(
-                    color: Colors.red,
+                    color: Colors.redAccent.shade100,
                     value: totalHotUsed,
                     title: '${totalHotUsed.toInt()} L',
                     radius: 140,
-                    titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
+                    titleStyle: TextStyle(fontSize: 16, color: Colors.red.shade900),
                   ),
                 if (totalColdUsed > 0)
                   PieChartSectionData(
-                    color: Colors.green,
+                    color: Colors.greenAccent.shade100,
                     value: totalColdUsed,
                     title: '${totalColdUsed.toInt()} L',
                     radius: 140,
-                    titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
+                    titleStyle: TextStyle(fontSize: 16, color: Colors.green.shade900),
                   ),
               ],
               borderData: FlBorderData(show: false),
@@ -80,11 +80,11 @@ class _DevicePieChartState extends State<DevicePieChart> {
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildLegendItem(Colors.blue, 'Total of water recovered', ''),
+              _buildLegendItem(Colors.blueAccent.shade200, 'Total of water recovered', ''),
               const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-              _buildLegendItem(Colors.red, 'Total of hot water used', ''),
+              _buildLegendItem(Colors.redAccent.shade200, 'Total of hot water used', ''),
               const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-              _buildLegendItem(Colors.green, 'Total of cold water used', ''),
+              _buildLegendItem(Colors.greenAccent.shade200, 'Total of cold water used', ''),
             ],
           ),
         ),

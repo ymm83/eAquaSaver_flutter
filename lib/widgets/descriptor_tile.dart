@@ -3,8 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-
-import "../utils/snackbar.dart";
+import '../utils/snackbar_helper.dart';
 
 class DescriptorTile extends StatefulWidget {
   final BluetoothDescriptor descriptor;
@@ -47,18 +46,18 @@ class _DescriptorTileState extends State<DescriptorTile> {
   Future onReadPressed() async {
     try {
       await d.read();
-      Snackbar.show(ABC.c, "Descriptor Read : Success", success: true);
+      showSnackBar("Descriptor Read : Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Descriptor Read Error:", e), success: false);
+      showSnackBar("Descriptor Read Error: $e", theme: 'error');
     }
   }
 
   Future onWritePressed() async {
     try {
       await d.write(_getRandomBytes());
-      Snackbar.show(ABC.c, "Descriptor Write : Success", success: true);
+      showSnackBar("Descriptor Write : Success", theme: 'success');
     } catch (e) {
-      Snackbar.show(ABC.c, prettyException("Descriptor Write Error:", e), success: false);
+      showSnackBar("Descriptor Write Error: $e", theme: 'error');
     }
   }
 

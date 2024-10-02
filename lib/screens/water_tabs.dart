@@ -17,7 +17,6 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
   String pageTitle = 'Water';
   int pageChanged = 0;
   late ConnectivityBloc connectivityBloc;
-  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
