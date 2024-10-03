@@ -80,13 +80,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           debugPrint('--------------------r.device.remoteId:${r.device.remoteId}');
           debugPrint('----------------END---------------\n');*/
 
-          if (r.device.platformName.toString().startsWith('eASs', 0)) {
-            debugPrint('---- eAquaSaver Device encontrado: ${r.device.advName} ------');
-          }
-          if (r.device.advName.startsWith('eASb', 0)) {
-            debugPrint('---- eAquaS Beacon encontrado: ${r.advertisementData.advName}  ------');
-            //_processManufacturerData(r.advertisementData);
-          }
+          // if (r.device.platformName.toString().startsWith('eASs', 0)) {
+          //   debugPrint('---- eAquaSaver Device encontrado: ${r.device.advName} ------');
+          // }
+          // if (r.device.advName.startsWith('eASb', 0)) {
+          //   debugPrint('---- eAquaS Beacon encontrado: ${r.advertisementData.advName}  ------');
+          //   //_processManufacturerData(r.advertisementData);
+          // }
 
           // Filtrar por remoteId único
           // if (!_uniqueRemoteIds.contains(r.device.remoteId.toString())) {
@@ -170,7 +170,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       _controller.stop();
     } catch (e) {
       showSnackBar("Stop Scan Error: $e", theme: 'error');
-
     }
   }
 

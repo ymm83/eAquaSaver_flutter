@@ -18,7 +18,7 @@ class DeviceCharts extends StatefulWidget {
 }
 
 class DeviceChartsState extends State<DeviceCharts> {
-  late Timer beaconTimer;
+  //late Timer beaconTimer;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class DeviceChartsState extends State<DeviceCharts> {
 
   @override
   void dispose() {
-    beaconTimer.cancel();
+    //beaconTimer.cancel();
     super.dispose();
   }
 
