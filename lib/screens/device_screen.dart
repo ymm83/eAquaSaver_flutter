@@ -153,8 +153,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     _mtuSubscription.cancel();
     _isConnectingSubscription.cancel();
     _isDisconnectingSubscription.cancel();
-    _stopBeaconScanning();
     _beaconTimer.cancel();
+    _stopBeaconScanning();
     context.read<BeaconBloc>().add(ClearBeacon());
     super.dispose();
   }
@@ -182,6 +182,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
+                  debugPrint('\n ${decodedData.toString()}');
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
@@ -326,26 +327,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
   double _cardCurrentValue = 60;
   double _cardMarkerValue = 58;
 
-  void axisLabelCreated(AxisLabelCreatedArgs args) {
-    if (args.text == '90') {
-      args.text = 'E';
-      args.labelStyle = GaugeTextStyle(color: const Color(0xFFDF5F2D));
-    } else {
-      if (args.text == '0') {
-        args.text = 'N';
-      } else if (args.text == '180') {
-        args.text = 'S';
-      } else if (args.text == '270') {
-        args.text = 'W';
-      }
-
-      args.labelStyle = GaugeTextStyle(
-        color: const Color(0xFFFFFFFF),
-      );
-    }
-  }
-
-  ///
   ///  END
 
   List<Widget> _buildServiceTiles(BuildContext context, BluetoothDevice d) {
@@ -461,11 +442,43 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 
+  // Definir el gradiente del rango (azul a rojo)
+  final List<Color> gradientColors = [
+    Colors.blue, // Color para el valor más bajo
+    Colors.yellow, // Color intermedio
+    Colors.red, // Color para el valor más alto
+  ];
+
+  // Posiciones de los colores en el gradiente (0.0 es el inicio, 1.0 es el final)
+  final List<double> gradientStops = [0.0, 0.5, 1.0];
+
+  // Función para obtener el color actual del gradiente en función del valor del puntero
+  Color getCurrentPointerColor(double value, double min, double max) {
+    double normalizedValue = (value - min) / (max - min); // Normalizar valor entre 0.0 y 1.0
+    return interpolateColor(gradientColors, gradientStops, normalizedValue);
+  }
+
+  void _handleTemperature(double temperature) {
+    debugPrint('Start adjTemp ${temperature.toInt()}');
+  }
+
+  // Función para interpolar colores en el gradiente
+  Color interpolateColor(List<Color> colors, List<double> stops, double t) {
+    for (int i = 0; i < stops.length - 1; i++) {
+      if (t >= stops[i] && t <= stops[i + 1]) {
+        double localT = (t - stops[i]) / (stops[i + 1] - stops[i]);
+        return Color.lerp(colors[i], colors[i + 1], localT)!;
+      }
+    }
+    return colors.last;
+  }
+
   @override
   Widget build(BuildContext context) {
     double fahrenheit = double.tryParse(_cardAnnotationValue) ?? 0;
-    double tempGradoCelsius = ((fahrenheit - 32) * 5 / 9) + 2;
-
+    double tempGradoCelsius = ((fahrenheit - 32) * 5 / 9);
+    double minValue = 32; // Valor mínimo del gauge
+    double maxValue = 122; // Valor máximo del gauge
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
       if (state is BeaconLoaded) {
         deviceState = getDeviceState(state.beaconData['state'] ?? 7);
@@ -515,92 +528,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     trailing: buildConnectIcon(context),
                   ),
                 ),
-                
+
                 // Mostrar datos de beacon
                 Padding(
                   padding: const EdgeInsets.only(top: 8, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (state is BeaconLoaded) ...[
-                        Center(
-                            child: Text(
-                          'Temperature',
-                          style: TextStyle(color: Colors.blue.shade900, fontSize: 16, fontWeight: FontWeight.bold),
-                        )),
-                        Card(
-                          shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Color.fromARGB(255, 149, 172, 190), width: 1),
-                              borderRadius: BorderRadius.circular(10)),
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          child: ListTile(
-                              leading: Transform.flip(
-                                flipX: true,
-                                child: Icon(
-                                  Atlas.water_tap_thin,
-                                  size: 30,
-                                  color: Colors.blue.shade700,
-                                ),
-                              ),
-                              title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                if (state.beaconData['coldTemperature'].toString() == 'null')
-                                  Text(
-                                    '0 °C',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
-                                  ),
-                                if (state.beaconData['coldTemperature'].toString() != 'null')
-                                  Text(
-                                    '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
-                                  ),
-                                if (state.beaconData['temperature'].toString() == 'null')
-                                  Text(
-                                    '0',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
-                                  ),
-                                if (state.beaconData['temperature'].toString() != 'null')
-                                  Text(
-                                    state.beaconData['temperature'].toString().split('.')[0],
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
-                                  ),
-                                if (state.beaconData['hotTemperature'].toString() == 'null')
-                                  Text(
-                                    '0 °C',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
-                                  ),
-                                if (state.beaconData['hotTemperature'].toString() != 'null')
-                                  Text(
-                                    '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
-                                  ),
-                              ]),
-                              subtitle: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text(
-                                  'cold pipe',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
-                                Text(
-                                  'current',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black),
-                                ),
-                                Text(
-                                  'hot pipe',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
-                              ]),
-                              trailing: Icon(
-                                Atlas.water_tap_thin,
-                                size: 30,
-                                color: Colors.red.shade500,
-                              )),
-                        ),
-                      ],
                       if (state is BeaconLoading) ...[
                         const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
                         const Padding(
@@ -610,124 +544,130 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               backgroundColor: Colors.redAccent,
                             )),
                       ],
-                      
-                      SfRadialGauge(
-                        axes: <RadialAxis>[
-                          RadialAxis(
-                            backgroundImage: const AssetImage('./assets/light_frame.png'),
-                            minimum: 0,
-                            maximum: 50,
-                            interval: 5,
-                            radiusFactor: 0.5,
-                            showAxisLine: false,
-                            labelOffset: 5,
-                            useRangeColorForAxis: true,
-                            showLastLabel: true,
-                            axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold),
-                            ranges: <GaugeRange>[
-                              GaugeRange(
-                                  startValue: 0,
-                                  endValue: 20,
-                                  sizeUnit: GaugeSizeUnit.factor,
-                                  color: Colors.blue,
-                                  endWidth: 0.03,
-                                  startWidth: 0.03),
-                              GaugeRange(
-                                  startValue: 20,
-                                  endValue: 30,
-                                  sizeUnit: GaugeSizeUnit.factor,
-                                  color: Colors.yellow,
-                                  endWidth: 0.03,
-                                  startWidth: 0.03),
-                              GaugeRange(
-                                  startValue: 30,
-                                  endValue: 50,
-                                  sizeUnit: GaugeSizeUnit.factor,
-                                  color: Colors.red,
-                                  endWidth: 0.03,
-                                  startWidth: 0.03),
-                            ],
-                            annotations: <GaugeAnnotation>[
-                              GaugeAnnotation(
-                                  widget: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Text(
-                                        '${tempGradoCelsius.toInt()}',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontFamily: 'Times',
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),
-                                      ),
-                                      Text(
-                                        '°C',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontFamily: 'Times',
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),
-                                      )
-                                    ],
-                                  ),
-                                  positionFactor: 0.13,
-                                  angle: 0)
+                      Center(
+                        child: Stack(children: [
+                          SizedBox(
+                            width: 300, // Establecer el ancho
+                            height: 300, // Establecer la altura
+                            child: SfRadialGauge(
+                              axes: <RadialAxis>[
+                                RadialAxis(
+                                  backgroundImage: const AssetImage('./assets/light_frame.png'),
+                                  minimum: 0,
+                                  maximum: 50,
+                                  interval: 5,
+                                  radiusFactor: 0.5,
+                                  showAxisLine: false,
+                                  labelOffset: 5,
+                                  useRangeColorForAxis: true,
+                                  showLastLabel: true,
+                                  axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold),
+                                  ranges: <GaugeRange>[
+                                    GaugeRange(
+                                        startValue: 0,
+                                        endValue: 20,
+                                        sizeUnit: GaugeSizeUnit.factor,
+                                        color: Colors.blue,
+                                        endWidth: 0.03,
+                                        startWidth: 0.03),
+                                    GaugeRange(
+                                        startValue: 20,
+                                        endValue: 30,
+                                        sizeUnit: GaugeSizeUnit.factor,
+                                        color: Colors.yellow,
+                                        endWidth: 0.03,
+                                        startWidth: 0.03),
+                                    GaugeRange(
+                                        startValue: 30,
+                                        endValue: 50,
+                                        sizeUnit: GaugeSizeUnit.factor,
+                                        color: Colors.red,
+                                        endWidth: 0.03,
+                                        startWidth: 0.03),
+                                  ],
+                                  annotations: <GaugeAnnotation>[
+                                    GaugeAnnotation(
+                                        widget: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Text(
+                                              '${tempGradoCelsius.toInt()}',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontFamily: 'Times',
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            Text(
+                                              '°C',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontFamily: 'Times',
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            )
+                                          ],
+                                        ),
+                                        positionFactor: 0.8,
+                                        angle: 90)
 
-                              /*GaugeAnnotation(
+                                    /*GaugeAnnotation(
                                   widget: Text(
                                     '°C',
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                                   ),
                                   positionFactor: 0.8,
                                   angle: 90)*/
-                            ],
-                          ),
-                          RadialAxis(
-                            showLastLabel: true,
-                            ticksPosition: ElementsPosition.inside,
-                            labelsPosition: ElementsPosition.outside,
-                            minorTicksPerInterval: 5,
-                            axisLineStyle: AxisLineStyle(
-                              thicknessUnit: GaugeSizeUnit.factor,
-                              thickness: 0.1,
-                            ),
-                            axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                            radiusFactor: 0.97,
-                            majorTickStyle: MajorTickStyle(length: 0.1, thickness: 2, lengthUnit: GaugeSizeUnit.factor),
-                            minorTickStyle:
-                                MinorTickStyle(length: 0.05, thickness: 1.5, lengthUnit: GaugeSizeUnit.factor),
-                            minimum: 32,
-                            maximum: 122,
-                            interval: 5,
-                            startAngle: 130,
-                            endAngle: 50,
-                            ranges: <GaugeRange>[
-                              GaugeRange(
-                                  startValue: 32,
-                                  endValue: 120,
-                                  startWidth: 0.1,
-                                  sizeUnit: GaugeSizeUnit.factor,
-                                  endWidth: 0.1,
-                                  gradient: SweepGradient(
-                                      stops: <double>[0.2, 0.5, 0.75],
-                                      colors: <Color>[Colors.blue, Colors.yellow, Colors.red]))
-                            ],
-                            pointers: <GaugePointer>[
-                              MarkerPointer(
-                                  value: _cardCurrentValue,
-                                  onValueChanged: handleCardPointerValueChanged,
-                                  onValueChangeEnd: handleCardPointerValueChanged,
-                                  onValueChanging: handleCardPointerValueChanging,
-                                  enableDragging: true,
-                                  enableAnimation: false,
-                                  markerHeight: 30,
-                                  markerWidth: 30,
-                                  markerType: MarkerType.invertedTriangle,
-                                  color: Colors.green.shade800,
-                                  borderWidth: 2,
-                                  borderColor: Colors.yellow.shade800)
-                            ],
-                            /*NeedlePointer(
+                                  ],
+                                ),
+                                RadialAxis(
+                                  showLastLabel: true,
+                                  ticksPosition: ElementsPosition.inside,
+                                  labelsPosition: ElementsPosition.outside,
+                                  minorTicksPerInterval: 5,
+                                  axisLineStyle: AxisLineStyle(
+                                    thicknessUnit: GaugeSizeUnit.factor,
+                                    thickness: 0.1,
+                                  ),
+                                  axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  radiusFactor: 0.97,
+                                  majorTickStyle:
+                                      MajorTickStyle(length: 0.1, thickness: 2, lengthUnit: GaugeSizeUnit.factor),
+                                  minorTickStyle:
+                                      MinorTickStyle(length: 0.05, thickness: 1.5, lengthUnit: GaugeSizeUnit.factor),
+                                  minimum: minValue,
+                                  maximum: maxValue,
+                                  interval: 5,
+                                  startAngle: 130,
+                                  endAngle: 50,
+                                  ranges: <GaugeRange>[
+                                    GaugeRange(
+                                        startValue: 32,
+                                        endValue: 122,
+                                        startWidth: 0.1,
+                                        sizeUnit: GaugeSizeUnit.factor,
+                                        endWidth: 0.1,
+                                        gradient: SweepGradient(stops: gradientStops, colors: gradientColors))
+                                  ],
+                                  pointers: <GaugePointer>[
+                                    MarkerPointer(
+                                        value: _cardCurrentValue,
+                                        onValueChanged: handleCardPointerValueChanged,
+                                        onValueChangeEnd: handleCardPointerValueChanged,
+                                        onValueChanging: handleCardPointerValueChanging,
+                                        enableDragging: true,
+                                        enableAnimation: false,
+                                        markerHeight: 30,
+                                        markerWidth: 30,
+                                        markerType: MarkerType.invertedTriangle,
+                                        color: getCurrentPointerColor(
+                                            _cardCurrentValue, minValue, maxValue), //Colors.green.shade800,
+                                        overlayRadius: 0,
+                                        borderWidth: 2,
+                                        markerOffset: 10,
+                                        borderColor: Colors.yellow.shade800)
+                                  ],
+                                  /*NeedlePointer(
                                   value: _cardCurrentValue,
                                   onValueChanged: handleCardPointerValueChanged,
                                   onValueChangeEnd: handleCardPointerValueChanged,
@@ -747,21 +687,112 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                       borderColor: Colors.black),
                                   lengthUnit: GaugeSizeUnit.factor)*/
 
-                            annotations: <GaugeAnnotation>[
-                              GaugeAnnotation(
-                                  widget: Text(
-                                    '$_cardCurrentValue °F',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                                  ),
-                                  positionFactor: 0.8,
-                                  angle: 90)
-                            ],
+                                  annotations: <GaugeAnnotation>[
+                                    GaugeAnnotation(
+                                        widget: Text(
+                                          '${_cardCurrentValue.toInt()} °F',
+                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                                        ),
+                                        positionFactor: 0.8,
+                                        angle: 90)
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                          Positioned(
+                            top: 122,
+                            left: 125,
+                            child: FloatingActionButton.small(
+                              shape: const CircleBorder(),
+                              backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
+                              elevation: 10,
+                              highlightElevation: 10,
+                              onPressed: () => _handleTemperature(tempGradoCelsius),
+                              child: const Icon(
+                                Atlas.medium_thermometer_bold,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ]),
                       ),
                     ],
                   ),
                 ),
+                if (state is BeaconLoaded) ...[
+                  Center(
+                      child: Text(
+                    'Temperature',
+                    style: TextStyle(color: Colors.blue.shade900, fontSize: 16, fontWeight: FontWeight.bold),
+                  )),
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        side: const BorderSide(color: Color.fromARGB(255, 149, 172, 190), width: 1),
+                        borderRadius: BorderRadius.circular(10)),
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    child: ListTile(
+                        leading: Transform.flip(
+                          flipX: true,
+                          child: Icon(
+                            Atlas.water_tap_thin,
+                            size: 30,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          if (state.beaconData['coldTemperature'].toString() == 'null')
+                            Text(
+                              '0 °C',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
+                            ),
+                          if (state.beaconData['coldTemperature'].toString() != 'null')
+                            Text(
+                              '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
+                            ),
+                          if (state.beaconData['temperature'].toString() == 'null')
+                            Text(
+                              '0',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
+                            ),
+                          if (state.beaconData['temperature'].toString() != 'null')
+                            Text(
+                              state.beaconData['temperature'].toString().split('.')[0],
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
+                            ),
+                          if (state.beaconData['hotTemperature'].toString() == 'null')
+                            Text(
+                              '0 °C',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
+                            ),
+                          if (state.beaconData['hotTemperature'].toString() != 'null')
+                            Text(
+                              '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
+                            ),
+                        ]),
+                        subtitle: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Text(
+                            'cold pipe',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                          Text(
+                            'current',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black),
+                          ),
+                          Text(
+                            'hot pipe',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ]),
+                        trailing: Icon(
+                          Atlas.water_tap_thin,
+                          size: 30,
+                          color: Colors.red.shade500,
+                        )),
+                  ),
+                ],
                 //Center(child: buildConnectButton(context)),
                 buildGetServices(context),
 
