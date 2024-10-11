@@ -52,8 +52,8 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
       await c.read().then((onValue) {
         debugPrint('*********fromCharCodes: ${String.fromCharCodes(onValue)}');
         debugPrint('${_convertData(onValue)}');
+        showSnackBar("Read: Success ${onValue.toString()}", theme: 'success');
       });
-      // showSnackBar("Read: Success", theme: 'success');
     } catch (e) {
       showSnackBar("Read Error: $e", theme: 'error');
     }
@@ -65,9 +65,9 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
   }
 
   Future onWritePressed() async {
-    const String data = '400';
+    const int data = 2;
     try {
-      await c.write(data.codeUnits, withoutResponse: c.properties.writeWithoutResponse);
+      //await c.write( ByteData(data), withoutResponse: c.properties.writeWithoutResponse);
       //await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);
       showSnackBar("Write: Success", theme: 'success');
       if (c.properties.read) {

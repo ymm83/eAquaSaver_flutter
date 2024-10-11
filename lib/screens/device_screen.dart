@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:ble_data_converter/ble_data_converter.dart';
 import '../utils/snackbar_helper.dart';
 import '../utils/extra.dart';
 import '../bloc/beacon/beacon_bloc.dart';
@@ -12,6 +14,7 @@ import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
+import '../api/ble_characteristics_uuids.dart';
 
 enum DeviceState {
   sleep,
@@ -61,6 +64,17 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late final Map<String, dynamic> _beaconData = {};
   late Timer _beaconTimer;
   late String deviceState;
+
+  // Selector de temperatura
+  double _currentValue = 60;
+  double _markerValue = 58;
+  double _firstMarkerSize = 10;
+  double _annotationFontSize = 25;
+  String _annotationValue = '60';
+  String _cardAnnotationValue = '60';
+  double _cardCurrentValue = 60;
+  double _cardMarkerValue = 58;
+  // end selector
 
   @override
   void initState() {
@@ -121,10 +135,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
       var protobufData = data.sublist(1, size + 1);
       eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
 
-      //debugPrint("Tamaño del mensaje: $size");
-      // debugPrint("\nMensaje decodificado: --- START ---\n $message--- END ---");
-      //debugPrint('hotTemperature: $hotTemperature');
-
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature / 10,
         'hotTemperature': message.hotTemperature / 10,
@@ -182,7 +192,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
-                  debugPrint('\n ${decodedData.toString()}');
+                  debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
+                  debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
@@ -318,15 +329,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
   }
 
-  double _currentValue = 60;
-  double _markerValue = 58;
-  double _firstMarkerSize = 10;
-  double _annotationFontSize = 25;
-  String _annotationValue = '60';
-  String _cardAnnotationValue = '60';
-  double _cardCurrentValue = 60;
-  double _cardMarkerValue = 58;
-
   ///  END
 
   List<Widget> _buildServiceTiles(BuildContext context, BluetoothDevice d) {
@@ -458,8 +460,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return interpolateColor(gradientColors, gradientStops, normalizedValue);
   }
 
-  void _handleTemperature(double temperature) {
-    debugPrint('Start adjTemp ${temperature.toInt()}');
+  Future _handleTemperature(double temperature) async {
+    debugPrint('_handleTemperature param: ${temperature.toInt().toString()}');
+    int targetTemperature = temperature.toInt() * 10;
+    final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
+
+    List<BluetoothService> services = await widget.device.discoverServices();
+
+    for (BluetoothService service in services) {
+      if (service.uuid == servEAquaSaverUuid) {
+        for (BluetoothCharacteristic characteristic in service.characteristics) {
+          if (characteristic.uuid == charTargetTemperatureUuid) {
+            await characteristic.write(targetBytes);
+            debugPrint('chTargetTemperatureUuid characteristic true');
+          }
+        }
+      }
+    }
+
+    //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
+  }
+
+  Future _handleMinimalTemperature(double temperature) async {
+    int minimalTemperature = temperature.toInt() * 10;
+    //debugPrint('minimalTemperature: ${minimalTemperature.toString()} ');
+    final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
+
+    List<BluetoothService> services = await widget.device.discoverServices();
+
+    for (BluetoothService service in services) {
+      if (service.uuid == servEAquaSaverUuid) {
+        for (BluetoothCharacteristic characteristic in service.characteristics) {
+          if (characteristic.uuid == charMinimalTemperatureUuid) {
+            await characteristic.write(minimalBytes);
+            debugPrint('Minimal Temperature written to characteristic');
+          }
+        }
+      }
+    }
+
+    //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
   }
 
   // Función para interpolar colores en el gradiente
@@ -693,34 +733,92 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                           '${_cardCurrentValue.toInt()} °F',
                                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                                         ),
-                                        positionFactor: 0.8,
-                                        angle: 90)
+                                        positionFactor: 0.55,
+                                        angle: 90),
+                                    if (state is BeaconLoaded) ...[
+                                      GaugeAnnotation(
+                                          widget: Text(
+                                            '${state.beaconData['coldTemperature'].toString()} °C',
+                                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                                          ),
+                                          positionFactor: 0.8,
+                                          angle: 90)
+                                    ],
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                          Positioned(
-                            top: 122,
-                            left: 125,
-                            child: FloatingActionButton.small(
-                              shape: const CircleBorder(),
-                              backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
-                              elevation: 10,
-                              highlightElevation: 10,
-                              onPressed: () => _handleTemperature(tempGradoCelsius),
-                              child: const Icon(
-                                Atlas.medium_thermometer_bold,
-                                size: 30,
+                          if (state is BeaconLoaded) ...[
+                            Positioned(
+                              top: 122,
+                              left: 125,
+                              child: FloatingActionButton.small(
+                                shape: const CircleBorder(),
+                                backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
+                                elevation: 10,
+                                highlightElevation: 10,
+                                onPressed: () async {
+                                  await _handleTemperature(tempGradoCelsius);
+                                  await _handleMinimalTemperature(tempGradoCelsius);
+                                },
+                                child: const Icon(
+                                  Atlas.medium_thermometer_bold,
+                                  size: 30,
+                                ),
                               ),
                             ),
-                          ),
+                            Positioned(
+                              bottom: -30,
+                              left: 0,
+                              child: SizedBox(
+                                height: 80,
+                                width: 40,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Atlas.cold_temperature_thermometer_bold,
+                                      color: Colors.blue,
+                                    ),
+                                    Text(
+                                      state.beaconData['coldTemperature'].toString(),
+                                      style: TextStyle(color: Colors.blue),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: -30,
+                              right: 0,
+                              child: SizedBox(
+                                height: 80,
+                                width: 40,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Atlas.hot_temperature_bold,
+                                      color: Colors.red,
+                                    ),
+                                    Text(
+                                      state.beaconData['hotTemperature'].toString(),
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ]),
                       ),
                     ],
                   ),
                 ),
-                if (state is BeaconLoaded) ...[
+                /*if (state is BeaconLoaded) ...[
                   Center(
                       child: Text(
                     'Temperature',
@@ -792,7 +890,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                           color: Colors.red.shade500,
                         )),
                   ),
-                ],
+                ],*/
                 //Center(child: buildConnectButton(context)),
                 buildGetServices(context),
 

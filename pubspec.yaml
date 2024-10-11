@@ -60,7 +60,11 @@ dependencies:
   atlas_icons: ^0.0.12
   fixnum: ^1.1.0
   fl_chart: ^0.69.0
-  syncfusion_flutter_gauges: ^27.1.51
+  syncfusion_flutter_gauges: ^27.1.52
+  syncfusion_flutter_sliders: ^27.1.52
+  ble_data_converter: ^1.0.0
+  nordic_dfu: ^6.2.0
+  flutter_animated_icons: ^1.0.1
 
 dev_dependencies:
   flutter_test:

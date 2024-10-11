@@ -7,6 +7,7 @@ import '../bloc/ble/ble_bloc.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
+import '../api/ble_characteristics_uuids.dart';
 
 class ScanScreen extends StatefulWidget {
   final PageController pageController;
@@ -142,11 +143,17 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
   }
 
+  Future<List<BluetoothDevice>> getSystemDevices() async {
+    // Esperar el Future que retorna FlutterBluePlus.systemDevices
+    _systemDevices = await FlutterBluePlus.systemDevices([servEAquaSaverUuid]);
+    return _systemDevices;
+  }
+
   Future onScanPressed() async {
     //debugPrint('_uniqueRemoteIds: ${_uniqueRemoteIds.length}');
 
     try {
-      _systemDevices = await FlutterBluePlus.systemDevices;
+      _systemDevices = await getSystemDevices();
     } catch (e) {
       showSnackBar("System Devices Error: $e", theme: 'error');
     }
