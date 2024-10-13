@@ -79,32 +79,21 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
+
       await supabase.auth.signInWithPassword(
-          email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _captchaToken);
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        captchaToken: _captchaToken,
+      );
 
       if (mounted) {
         _emailController.clear();
         _passwordController.clear();
       }
-    } on AuthException catch (error) {
-      String errorMessage = '';
-
-      if (error.message.contains('invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (error.message.contains('email not confirmed')) {
-        errorMessage = 'Please confirm your email before logging in.';
-      } else {
-        errorMessage = '';
-      }
-      if (mounted) {
-        if (errorMessage.isNotEmpty) {
-          showSnackBar(errorMessage, theme: 'error');
-        }
-      }
+    } on AuthException catch (e) {
+      _handleAuthException(e);
     } catch (e) {
-      if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
-      }
+      _handleUnexpectedError();
     } finally {
       if (mounted) {
         setState(() {
@@ -113,6 +102,28 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
       await _controller.refreshToken();
+    }
+  }
+
+  void _handleAuthException(AuthException e) {
+    String errorMessage;
+    if (e.message.contains('invalid login credentials')) {
+      errorMessage = 'Correo o contraseña inválidos. Por favor, inténtalo de nuevo.';
+    } else if (e.message.contains('email not confirmed')) {
+      errorMessage = 'Por favor, confirma tu correo antes de iniciar sesión.';
+    } else {
+      errorMessage = 'Error de autenticación inesperado.';
+    }
+
+    if (mounted) {
+      error['login'] = e.message;
+      //showSnackBar(errorMessage, theme: 'error', icon: Icons.person_off);
+    }
+  }
+
+  void _handleUnexpectedError() {
+    if (mounted) {
+      showSnackBar('Ocurrió un error inesperado', theme: 'error');
     }
   }
 
@@ -213,9 +224,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         if (res.user!.identities!.isEmpty) {
-          showSnackBar('Your email is already registered.', theme:'warning');
+          showSnackBar('Your email is already registered.', theme: 'warning');
         } else {
-          showSnackBar('Check your email for a login link!', theme:'success');
+          showSnackBar('Check your email for a login link!', theme: 'success');
         }
         setState(() {
           authStep = stepSignIn;
@@ -236,13 +247,13 @@ class _LoginPageState extends State<LoginPage> {
       }
       if (mounted) {
         if (errorMessage != 'error') {
-          showSnackBar(errorMessage, theme:'error');
+          showSnackBar(errorMessage, theme: 'error');
         }
       }
     } catch (error) {
       if (mounted) {
         //_showSnackBar(context, 'Unexpected error occurred', 'error');
-        showSnackBar(error.toString(), theme:'error');
+        showSnackBar(error.toString(), theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -269,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _captchaToken);
 
       if (mounted) {
-        showSnackBar('Check your email for reset code!', theme:'success');
+        showSnackBar('Check your email for reset code!', theme: 'success');
         _newpasswordController.clear();
         _codeController.clear();
         setState(() {
@@ -280,11 +291,11 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (error) {
       if (mounted) {
-        showSnackBar(error.message, theme:'error');
+        showSnackBar(error.message, theme: 'error');
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme:'error');
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -319,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        showSnackBar('Reset password successful!', theme:'success', onHideCallback: () {
+        showSnackBar('Reset password successful!', theme: 'success', onHideCallback: () {
           //debugPrint('..................entrando......................');
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -331,8 +342,7 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (error) {
       if (mounted) {
         if (error.message.startsWith('New password should be different')) {
-          showSnackBar('Your lost password is: "${_newpasswordController.text}"', theme:'warning',
-              onHideCallback: () {
+          showSnackBar('Your lost password is: "${_newpasswordController.text}"', theme: 'warning', onHideCallback: () {
             //debugPrint('..................entrando......................');
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
               Navigator.of(context).popUntil((route) => route.isFirst);
@@ -344,12 +354,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         if (mounted) {
-          showSnackBar(error.message, theme:'error');
+          showSnackBar(error.message, theme: 'error');
         }
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme:'error');
+        showSnackBar('Unexpected error occurred', theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -479,6 +489,11 @@ class _LoginPageState extends State<LoginPage> {
               labelText: 'email',
             ),
             onChanged: (value) => {
+              if (error.containsKey('login'))
+                {
+                  error.remove('login'),
+                  setState(() {}),
+                },
               if (value.isNotEmpty) {error.remove('email_empty'), setState(() {})},
               if (_isValidEmail(value)) {error.remove('email_wrong'), setState(() {})},
             },
@@ -519,6 +534,10 @@ class _LoginPageState extends State<LoginPage> {
                 labelText: 'password',
               ),
               onChanged: (value) {
+                if (error.containsKey('login')) {
+                  error.remove('login');
+                  setState(() {});
+                }
                 if (value.isNotEmpty) {
                   error.remove('password_empty');
                   setState(() {});

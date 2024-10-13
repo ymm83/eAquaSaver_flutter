@@ -39,6 +39,7 @@ android {
     defaultConfig {
         applicationId = "com.santross.eaquasaver"
         minSdk = flutter.minSdkVersion
+        minSdkVersion = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName

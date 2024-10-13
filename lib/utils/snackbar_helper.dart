@@ -39,27 +39,26 @@ final Map<String, SnackBarTheme> snackBarThemes = {
   'default': SnackBarTheme(
     bgColor: Colors.blue.shade200,
     textColor: Colors.blue.shade900,
+    icon: null,
   ),
 };
 
 void showSnackBar(
   String message, {
-  Duration? duration, // Hacer duración opcional
+  BuildContext? context, // Hacer contexto opcional
+  Duration? duration,
   String? theme,
   SnackBarAction? action,
-  VoidCallback? onHideCallback, // Parámetro para el callback
+  VoidCallback? onHideCallback,
   IconData? icon,
   bool showCloseIcon = false,
 }) {
-
   final SnackBarTheme myTheme = snackBarThemes[theme] ?? snackBarThemes['default']!;
-
   final IconData? selectedIcon = icon ?? myTheme.icon;
 
-  // Si no se proporciona duración, usa el valor por defecto
   Duration snackBarDuration = duration ?? const Duration(seconds: 3);
+  //debugPrint('------- icon: ${icon.toString()}');
 
-  // Crea el contenido del SnackBar: si se pasa un ícono, lo muestra junto al texto
   final Widget snackBarContent = Center(
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -68,16 +67,16 @@ void showSnackBar(
           Icon(selectedIcon, color: myTheme.textColor),
           const SizedBox(width: 10),
         ],
-        Expanded(child: Text(
-          message,
-          style: TextStyle(color: myTheme.textColor), // Aplica el color del texto
-        ),
+        Expanded(
+          child: Text(
+            message,
+            style: TextStyle(color: myTheme.textColor),
+          ),
         ),
       ],
     ),
   );
 
-  // Crea el SnackBar
   final snackBar = SnackBar(
     content: snackBarContent,
     backgroundColor: myTheme.bgColor,
@@ -86,16 +85,21 @@ void showSnackBar(
     action: action,
     padding: const EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 7),
     behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.only(left: 10.0, right: 10.0), //bottom: 300 manual center
+    margin: const EdgeInsets.only(left: 10.0, right: 10.0),
     shape: RoundedRectangleBorder(
       side: BorderSide(color: myTheme.textColor, width: 1),
       borderRadius: BorderRadius.circular(12),
     ),
   );
 
-  // Muestra el SnackBar
-  scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-  scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
+  // Usa el contexto si se proporciona, de lo contrario usa el scaffoldMessengerKey
+  if (context != null) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  } else {
+    scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+    scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
+  }
 
   Future.delayed(snackBarDuration, () {
     if (onHideCallback != null) {
