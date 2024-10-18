@@ -1,15 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:ble_data_converter/ble_data_converter.dart';
 import '../utils/snackbar_helper.dart';
 import '../utils/extra.dart';
 import '../bloc/beacon/beacon_bloc.dart';
+import '../provider/supabase_provider.dart';
 import '../protoc/eaquasaver_msg.pb.dart';
 import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
@@ -25,13 +29,13 @@ enum DeviceState {
 
 String getDeviceState(int value) {
   switch (value) {
-    case 0:
-      return 'sleep'; //DeviceState.sleep;
     case 1:
-      return 'idle'; //DeviceState.idle;
+      return 'sleep'; //DeviceState.sleep;
     case 2:
-      return 'tempAdjust'; //DeviceState.tempAdjust;
+      return 'idle'; //DeviceState.idle;
     case 3:
+      return 'tempAdjust'; //DeviceState.tempAdjust;
+    case 4:
       return 'recovering'; //DeviceState.recovering;
     default:
       return "unknow"; // throw Exception("unknow");
@@ -62,6 +66,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late Timer _beaconTimer;
   late String deviceState;
 
@@ -75,10 +80,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
   double _cardCurrentValue = 60;
   double _cardMarkerValue = 58;
   // end selector
+  late SupabaseClient supabase;
+  late SupabaseQuerySchema supabaseEAS;
+  bool loading = false;
 
   @override
   void initState() {
     super.initState();
+    supabase = SupabaseProvider.getClient(context);
+    supabaseEAS = SupabaseProvider.getEASClient(context);
     //final supabaseClient = SupabaseProvider.of(context)?.supabaseClient;
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
@@ -134,7 +144,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       int size = data[0];
       var protobufData = data.sublist(1, size + 1);
       eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
-
+      debugPrint('------ eAquaSaverMessage: ${message.toString()}');
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature / 10,
         'hotTemperature': message.hotTemperature / 10,
@@ -460,19 +470,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return interpolateColor(gradientColors, gradientStops, normalizedValue);
   }
 
-  Future _handleTemperature(double temperature) async {
-    debugPrint('_handleTemperature param: ${temperature.toInt().toString()}');
-    int targetTemperature = temperature.toInt() * 10;
-    final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
-
+  Future handleStateDevice(int state) async {
+    final stateBytes = BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
     List<BluetoothService> services = await widget.device.discoverServices();
-
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
         for (BluetoothCharacteristic characteristic in service.characteristics) {
-          if (characteristic.uuid == charTargetTemperatureUuid) {
-            await characteristic.write(targetBytes);
-            debugPrint('chTargetTemperatureUuid characteristic true');
+          if (characteristic.uuid == charEnabledUuid) {
+            await characteristic.write(stateBytes);
+            debugPrint('charEnabledUuid writed');
           }
         }
       }
@@ -481,19 +487,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
     //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
   }
 
-  Future _handleMinimalTemperature(double temperature) async {
-    int minimalTemperature = temperature.toInt() * 10;
-    //debugPrint('minimalTemperature: ${minimalTemperature.toString()} ');
-    final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
-
+  Future _handleTemperature(double temperature) async {
+    debugPrint('_handleTemperature param: ${temperature.toInt().toString()}');
+    int targetTemperature = temperature.toInt() * 10;
+    final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
     List<BluetoothService> services = await widget.device.discoverServices();
 
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
         for (BluetoothCharacteristic characteristic in service.characteristics) {
-          if (characteristic.uuid == charMinimalTemperatureUuid) {
-            await characteristic.write(minimalBytes);
-            debugPrint('Minimal Temperature written to characteristic');
+          if (characteristic.uuid == charTargetTemperatureUuid) {
+            await characteristic.write(targetBytes);
+            debugPrint('chTargetTemperatureUuid characteristic true');
           }
         }
       }
@@ -511,6 +516,27 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     }
     return colors.last;
+  }
+
+  Widget _buildIcon(int beaconState) {
+    // Controlar la animación según el estado
+    if (beaconState == 2) {
+      return SizedBox(
+        width: 20, // Ancho deseado
+        height: 20, // Alto deseado
+        child: CircularProgressIndicator(
+          color: Colors.redAccent,
+          strokeWidth: 4,
+          backgroundColor: Colors.blue[300], // Ancho de la línea del indicador
+        ),
+      );
+    } else {
+      return Icon(
+        Icons.power_settings_new_outlined,
+        color: beaconState < 2 ? Colors.black : Colors.red,
+        size: 30,
+      );
+    }
   }
 
   @override
@@ -759,8 +785,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 elevation: 10,
                                 highlightElevation: 10,
                                 onPressed: () async {
+                                  final updates = {'target_temperature': tempGradoCelsius};
+                                  final userId = supabase.auth.currentUser!.id;
                                   await _handleTemperature(tempGradoCelsius);
-                                  await _handleMinimalTemperature(tempGradoCelsius);
+                                  await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                  await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
                                 },
                                 child: const Icon(
                                   Atlas.medium_thermometer_bold,
@@ -892,6 +921,39 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   ),
                 ],*/
                 //Center(child: buildConnectButton(context)),
+                if (state is BeaconLoaded) ...[
+                  OutlinedButton.icon(
+                      onPressed: () async {
+                        if (loading || state.beaconData['state'] == 2) {
+                          return;
+                        }
+                        try {
+                          setState(() {
+                            loading = true;
+                          });
+                          if (state.beaconData['state'] < 2) {
+                            // Power On
+                            await handleStateDevice(5);
+                          }
+                          if (state.beaconData['state'] > 2) {
+                            // Power Off
+                            await handleStateDevice(1);
+                          }
+                        } catch (e) {
+                          debugPrint('---- Change device state error: $e');
+                        } finally {
+                          setState(() {
+                            loading = false;
+                          });
+                        }
+                      },
+                      label: Text(state.beaconData['state'] < 2
+                          ? 'Power On'
+                          : state.beaconData['state'] == 2
+                              ? 'Working'
+                              : 'Power Off'),
+                      icon: _buildIcon(state.beaconData['state'])),
+                ],
                 buildGetServices(context),
 
                 //buildMtuTile(context),

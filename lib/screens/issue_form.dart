@@ -36,7 +36,7 @@ class _IssueFormState extends State<IssueForm> {
       //_issueData = _getAsyncIssueById(issueId);
       _getIssueById(issueId);
 
-      //debugPrint('------------- _issueData: ${_issueData['submitter']}');
+      //debugPrint('------------- _issueData: ${_issueData['user_id']}');
       // issueTitleController = TextEditingController(text: _issueData['summary']);
       //issueBodyController = TextEditingController(text: _issueData['description']);
       //issueTitleController.text = 'summary';
@@ -101,7 +101,7 @@ class _IssueFormState extends State<IssueForm> {
     try {
       final List<dynamic> data = await supabaseEAS.from('issue').insert(
         {
-          'submitter': supabase.auth.currentUser?.id,
+          'user_id': supabase.auth.currentUser?.id,
           'summary': issueTitleController.text,
           'description': issueBodyController.text,
           'target': selectedRadio == 1 ? 'app' : 'device'
@@ -133,7 +133,7 @@ class _IssueFormState extends State<IssueForm> {
       final data = await supabaseEAS
           .from('issue')
           .update({
-            'submitter': supabase.auth.currentUser!.id,
+            'user_id': supabase.auth.currentUser!.id,
             'summary': issueTitleController.text,
             'description': issueBodyController.text,
             'target': selectedRadio == 1 ? 'app' : 'device'

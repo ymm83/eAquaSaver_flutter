@@ -24,7 +24,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
   @override
   void initState() {
-    rating=0;
+    rating = 0;
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
     fetchOpinion();
@@ -139,7 +139,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   void fetchOpinion() async {
     final userId = supabase.auth.currentUser!.id;
     try {
-      final data = await supabaseEAS.from('opinion').select('comment, rating').eq('submitter', userId);
+      final data = await supabaseEAS.from('opinion').select('comment, rating').eq('user_id', userId);
       if (data.isNotEmpty) {
         debugPrint("{$data[0]}");
         setState(() {
@@ -171,7 +171,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       final userId = supabase.auth.currentUser!.id;
       final data = await supabaseEAS
           .from('opinion')
-          .upsert({'submitter': userId, 'comment': commentController.text}, onConflict: 'submitter').select();
+          .upsert({'user_id': userId, 'comment': commentController.text}, onConflict: 'user_id').select();
 
       if (data.isNotEmpty) {
         //OK
@@ -193,7 +193,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       final userId = supabase.auth.currentUser!.id;
       final data = await supabaseEAS
           .from('opinion')
-          .upsert({'submitter': userId, 'rating': rating}, onConflict: 'submitter').select();
+          .upsert({'user_id': userId, 'rating': rating}, onConflict: 'user_id').select();
 
       if (data.isNotEmpty) {
         //OK

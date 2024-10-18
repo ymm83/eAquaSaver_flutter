@@ -27,6 +27,7 @@ android {
     namespace = "com.santross.eaquasaver"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "26.3.11579264"
+    compileSdk = 34
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_7
         targetCompatibility = JavaVersion.VERSION_1_8

@@ -32,7 +32,7 @@ class _IssueScreenState extends State<IssueScreen> {
   void _getIssues() async {
     final userid = supabase.auth.currentUser!.id;
     try {
-      final data = await supabaseEAS.from('issue').select().eq('submitter', userid);
+      final data = await supabaseEAS.from('issue').select().eq('user_id', userid);
       setState(() {
         _issueData = data;
         _isLoading = false;
@@ -75,7 +75,7 @@ class _IssueScreenState extends State<IssueScreen> {
     try {
       final List<dynamic> data = await widget.supabase.schema('eaquasaver').from('issue').insert(
         {
-          'submitter': widget.supabase.auth.currentUser?.id,
+          'user_id': widget.supabase.auth.currentUser?.id,
           'summary': issueTitleController.text,
           'description': issueBodyController.text,
           'target': selectedRadio == 1
