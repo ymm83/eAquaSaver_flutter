@@ -61,6 +61,26 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           },
         )
         .subscribe();
+
+    supabase
+        .channel('firmware')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'eaquasaver',
+          table: 'firmware',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'device_type_id',
+            value: 1,
+          ),
+          callback: (payload) {
+            final String notice = payload.newRecord['version'];
+            debugPrint('New firmware update: $notice');
+            showSnackBar('New firmware update: $notice', theme: 'notify');
+          },
+        )
+        .subscribe();
+
     super.initState();
   }
 

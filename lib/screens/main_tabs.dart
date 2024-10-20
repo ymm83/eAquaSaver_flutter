@@ -18,20 +18,6 @@ class _MainTabsState extends State<MainTabs> {
   String _pageTitle = 'Scan Devices';
   final PageController _pageController = PageController();
 
-  List<Widget> _actionsButtons(BuildContext context) {
-    if (pageIndex == 0) {
-      return [];
-    } else if (pageIndex == 1) {
-      return [];
-    } else if (pageIndex == 2) {
-      return [];
-    } else if (pageIndex == 3) {
-      _pageTitle = 'Statistics';
-      return [];
-    }
-
-    return [];
-  }
 
   List<Widget> _scanButtons(BuildContext context) {
     return [
