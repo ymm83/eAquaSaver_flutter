@@ -6,6 +6,7 @@ import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/issue/issue_bloc.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/snackbar_helper.dart';
+import 'disconnected_screen.dart';
 
 class IssueColor {
   Color error = Colors.red;
@@ -144,16 +145,7 @@ class _IssueScreenState extends State<IssueScreen> {
         body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
           builder: (context, connectivityState) {
             if (connectivityState is ConnectivityOffline) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('No internet connection'),
-                    SizedBox(height: 8),
-                    Icon(Icons.cloud_off_outlined, size: 40),
-                  ],
-                ),
-              );
+              return const Disconnected();
             }
 
             if (_isLoading) {

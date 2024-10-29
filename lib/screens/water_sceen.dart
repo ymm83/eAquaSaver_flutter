@@ -6,6 +6,7 @@ import '../api/water.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/location/location_bloc.dart';
 import '../widgets/water_analize.dart';
+import 'disconnected_screen.dart';
 
 class WaterScreen extends StatefulWidget {
   const WaterScreen({super.key});
@@ -79,15 +80,7 @@ class _WaterScreenState extends State<WaterScreen> {
       body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
         builder: (context, connectivityState) {
           if (connectivityState is ConnectivityOffline) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Center(child: Text('No internet connection')),
-                Center(
-                    child: TextButton.icon(
-                        icon: const Icon(Icons.cloud_off_outlined), label: const Text('Offline'), onPressed: null))
-              ],
-            );
+            return const Disconnected();
           }
 
           return BlocBuilder<LocationBloc, LocationState>(

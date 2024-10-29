@@ -51,7 +51,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           table: 'notification',
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
-            column: 'userid',
+            column: 'user_id',
             value: supabase.auth.currentUser!.id.toString(),
           ),
           callback: (payload) {
@@ -65,14 +65,14 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
     supabase
         .channel('firmware')
         .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
+          event: PostgresChangeEvent.all,
           schema: 'eaquasaver',
           table: 'firmware',
-          filter: PostgresChangeFilter(
+          /*filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
             column: 'device_type_id',
             value: 1,
-          ),
+          ),*/
           callback: (payload) {
             final String notice = payload.newRecord['version'];
             debugPrint('New firmware update: $notice');

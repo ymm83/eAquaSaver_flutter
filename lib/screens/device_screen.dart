@@ -19,6 +19,7 @@ import '../widgets/service_tile.dart';
 import '../widgets/characteristic_tile.dart';
 import '../widgets/descriptor_tile.dart';
 import '../api/ble_characteristics_uuids.dart';
+import '../utils/device_service.dart';
 
 enum DeviceState {
   sleep,
@@ -69,6 +70,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late Timer _beaconTimer;
   late String deviceState;
+  late String eASSystemName;
 
   // Selector de temperatura
   double _currentValue = 60;
@@ -83,12 +85,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
   bool loading = false;
+  DeviceService? deviceService;
 
   @override
   void initState() {
     super.initState();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
+    deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
     //final supabaseClient = SupabaseProvider.of(context)?.supabaseClient;
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
@@ -137,6 +141,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
         setState(() {});
       }
     });
+    _initializeAsync();
+  }
+
+  Future<void> _initializeAsync() async {
+    await deviceService?.insertDeviceIfNotExists();
+    if (await deviceService?.existsUserDevice(role: 'Admin') == 0) {
+      await deviceService?.registerUserDevice();
+    }
+    setState(() {});
   }
 
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
@@ -144,7 +157,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       int size = data[0];
       var protobufData = data.sublist(1, size + 1);
       eAquaSaverMessage message = eAquaSaverMessage.fromBuffer(protobufData);
-      debugPrint('------ eAquaSaverMessage: ${message.toString()}');
+      //debugPrint('------ eAquaSaverMessage: ${message.toString()}');
       Map<String, dynamic> beaconData = {
         'temperature': message.temperature / 10,
         'hotTemperature': message.hotTemperature / 10,
@@ -202,8 +215,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
-                  debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
-                  debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
+                  //debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
+                  //debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
@@ -212,7 +225,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             }
           }
         } catch (e) {
-          debugPrint('Error al buscar el beacon: $e');
+          //debugPrint('Error al buscar el beacon: $e');
         }
       } else {
         //debugPrint('No se encontraron resultados en el escaneo.');
@@ -236,6 +249,28 @@ class _DeviceScreenState extends State<DeviceScreen> {
       } else {
         showSnackBar("Connect Error: $e", theme: 'error');
       }
+    }
+  }
+
+  String fixedDeviceName(String name) {
+    return name.replaceRange(3, 4, 's').substring(0, 16);
+  }
+
+  Future<dynamic> existsDeviceAdmin(String userId, String realName) async {
+    final fixedName = fixedDeviceName(realName);
+    try {
+      final response = await supabaseEAS
+          .from('user_device')
+          .select('device_id')
+          .eq('device_id', fixedName)
+          .eq('role', 'Admin')
+          //.eq('user_id', userId)
+          .count();
+
+      return response.count;
+    } catch (error) {
+      //debugPrint('eeee Error fetching device ID: $error');
+      return 0;
     }
   }
 
@@ -547,7 +582,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     double maxValue = 122; // Valor máximo del gauge
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
       if (state is BeaconLoaded) {
-        deviceState = getDeviceState(state.beaconData['state'] ?? 7);
+        deviceState = getDeviceState(state.beaconData['state']);
       } else {
         deviceState = 'unknow';
       }
@@ -788,7 +823,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                   final updates = {'target_temperature': tempGradoCelsius};
                                   final userId = supabase.auth.currentUser!.id;
                                   await _handleTemperature(tempGradoCelsius);
-                                  await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                  await _storage.write(
+                                      key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
                                   await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
                                 },
                                 child: const Icon(
@@ -954,6 +990,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               : 'Power Off'),
                       icon: _buildIcon(state.beaconData['state'])),
                 ],
+                IconButton(
+                    onPressed: () async {
+                      final t = await existsDeviceAdmin(supabase.auth.currentUser!.id, widget.device.platformName);
+                      debugPrint('----- $t');
+                    },
+                    icon: Icon(Icons.get_app)),
                 buildGetServices(context),
 
                 //buildMtuTile(context),

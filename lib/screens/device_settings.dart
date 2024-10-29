@@ -11,10 +11,14 @@ import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:ble_data_converter/ble_data_converter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import '../provider/supabase_provider.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:background_downloader/background_downloader.dart';
+import 'package:toggle_switch/toggle_switch.dart';
+import '../provider/supabase_provider.dart';
 import '../api/ble_characteristics_uuids.dart';
 import '../utils/snackbar_helper.dart';
+import 'disconnected_screen.dart';
 
 class DeviceSettings extends StatefulWidget {
   final BluetoothDevice? device;
@@ -26,25 +30,152 @@ class DeviceSettings extends StatefulWidget {
 }
 
 class DeviceSettingsState extends State<DeviceSettings> {
-  double minimalTemperature = 10;
+  double minimalTemperature = 20;
   double targetTemperature = 30;
-  late String firmwareVersion;
+  String firmwareVersion = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
-  late Map userData;
+  Map userData = {};
+  Map<String, dynamic> firmwareData = {};
+
+  double _downloadProgress = 0.0;
+  String _statusMessage = "Esperando...";
+  bool firmwareDownloaded = false;
+  bool firmwareDownloading = false;
+  String firmwareFile = "";
+  TaskStatus firmwareTask = TaskStatus.enqueued;
+  int toggleValue = 1;
 
   @override
   void initState() {
+    super.initState();
     getFirmwareVersion();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
-    super.initState();
+    _initializeAsync();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _initializeAsync() async {
+    firmwareData = await _searchFirmwareUpdates();
+    setState(() {});
+  }
+
+  Future<Map<String, dynamic>> _searchFirmwareUpdates() async {
+    try {
+      //firmwareVersion compare;
+      final newVersionData = await supabaseEAS
+          .from('firmware')
+          .select('version, file_id, release_dt')
+          .order('id', ascending: false)
+          .limit(1)
+          .single();
+
+      return newVersionData;
+      //debugPrint('firmware version data: ${newVersionData.toString()}');
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'Error inesperado';
+      });
+      return {};
+      //debugPrint('Excepción: $e');
+    }
+  }
+
+  Future<void> _downloadFirmware() async {
+    try {
+      final storage = supabase.storage.from('firmware_updates');
+      final response = await storage.createSignedUrl('eAquaSaver_v0.0.1.zip', 20);
+      debugPrint('firmware file: $response');
+
+      if (response.isEmpty) {
+        setState(() {
+          _statusMessage = '¡Error al obtener la url del firmware!';
+        });
+        return;
+      }
+
+      final firmwareUrl = response;
+
+      // 3. Obtener el directorio de almacenamiento local (documentos)
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/firmware/${firmwareData['file_id']}';
+
+      final task = DownloadTask(
+          url: firmwareUrl,
+          filename: firmwareData['file_id'],
+          directory: 'firmware',
+          baseDirectory: BaseDirectory.applicationDocuments);
+
+      final result = await FileDownloader().download(
+        task,
+        onProgress: (progress) => {
+          setState(() {
+            _downloadProgress = progress;
+            _statusMessage = 'Descargando... ${(progress * 100).toStringAsFixed(2)}%';
+          })
+        },
+        onStatus: (status) => {
+          setState(() {
+            firmwareTask = status;
+          }),
+          debugPrint('Status: $status'),
+        },
+      );
+
+      switch (result.status) {
+        case TaskStatus.failed:
+          debugPrint('Download failed');
+
+        case TaskStatus.waitingToRetry:
+          debugPrint('Download retry');
+
+        case TaskStatus.complete:
+          setState(() {
+            firmwareDownloaded = true;
+            firmwareFile = '${directory.path}/firmware/${result.task.filename}';
+          });
+          debugPrint('Success! $firmwareFile');
+
+        case TaskStatus.canceled:
+          debugPrint('Download was canceled');
+
+        case TaskStatus.paused:
+          debugPrint('Download was paused');
+
+        default:
+          debugPrint('Download not successful');
+      }
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'Error inesperado';
+      });
+      debugPrint('Excepción: $e');
+    }
+  }
+
+  Widget _buildTaskStatusIcon(BuildContext context, TaskStatus task) {
+    late IconData icon;
+    switch (task) {
+      case TaskStatus.complete:
+        icon = Icons.cloud_done;
+      case TaskStatus.failed:
+      case TaskStatus.canceled:
+      case TaskStatus.notFound:
+        icon = Icons.cloud_off;
+      case TaskStatus.waitingToRetry:
+        icon = Icons.restart_alt;
+      case TaskStatus.running:
+        icon = Icons.downloading;
+      default:
+        icon = Icons.cloud_download;
+    }
+    return Icon(icon);
   }
 
   void _updateMinimalValue(double newValue) {
@@ -60,20 +191,6 @@ class DeviceSettingsState extends State<DeviceSettings> {
       setState(() {
         targetTemperature = newValue;
       });
-    }
-  }
-
-  void _updateFirstPointer(double newValue) async {
-    final userId = supabase.auth.currentUser!.id;
-    if (newValue < targetTemperature) {
-      setState(() {
-        minimalTemperature = newValue;
-      });
-      await _handleMinimalTemperature(minimalTemperature);
-      await _storage.write(key: userId, value: json.encode({'target_temperatureemperature': minimalTemperature}));
-      await supabaseEAS
-          .from('user_profile')
-          .update({'minimal_temperatureemperature': minimalTemperature}).eq('id', userId);
     }
   }
 
@@ -96,6 +213,20 @@ class DeviceSettingsState extends State<DeviceSettings> {
     }
 
     //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
+  }
+
+  void _updateFirstPointer(double newValue) async {
+    final userId = supabase.auth.currentUser!.id;
+    if (newValue < targetTemperature) {
+      setState(() {
+        minimalTemperature = newValue;
+      });
+      await _handleMinimalTemperature(minimalTemperature);
+      await _storage.write(key: userId, value: json.encode({'target_temperatureemperature': minimalTemperature}));
+      await supabaseEAS
+          .from('user_profile')
+          .update({'minimal_temperatureemperature': minimalTemperature}).eq('id', userId);
+    }
   }
 
   void _updateSecondPointer(double newValue) {
@@ -154,8 +285,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
   Future updateFirmware() async {
     await NordicDfu().startDfu(
       widget.device!.remoteId.toString(),
-      'assets/firmware/app.zip',
-      fileInAsset: true,
+      firmwareFile,
+      fileInAsset: false,
       onProgressChanged: (
         deviceAddress,
         percent,
@@ -241,8 +372,42 @@ class DeviceSettingsState extends State<DeviceSettings> {
     return {};
   }
 
-  Future addTargetTemperature(int temperature) async {
-    //supabaseEAS.
+  String fixedDeviceName(String name) {
+    return name.replaceRange(3, 4, 's').substring(0, 16);
+  }
+
+  Future addTemperature(int toggle, int? minimal, int? target) async {
+    Map<String, dynamic> updates = {'minimal_temperature': minimal, 'target_temperature': target};
+    debugPrint('---updated Map:${updates.toString()}');
+    try {
+      final userId = supabase.auth.currentUser!.id;
+      final deviceId = fixedDeviceName(widget.device!.platformName);
+
+      if (toggle == 0 || toggle == 1) {
+        await supabaseEAS.from('user_device').update(updates).eq('user_id', userId).eq('device_id', deviceId);
+      }
+      if (toggle == 2) {
+        await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
+      }
+
+      debugPrint('---toggle:$toggle--- temperature updated---');
+    } on PostgrestException catch (error) {
+      if (mounted) {
+        showSnackBar(error.message, theme: 'error');
+      }
+      userData = {};
+      setState(() {});
+    } catch (error) {
+      /*if (mounted) {
+        showSnackBar('Unexpected error occurred', theme: 'error');
+      }*/
+    } finally {
+      /*if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }*/
+    }
   }
 
   @override
@@ -250,174 +415,321 @@ class DeviceSettingsState extends State<DeviceSettings> {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
       builder: (context, state) {
         if (state is ConnectivityOnline) {
-          return Column(
-            children: [
-              const Center(child: Text('Temperature entries:')),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const Text('minimal'),
-                  SfLinearGauge(
-                    minimum: 0, // Valor mínimo del gauge
-                    maximum: 50, // Valor máximo del gauge
-                    interval: 5, // Intervalo de los valores
-                    axisTrackStyle: LinearAxisTrackStyle(
-                      thickness: 5, // Ancho de la línea del eje
-                      color: Colors.grey[300], // Color de la línea
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(5),
+            child: Column(
+              children: [
+                Text(
+                  'TEMPERATURE',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
+                ),
+                Card.outlined(
+                  //color: Colors.green.shade100,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        const Text('Device temperature'),
+                        ToggleSwitch(
+                          activeFgColor: Colors.white,
+                          inactiveBgColor: Colors.grey,
+                          inactiveFgColor: Colors.white,
+                          activeBgColors: [
+                            [Colors.red],
+                            [Colors.purple.shade400],
+                            [Colors.purple.shade800]
+                          ],
+                          initialLabelIndex: toggleValue,
+                          cornerRadius: 20.0,
+                          totalSwitches: 3,
+                          minWidth: 50,
+                          minHeight: 33,
+                          labels: ['', 'this', 'all'],
+                          icons: [Icons.delete_outline, null, null],
+                          onToggle: (index) async {
+                            if (index != null) {
+                              setState(() {
+                                toggleValue = index;
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    markerPointers: [
-                      LinearShapePointer(
-                        value: minimalTemperature,
-                        /*onChangeStart: (double newValue) {
-                          minimalTemperature = newValue;
-                        },*/
-                        onChanged: _updateMinimalValue,
-                        /*onChangeEnd: (double newValue) {
-                          minimalTemperature = newValue;
-                        },*/
-                        shapeType: LinearShapePointerType.invertedTriangle,
-                      ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 5, left: 10, right: 10, bottom: 10),
+                  child: Column(
+                    children: [
+                      if (toggleValue == 0) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Delete values for this device?',
+                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            OutlinedButton.icon(
+                                style: const ButtonStyle(
+                                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 1, horizontal: 10)),
+                                  minimumSize: WidgetStatePropertyAll(Size(0, 27)),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  iconSize: WidgetStatePropertyAll(18),
+                                  side: WidgetStatePropertyAll(
+                                    // Define el color y grosor del borde
+                                    BorderSide(
+                                        color: Colors.black54,
+                                        width: 1), // Cambia `Colors.red` por el color que prefieras
+                                  ), // Tamaño del ícono
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    toggleValue = 1;
+                                  }); // Ejecutar la acción al confirmar
+                                },
+                                label: const Text(
+                                  'cancel',
+                                  style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                                ),
+                                icon: const Icon(
+                                  Icons.clear_outlined,
+                                  color: Colors.black54,
+                                )),
+                            const SizedBox(
+                              width: 15,
+                            ),
+                            OutlinedButton.icon(
+                                style: const ButtonStyle(
+                                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 1, horizontal: 10)),
+                                  minimumSize: WidgetStatePropertyAll(Size(0, 27)),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  iconSize: WidgetStatePropertyAll(18),
+                                  side: WidgetStatePropertyAll(
+                                    // Define el color y grosor del borde
+                                    BorderSide(color: Colors.red, width: 1),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  await addTemperature(0, null, null);
+                                  setState(() {
+                                    toggleValue = 1;
+                                  });
+                                },
+                                label: const Text(
+                                  'confirm',
+                                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                ),
+                                icon: const Icon(
+                                  Icons.check_outlined,
+                                  color: Colors.red,
+                                )),
+                          ],
+                        )
+                      ],
+                      if (toggleValue == 1) ...[
+                        Center(
+                          child: Text('Save values for this device!', style: TextStyle(color: Colors.purple.shade400)),
+                        ),
+                      ],
+                      if (toggleValue == 2) ...[
+                        Center(
+                          child:
+                              Text('Save values for all my devices!', style: TextStyle(color: Colors.purple.shade800)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (toggleValue != 0) ...[
+                  Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          child: RichText(
+                            textAlign: TextAlign.right,
+                            text: TextSpan(
+                              text: 'minimal: ',
+                              style: TextStyle(color: Colors.deepPurple),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: 6),
+                          child: SizedBox(
+                            width: 25,
+                            child: RichText(
+                              textAlign: TextAlign.left,
+                              text: TextSpan(
+                                  text: '${minimalTemperature.toInt()}',
+                                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: SfLinearGauge(
+                            minimum: 0, // Valor mínimo del gauge
+                            maximum: 50, // Valor máximo del gauge
+                            interval: 5, // Intervalo de los valores
+                            axisTrackStyle: LinearAxisTrackStyle(
+                              thickness: 5, // Ancho de la línea del eje
+                              color: Colors.grey[300], // Color de la línea
+                            ),
+                            markerPointers: [
+                              LinearShapePointer(
+                                value: minimalTemperature,
+                                onChanged: _updateMinimalValue,
+                                onChangeEnd: (value) async {
+                                  await addTemperature(toggleValue, value.toInt(), targetTemperature.toInt());
+                                },
+                                shapeType: LinearShapePointerType.invertedTriangle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          child: RichText(
+                            textAlign: TextAlign.right,
+                            text: TextSpan(
+                              text: 'target: ',
+                              style: TextStyle(color: Colors.deepPurple),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: SizedBox(
+                              width: 25,
+                              child: RichText(
+                                textAlign: TextAlign.left,
+                                text: TextSpan(
+                                    text: '${targetTemperature.toInt()}',
+                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ),
+                            )),
+                        Expanded(
+                          child: SfLinearGauge(
+                            minimum: 0, // Valor mínimo del gauge
+                            maximum: 50, // Valor máximo del gauge
+                            interval: 5, // Intervalo de los valores
+                            axisTrackStyle: LinearAxisTrackStyle(
+                              thickness: 5, // Ancho de la línea del eje
+                              color: Colors.grey[300], // Color de la línea
+                            ),
+                            markerPointers: [
+                              LinearShapePointer(
+                                value: targetTemperature,
+                                onChanged: _updateTargetValue,
+                                onChangeEnd: (value) async {
+                                  await addTemperature(toggleValue, minimalTemperature.toInt(), value.toInt());
+                                },
+                                shapeType: LinearShapePointerType.invertedTriangle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                SizedBox(height: 20),
+                SizedBox(
+                  height: 10,
+                ),
+                Divider(
+                  thickness: 5,
+                  height: 10,
+                  color: Colors.grey[300],
+                ),
+                Text(
+                  'FIRMWARE',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 5),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [Text('Current version: $firmwareVersion')],
+                ),
+                Row(
+                  children: [Text('RemoteId: ${widget.device!.remoteId}')],
+                ),
+                /*if (firmwareTask != TaskStatus.running || firmwareTask != TaskStatus.complete) ...[
+                  Row(
+                    children: [
+                      Center(
+                        child: TextButton.icon(
+                            icon: const Icon(Icons.autorenew),
+                            onPressed: () async {
+                              await _searchFirmwareUpdates();
+                            },
+                            label: const Text('Get updates!')),
+                      )
+                    ],
+                  ),
+                ],*/
+                if (firmwareData.isNotEmpty && firmwareData.containsKey('version'))
+                  if (firmwareData['version'] != firmwareVersion)
+                    Row(
+                      children: [
+                        Center(
+                          child: TextButton.icon(
+                            icon: _buildTaskStatusIcon(context, firmwareTask),
+                            onPressed: () async {
+                              if (firmwareTask == TaskStatus.complete || firmwareTask == TaskStatus.running) {
+                                return;
+                              } else {
+                                await _downloadFirmware();
+                              }
+                            },
+                            label: (firmwareTask == TaskStatus.running)
+                                ? Text('Download progress: ${(_downloadProgress * 100).toStringAsFixed(2)}% ')
+                                : (firmwareTask == TaskStatus.complete)
+                                    ? Text('Firmware ready! (v${firmwareData['version']})')
+                                    : Text('Download update (v${firmwareData['version']})'),
+                          ),
+                        ),
+                      ],
+                    ),
+                if (firmwareTask == TaskStatus.complete) ...[
+                  Row(
+                    children: [
+                      Center(
+                        child: TextButton.icon(
+                            icon: const Icon(Icons.system_update),
+                            onPressed: () async {
+                              await updateFirmware();
+                            },
+                            label: const Text('Update eAquaSaver device!')),
+                      )
                     ],
                   ),
                 ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const Text('target'),
-                  SfLinearGauge(
-                    minimum: 0, // Valor mínimo del gauge
-                    maximum: 50, // Valor máximo del gauge
-                    interval: 5, // Intervalo de los valores
-                    axisTrackStyle: LinearAxisTrackStyle(
-                      thickness: 5, // Ancho de la línea del eje
-                      color: Colors.grey[300], // Color de la línea
-                    ),
-                    markerPointers: [
-                      LinearShapePointer(
-                        value: targetTemperature,
-                        /*onChangeStart: (double newValue) {
-                          targetTemperature = newValue;
-                        },*/
-                        onChanged: _updateTargetValue,
-                        //onChangeEnd: _updateMinimalValue,
-                        shapeType: LinearShapePointerType.invertedTriangle,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  SfLinearGauge(
-                    minimum: 0, // Valor mínimo del gauge
-                    maximum: 50, // Valor máximo del gauge
-                    interval: 5, // Intervalo de los valores
-                    axisTrackStyle: LinearAxisTrackStyle(
-                      thickness: 5, // Ancho de la línea del eje
-                      color: Colors.grey[300], // Color de la línea
-                    ),
-                    ranges: <LinearGaugeRange>[
-                      LinearGaugeRange(
-                        startValue: 0,
-                        endValue: 20,
-                        color: Colors.blue[300],
-                      ),
-                      LinearGaugeRange(
-                        startValue: 20,
-                        endValue: 30,
-                        color: Colors.yellow[300],
-                      ),
-                      LinearGaugeRange(
-                        startValue: 30,
-                        endValue: 50,
-                        color: Colors.red[300],
-                      ),
-                    ],
-                    markerPointers: [
-                      LinearShapePointer(
-                        value: minimalTemperature,
-                        height: 30, // Altura del puntero
-                        width: 30, // Ancho del puntero
-                        shapeType: LinearShapePointerType.invertedTriangle,
-                        color: Colors.blue[300], // Color del primer puntero
-                        dragBehavior: LinearMarkerDragBehavior.constrained,
-                        onChanged: _updateMinimalValue,
-                      ),
-                      LinearShapePointer(
-                        value: targetTemperature,
-                        height: 30, // Altura del puntero
-                        width: 30, // Ancho del puntero
-                        shapeType: LinearShapePointerType.invertedTriangle,
-                        color: Colors.red[300], // Color del segundo puntero
-                        dragBehavior: LinearMarkerDragBehavior.constrained,
-                        onChanged: _updateTargetValue,
-                      ),
-                    ],
-                    // Agregar marcadores de temperatura opcionales
-                  )
-                ],
-              ),
-              SizedBox(height: 20),
-              // Mostrar los valores de los punteros
-              Row(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    child: Container(
-                      color: Colors.blue[300], // Color de fondo para _firstPointer
-                      padding: EdgeInsets.all(4), // Padding opcional
-                      child: Text(
-                        minimalTemperature.toStringAsFixed(1),
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  Text('minimalTemperature: ', style: TextStyle(fontSize: 18)),
-                ],
-              ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    child: Container(
-                      color: Colors.red[300], // Color de fondo para _secondPointer
-                      padding: EdgeInsets.all(4), // Padding opcional
-                      child: Text(
-                        targetTemperature.toStringAsFixed(1),
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  const Text('targetTemperature: ', style: TextStyle(fontSize: 18)),
-                ],
-              ),
-              SizedBox(
-                height: 80,
-              ),
-              Text('FIRMWARE'),
-              Row(
-                children: [Text('Current version: $firmwareVersion}')],
-              ),
-              Row(
-                children: [Text('RemoteId: ${widget.device!.remoteId}')],
-              ),
-              Row(
-                children: [
-                  Center(
-                    child: TextButton.icon(
-                        icon: const Icon(Icons.system_update),
-                        onPressed: () async {
-                          await updateFirmware();
-                        },
-                        label: const Text('Update')),
-                  )
-                ],
-              ),
-            ],
+              ],
+            ),
           );
         } else if (state is ConnectivityOffline) {
-          return const Text('Sin conexión!');
+          return const Disconnected();
         } else {
           return const Center(child: CircularProgressIndicator());
         }

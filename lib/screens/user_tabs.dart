@@ -34,15 +34,15 @@ class _UserTabsState extends State<UserTabs> {
     super.initState();
   }
 
-  void connectionOffMessage() {
-    showSnackBar('You are offline!', theme: 'error', icon: Icons.cloud_off_outlined);
+  void connectionOffMessage(BuildContext c) {
+    showSnackBar('You are offline!', context: c, theme: 'error', icon: Icons.cloud_off_outlined);
   }
 
   void _navigateToPage(int page) {
     if (connectivityBloc.state is ConnectivityOnline) {
       _userTabController.jumpToPage(page);
     } else {
-      connectionOffMessage();
+      connectionOffMessage(context);
     }
   }
 
