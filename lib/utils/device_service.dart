@@ -7,6 +7,7 @@ class DeviceService {
   final String deviceId;
   final String userId;
   String? role;
+  List<String> roles = ['Admin', 'Member', 'Credits', 'Recerved'];
   List<String> allowRole = [];
   Map<String, dynamic> allow = {};
 
@@ -39,7 +40,26 @@ class DeviceService {
     }
   }
 
-  Future<int> existsUserDevice({required String role}) async {
+  // * check user - device relation
+  Future<bool> existsUser() async {
+    final fixedName = fixedDeviceName(deviceId);
+    try {
+      final response = await supabase
+          .from('user_device')
+          .select('user_id')
+          .eq('device_id', fixedName)
+          .eq('user_id', userId)
+          .inFilter('role', roles)
+          .select()
+          .count();
+      return (response.count == 1) ? true : false;
+    } catch (error) {
+      //debugPrint('eeee Error fetching device ID: $error');
+      return false;
+    }
+  }
+
+  /*Future<int> existsUserDevice({required String role}) async {
     final fixedName = fixedDeviceName(deviceId);
     try {
       final response = await supabase
@@ -55,41 +75,9 @@ class DeviceService {
       //debugPrint('eeee Error fetching device ID: $error');
       return 0;
     }
-  }
+  }*/
 
-  /// determinar si existe la relacion `user_id`- `device_id`.
-  Future<dynamic> roleDeviceUser() async {
-    final fixedName = fixedDeviceName(deviceId);
-    try {
-      final response =
-          await supabase.from('user_device').select('role').eq('device_id', fixedName).eq('user_id', userId).count();
-
-      return response.count == 0 ? null : response.data[0]['role'];
-    } catch (error) {
-      //debugPrint('Error fetching device ID: $error');
-      return null;
-    }
-  }
-
-  /// determinar si existe la relacion `user_id`- `device_id`.
-  Future<int> existsUsersDevice() async {
-    final fixedName = fixedDeviceName(deviceId);
-    try {
-      final response = await supabase
-          .from('user_device')
-          .select('device_id')
-          .eq('device_id', fixedName)
-          .eq('user_id', userId)
-          .inFilter('role', ['Admin', 'Member', 'Recerved', 'Credits']).count();
-
-      return response.count;
-    } catch (error) {
-      //debugPrint('Error fetching device ID: $error');
-      return 0;
-    }
-  }
-
-  /// Registra un dispositivo con el `realName` proporcionado.
+  //* Register device with `realName`.
   Future<bool> registerDevice() async {
     final fixedName = fixedDeviceName(deviceId);
     try {
@@ -113,16 +101,30 @@ class DeviceService {
     }
   }
 
+  //* register user,device or update user role if hight role is available
   Future<void> registerUserDevice() async {
+    final fixedName = fixedDeviceName(deviceId);
     try {
-      if (await existsUserDevice(role: 'Admin') == 0) {
-        await registerUser(role: 'Admin');
+      final bool registred = await existsUser();
+      if (registred == false) {
+        await registerUser();
       } else {
-        // Todo allow device settings
-        final role = await getAvailableDeviceRole();
-        debugPrint('-------getAvailableDeviceRole=${role.toString()}');
-        if (role[0].isNotEmpty) {
-          await registerUser(role: role[0]);
+        // Todo update role with allow settings
+        final userRole = await getUserRole();
+        final deviceRole = await getAvailableDeviceRole();
+        if (userRole != deviceRole[0]) {
+          // index {0: 'Admin', 1: 'Member', 2: 'Credits', 3: 'Reserved'}
+          int indexUserRole = roles.indexOf(userRole);
+          int indexDeviceRole = roles.indexOf(deviceRole[0]);
+
+          if (indexUserRole > indexDeviceRole && [1, 2].contains(indexUserRole)) {
+            await supabase
+                .from('user_device')
+                .update({'role': deviceRole[0]})
+                .eq('device_id', fixedName)
+                .eq('user_id', userId)
+                .single();
+          }
         }
       }
     } catch (e) {
@@ -130,69 +132,49 @@ class DeviceService {
     }
   }
 
+  //* get available roles from device.allow jsonb
   Future<List<String>> getAvailableDeviceRole() async {
     final fixedName = fixedDeviceName(deviceId);
     try {
       final data = await supabase.from('device').select('allow').eq('id', fixedName).single();
       if (data['allow']['a'] == 1) {
-        allowRole?.add('Admin');
+        allowRole.add('Admin');
       }
       if (data['allow']['m'] == 1) {
-        allowRole?.add('Member');
+        allowRole.add('Member');
       }
       if (data['allow']['c'] == 1) {
-        allowRole?.add('Credits');
+        allowRole.add('Credits');
       }
       if (data['allow']['r'] == 1) {
-        allowRole?.add('Recerved');
+        allowRole.add('Recerved');
       }
-      return allowRole ?? [];
+      return allowRole;
     } catch (e) {
       return [];
     }
   }
 
-  Future<Map<String, dynamic>> getAllowUserDevice() async {
-    final fixedName = fixedDeviceName(deviceId);
-    try {
-      final data = await supabase.from('device').select('allow').eq('id', fixedName).single();
-      return data;
-    } catch (e) {
-      return {'a': 0, 'm': 1, 'c': 1, 'r': 1};
-    }
-  }
-
-  Future<void> setAllowUser({int? admin, int? member, int? credits, int? recerved}) async {
+  //* update allow settings in device.allow jsonb
+  Future<void> updateAllowSettings({int? admin, int? member, int? credits, int? recerved}) async {
     final fixedName = fixedDeviceName(deviceId);
     Map<String, int> allowNew = {};
-    //Map<String, int> allowA = {};
-    //Map<String, int> allowM = {};
-    //Map<String, int> allowR = {};
-    //Map<String, int> allowC = {};
-
-    //allow = {...allowA, ...allowM, ...allowC, ...allowR};
-
-    //debugPrint('allowSettings ${allow.toString()}');
     try {
       if (admin != null) {
         allowNew = {...allow, 'a': admin};
-        //allow = {'a': admin};
       }
       if (member != null) {
         allowNew = {...allow, 'm': member};
-        //allow = {'m': member};
       }
       if (credits != null) {
         allowNew = {...allow, 'c': credits};
-        //allow = {'c': credits};
       }
       if (recerved != null) {
         allowNew = {...allow, 'r': recerved};
-        //allow = {'r': recerved};
       }
       debugPrint('------ allowNew: ${allowNew.toString()}');
       final response = await supabase.from('device').update({'allow': allowNew}).eq('id', fixedName).select();
-      debugPrint('------ response setAllowUser: ${response.toString()}');
+      debugPrint('------ response updateAllowSettings: ${response.toString()}');
 
       allow = allowNew;
     } catch (e) {
@@ -223,7 +205,8 @@ class DeviceService {
     }
   }
 
-  Future<void> getAllowUser() async {
+  //* get device.allow settings
+  Future<Map<String, dynamic>> getAllowSettings() async {
     final fixedName = fixedDeviceName(deviceId);
 
     try {
@@ -231,19 +214,56 @@ class DeviceService {
       debugPrint('----- allow response: ${response.toString()}');
       if (response.containsKey('allow')) {
         allow = response['allow'];
+        return response['allow'];
       }
-    } catch (e) {}
+      return {};
+    } catch (e) {
+      return {};
+    }
   }
 
-  Future<bool> registerUser({String role = 'Member'}) async {
+  //* register user with a specific role or the hight available role
+  Future<bool> registerUser({String? role}) async {
     final fixedName = fixedDeviceName(deviceId);
-    Map data = {'device_id': fixedName, 'user_id': userId, 'role': role};
+    Map data = {};
+
     try {
-      await supabase.from('user_device').insert(data).select('user_id').single();
-      return true;
+      if (role == null) {
+        await getAvailableDeviceRole(); //return allow config List role and set in allowRole the List
+        if (allowRole.isNotEmpty) {
+          data = {'device_id': fixedName, 'user_id': userId, 'role': allowRole[0]};
+        }
+      } else {
+        if (roles.contains(role)) {
+          data = {'device_id': fixedName, 'user_id': userId, 'role': role};
+        }
+      }
+      if (data.isNotEmpty) {
+        await supabase.from('user_device').insert(data).select('user_id').single();
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
       //debugPrint('Add User device fail');
     }
   }
+}
+
+Widget _buildIconRole(String? role) {
+  ///debugPrint('role: $role');
+  IconData iconData;
+  if (role == 'Admin') {
+    iconData = Icons.admin_panel_settings;
+  } else if (role == 'Member') {
+    iconData = Icons.person;
+  } else if (role == 'Credits') {
+    iconData = Icons.credit_card;
+  } else if (role == 'Recerved') {
+    iconData = Icons.calendar_month;
+  } else {
+    iconData = Icons.lock_outline;
+  }
+
+  return role != null ? Icon(iconData) : const SizedBox.shrink();
 }

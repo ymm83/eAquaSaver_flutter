@@ -1,4 +1,5 @@
 part of 'ble_bloc.dart';
+
 abstract class BleEvent extends Equatable {
   const BleEvent();
 
@@ -24,7 +25,12 @@ class DisconnectFromDevice extends BleEvent {
 }
 
 class DetailsOpen extends BleEvent {
+  //final String? role;
   const DetailsOpen();
+  /*const DetailsOpen([this.role]);
+
+  @override
+  List<Object> get props => role != null ? [role!] : [];*/
 }
 
 class DetailsClose extends BleEvent {

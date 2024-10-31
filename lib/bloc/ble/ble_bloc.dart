@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -54,8 +53,9 @@ class BleBloc extends Bloc<BleEvent, BleState> {
   }
 }
 
+
 void _onDetailsOpen(DetailsOpen event, Emitter<BleState> emit) async {
-  emit(BleDetailsOpen());
+  emit(BleDetailsOpen());//event.role
 }
 
 void _onDetailsClose(DetailsClose event, Emitter<BleState> emit) async {

@@ -9,8 +9,8 @@ import '../widgets/device_pie_chart.dart';
 class DeviceCharts extends StatefulWidget {
   final bool animate;
   final BluetoothDevice? device;
-
-  const DeviceCharts({super.key, this.animate = false, this.device});
+  //final String? role;
+  const DeviceCharts({super.key, this.animate = false, this.device}); //, this.role
 
   @override
   DeviceChartsState createState() => DeviceChartsState();
@@ -34,25 +34,35 @@ class DeviceChartsState extends State<DeviceCharts> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BeaconBloc, BeaconState>(
       builder: (context, state) {
         if (state is BeaconLoaded) {
-          debugPrint('------ state.beaconData: ${state.beaconData.toString()}');
-
-          if (state.beaconData.isEmpty) {
-            return const Text('No hay datos para mostrar');
-          } else if (state.beaconData['totalRecovered'] == 0 &&
-              state.beaconData['totalHotUsed'] == 0 &&
-              state.beaconData['totalColdUsed'] == 0) {
-            return const Text('No hay datos para mostrar');
-          } else {
-            return ConstrainedBox(
-              constraints: const BoxConstraints.expand(height: 150.0),
-              child: DevicePieChart(beaconData: state.beaconData),
-            );
-          }
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(5),
+            child: Column(
+              children: [
+                if (state.beaconData.isEmpty) ...[
+                  const Text('No hay datos para mostrar'),
+                ],
+                if (state.beaconData['totalRecovered'] == 0 &&
+                    state.beaconData['totalHotUsed'] == 0 &&
+                    state.beaconData['totalColdUsed'] == 0) ...[
+                  const Text('No hay datos para mostrar'),
+                ],
+                if (state.beaconData['totalRecovered'] != 0 ||
+                    state.beaconData['totalHotUsed'] != 0 ||
+                    state.beaconData['totalColdUsed'] != 0) ...[
+                  ConstrainedBox(
+                    constraints: const BoxConstraints.expand(height: 150.0),
+                    child: DevicePieChart(beaconData: state.beaconData),
+                  ),
+                ],
+              ],
+            ),
+          );
         } else {
           return const Center(child: CircularProgressIndicator());
         }

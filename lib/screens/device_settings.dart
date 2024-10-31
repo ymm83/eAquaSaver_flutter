@@ -11,19 +11,19 @@ import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:ble_data_converter/ble_data_converter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import '../provider/supabase_provider.dart';
 import '../api/ble_characteristics_uuids.dart';
+import '../utils/device_service.dart';
 import '../utils/snackbar_helper.dart';
 import 'disconnected_screen.dart';
 
 class DeviceSettings extends StatefulWidget {
   final BluetoothDevice? device;
-
-  const DeviceSettings({super.key, this.device});
+  //final String? role;
+  const DeviceSettings({super.key, this.device});//, this.role
 
   @override
   DeviceSettingsState createState() => DeviceSettingsState();
@@ -46,6 +46,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
   String firmwareFile = "";
   TaskStatus firmwareTask = TaskStatus.enqueued;
   int toggleValue = 1;
+  DeviceService? deviceService;
+  String? role;
 
   @override
   void initState() {
@@ -53,6 +55,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
     getFirmwareVersion();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
+    deviceService = DeviceService(supabaseEAS, widget.device!.platformName, supabase.auth.currentUser!.id);
     _initializeAsync();
   }
 
@@ -62,8 +65,11 @@ class DeviceSettingsState extends State<DeviceSettings> {
   }
 
   Future<void> _initializeAsync() async {
-    firmwareData = await _searchFirmwareUpdates();
-    setState(() {});
+    role = await deviceService?.getUserRole();
+    if (role == 'Admin') {
+      firmwareData = await _searchFirmwareUpdates();
+      setState(() {});
+    }
   }
 
   Future<Map<String, dynamic>> _searchFirmwareUpdates() async {
@@ -90,7 +96,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
   Future<void> _downloadFirmware() async {
     try {
       final storage = supabase.storage.from('firmware_updates');
-      final response = await storage.createSignedUrl('eAquaSaver_v0.0.1.zip', 20);
+      final response = await storage.createSignedUrl(firmwareData['file_id'], 20);
       debugPrint('firmware file: $response');
 
       if (response.isEmpty) {
@@ -410,6 +416,24 @@ class DeviceSettingsState extends State<DeviceSettings> {
     }
   }
 
+  Widget _buildRoleIcon(String? role) {
+    ///debugPrint('role: $role');
+    IconData iconData;
+    if (role == 'Admin') {
+      iconData = Icons.admin_panel_settings;
+    } else if (role == 'Member') {
+      iconData = Icons.person;
+    } else if (role == 'Credits') {
+      iconData = Icons.credit_card;
+    } else if (role == 'Recerved') {
+      iconData = Icons.calendar_month;
+    } else {
+      iconData = Icons.lock_outline;
+    }
+
+    return role != null ? Icon(iconData) : const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
@@ -419,6 +443,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
             padding: EdgeInsets.all(5),
             child: Column(
               children: [
+                _buildRoleIcon(role),
                 Text(
                   'TEMPERATURE',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),

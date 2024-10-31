@@ -1,3 +1,4 @@
+import 'package:eaquasaver/screens/unauthorized_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +11,8 @@ import 'disconnected_screen.dart';
 
 class DeviceAllow extends StatefulWidget {
   final BluetoothDevice? device;
-  const DeviceAllow({super.key, this.device});
+  //final String? role;
+  const DeviceAllow({super.key, this.device}); //, this.role
 
   @override
   State<DeviceAllow> createState() => _DeviceAllowState();
@@ -26,7 +28,7 @@ class _DeviceAllowState extends State<DeviceAllow> {
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
   DeviceService? deviceService;
-  String? userRole;
+  String? role;
 
   @override
   void initState() {
@@ -43,15 +45,37 @@ class _DeviceAllowState extends State<DeviceAllow> {
   }
 
   Future<void> _initializeAsync() async {
-    final role = await deviceService?.getAvailableDeviceRole();
-    debugPrint('-------getAvailableDeviceRole=${role.toString()}');
-    await deviceService?.insertDeviceIfNotExists();
-    if (await deviceService?.existsUserDevice(role: 'Admin') == 0) {
-      await deviceService?.registerUserDevice();
+    role = await deviceService?.getUserRole();
+    final allowRole = await deviceService?.getAvailableDeviceRole();
+    //debugPrint('-------getAvailableDeviceRole=${role.toString()}');
+    final allow = await deviceService!.getAllowSettings();
+    if (allow.isNotEmpty) {
+      allowA = (allow['a'] == 1) ? true : false;
+      allowM = (allow['m'] == 1) ? true : false;
+      allowC = (allow['c'] == 1) ? true : false;
+      allowR = (allow['r'] == 1) ? true : false;
     }
-    await deviceService?.getAllowUser();
-    userRole = await deviceService?.getUserRole();
+    //await deviceService?.insertDeviceIfNotExists();
+    //await deviceService?.registerUserDevice();
     setState(() {});
+  }
+
+  Widget _buildRoleIcon(String? role) {
+    ///debugPrint('role: $role');
+    IconData iconData;
+    if (role == 'Admin') {
+      iconData = Icons.admin_panel_settings;
+    } else if (role == 'Member') {
+      iconData = Icons.person;
+    } else if (role == 'Credits') {
+      iconData = Icons.credit_card;
+    } else if (role == 'Recerved') {
+      iconData = Icons.calendar_month;
+    } else {
+      iconData = Icons.lock_outline;
+    }
+
+    return role != null ? Icon(iconData) : const SizedBox.shrink();
   }
 
   @override
@@ -62,58 +86,63 @@ class _DeviceAllowState extends State<DeviceAllow> {
           padding: EdgeInsets.all(5),
           child: Column(
             children: [
-              SwitchListTile(
-                title: Text('Enable Admins '),
-                subtitle: Text('Allow new admins'),
-                value: allowA,
-                onChanged: (bool value) async {
-                  setState(() {
-                    allowA = value;
-                  });
-                  final val = allowA == true ? 1 : 0;
-                  await deviceService?.setAllowUser(admin: val);
-                },
-                secondary: Icon(Icons.manage_accounts),
-              ),
-              SwitchListTile(
-                title: Text('Enable Members '),
-                subtitle: Text('Allow new members'),
-                value: allowM,
-                onChanged: (bool value) async {
-                  setState(() {
-                    allowM = value;
-                  });
-                  final val = allowM == true ? 1 : 0;
-                  await deviceService?.setAllowUser(member: val); //
-                },
-                secondary: Icon(Icons.group),
-              ),
-              SwitchListTile(
-                title: Text('Enable Credits '),
-                subtitle: Text('Users paid to used'),
-                value: allowC,
-                onChanged: (bool value) async {
-                  setState(() {
-                    allowC = value;
-                  });
-                  final val = allowC == true ? 1 : 0;
-                  await deviceService?.setAllowUser(credits: val);
-                },
-                secondary: Icon(Icons.credit_card),
-              ),
-              SwitchListTile(
-                title: Text('Enable Recerved '),
-                subtitle: Text('Allow recerved users'),
-                value: allowR,
-                onChanged: (bool value) async {
-                  setState(() {
-                    allowR = value;
-                  });
-                  final val = allowR == true ? 1 : 0;
-                  await deviceService?.setAllowUser(recerved: val);
-                },
-                secondary: Icon(Icons.calendar_month),
-              ),
+              if (role == 'Admin') ...[
+                _buildRoleIcon(role),
+                SwitchListTile(
+                  title: Text('Enable Admins '),
+                  subtitle: Text('Allow new admins'),
+                  value: allowA,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      allowA = value;
+                    });
+                    final val = allowA == true ? 1 : 0;
+                    await deviceService?.updateAllowSettings(admin: val);
+                  },
+                  secondary: Icon(Icons.manage_accounts),
+                ),
+                SwitchListTile(
+                  title: Text('Enable Members '),
+                  subtitle: Text('Allow new members'),
+                  value: allowM,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      allowM = value;
+                    });
+                    final val = allowM == true ? 1 : 0;
+                    await deviceService?.updateAllowSettings(member: val); //
+                  },
+                  secondary: Icon(Icons.group),
+                ),
+                SwitchListTile(
+                  title: Text('Enable Credits '),
+                  subtitle: Text('Users paid to used'),
+                  value: allowC,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      allowC = value;
+                    });
+                    final val = allowC == true ? 1 : 0;
+                    await deviceService?.updateAllowSettings(credits: val);
+                  },
+                  secondary: Icon(Icons.credit_card),
+                ),
+                SwitchListTile(
+                  title: Text('Enable Recerved '),
+                  subtitle: Text('Allow recerved users'),
+                  value: allowR,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      allowR = value;
+                    });
+                    final val = allowR == true ? 1 : 0;
+                    await deviceService?.updateAllowSettings(recerved: val);
+                  },
+                  secondary: Icon(Icons.calendar_month),
+                ),
+              ] else ...[
+                Unauthorized(),
+              ]
             ],
           ),
         );

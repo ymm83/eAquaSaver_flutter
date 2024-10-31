@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
+import 'package:eaquasaver/screens/unauthorized_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -45,8 +46,8 @@ String getDeviceState(int value) {
 
 class DeviceScreen extends StatefulWidget {
   final BluetoothDevice device;
-
-  const DeviceScreen({super.key, required this.device});
+  //final String? role;
+  const DeviceScreen({super.key, required this.device}); //, this.role
 
   @override
   State<DeviceScreen> createState() => _DeviceScreenState();
@@ -85,6 +86,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
   bool loading = false;
+  String? role;
   DeviceService? deviceService;
 
   @override
@@ -92,7 +94,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     super.initState();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
-    deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
+
     //final supabaseClient = SupabaseProvider.of(context)?.supabaseClient;
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
@@ -141,15 +143,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
         setState(() {});
       }
     });
+    //role = widget!.role;
     _initializeAsync();
   }
 
   Future<void> _initializeAsync() async {
+    deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
     await deviceService?.insertDeviceIfNotExists();
-    if (await deviceService?.existsUserDevice(role: 'Admin') == 0) {
-      await deviceService?.registerUserDevice();
+    await deviceService?.registerUserDevice();
+    final userRole = await deviceService?.getUserRole();
+    if (mounted) {
+      //context.read<BleBloc>().add(DetailsOpen(role));
+      setState(() {
+        role = userRole;
+      });
     }
-    setState(() {});
   }
 
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
@@ -574,6 +582,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
   }
 
+  Widget _buildIconRole(String? role) {
+    ///debugPrint('role: $role');
+    IconData iconData;
+    if (role == 'Admin') {
+      iconData = Icons.admin_panel_settings;
+    } else if (role == 'Member') {
+      iconData = Icons.person;
+    } else if (role == 'Credits') {
+      iconData = Icons.credit_card;
+    } else if (role == 'Recerved') {
+      iconData = Icons.calendar_month;
+    } else {
+      iconData = Icons.lock_outline;
+    }
+
+    return role != null
+        ? Icon(
+            iconData,
+            size: 40,
+          )
+        : const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
     double fahrenheit = double.tryParse(_cardAnnotationValue) ?? 0;
@@ -586,13 +617,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
       } else {
         deviceState = 'unknow';
       }
+      //return BlocBuilder<BleBloc, BleState>(builder: (context, bleState) {
+      // Obtén el rol si el estado es BleDetailsOpen, de lo contrario deja role como null
+      //  final role = bleState is BleDetailsOpen ? bleState.role : null;
+
       return ScaffoldMessenger(
         child: Scaffold(
           body: SingleChildScrollView(
             child: Column(
               children: <Widget>[
+                _buildIconRole(role),
                 const SizedBox(height: 7),
-                Card(
+                if(['Admin','Member'].contains(role))...[
+Card(
                   shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
                   color: Colors.blue.shade100,
@@ -601,8 +638,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     //   child: Icon(isConnected ? Icons.bluetooth_connected_outlined : Icons.bluetooth_disabled_outlined),
                     // ),
                     leading: buildRssiTile(context),
-                    title: const Text(
-                      'eAquaSaver', //widget.device.platformName,
+                    title: Text(
+                      widget.device.platformName, //'eAquaSaver'
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     //subtitle: Text(widget.device.remoteId.toString()),
@@ -616,6 +653,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               children: [
                                 TextSpan(
                                   text: deviceState,
+                                  style: TextStyle(
+                                      color: Colors.blue.shade900,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      letterSpacing: 1),
+                                ),
+                                TextSpan(
+                                  text: role,
                                   style: TextStyle(
                                       color: Colors.blue.shade900,
                                       fontWeight: FontWeight.bold,
@@ -883,6 +928,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     ],
                   ),
                 ),
+                ] else if (role=='Credits')...[
+                  Text('Buy credits to use this device!'),
+                ] else if (role=='Recerved')...[
+                  Text('Recerved mode!')
+                ] else ...[
+                  Unauthorized(),
+                ],
+                
                 /*if (state is BeaconLoaded) ...[
                   Center(
                       child: Text(
@@ -1007,5 +1060,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
         ),
       );
     });
+    //});
   }
 }

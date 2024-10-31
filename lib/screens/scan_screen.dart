@@ -126,7 +126,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     _scanResultsSubscription.cancel();
     _isScanningSubscription.cancel();
     _controller.dispose();
-    
+
     super.dispose();
   }
 
