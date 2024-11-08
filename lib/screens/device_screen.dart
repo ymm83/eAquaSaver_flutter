@@ -88,13 +88,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   bool loading = false;
   String? role;
   DeviceService? deviceService;
+  Device? _device;
+  final storage = new FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
-
     //final supabaseClient = SupabaseProvider.of(context)?.supabaseClient;
     //context.read<BeaconBloc>().add(ListenBeacon('51:34:BE:F6:FA:3B'));
     //context.read<BeaconBloc>().add(StartScan());
@@ -144,6 +145,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
     //role = widget!.role;
+    debugPrint('----jsonDecode(true) ${jsonDecode("true").runtimeType}');
+    debugPrint('----jsonDecode(123) ${jsonDecode('123').runtimeType}');
+    debugPrint('----jsonDecode({a:123}) ${jsonDecode('{"a": "123"}').runtimeType}');
+
     _initializeAsync();
   }
 
@@ -151,12 +156,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
     deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
     await deviceService?.insertDeviceIfNotExists();
     await deviceService?.registerUserDevice();
-    final userRole = await deviceService?.getUserRole();
+    role = await deviceService?.getUserRole();
+
+    _device = await deviceService?.getDevice(cache: true);
+    final info = await deviceService?.getUserDeviceInfo();
+    await deviceService?.setCache(key: 'user_device', data: info);
+    final temp = await deviceService?.getTemperature(source: 'device', cache: true);
+    debugPrint('------ temperature: ${temp.toString()}');
+  
     if (mounted) {
-      //context.read<BleBloc>().add(DetailsOpen(role));
-      setState(() {
-        role = userRole;
-      });
+      setState(() {});
     }
   }
 
@@ -626,10 +635,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
           body: SingleChildScrollView(
             child: Column(
               children: <Widget>[
-                _buildIconRole(role),
                 const SizedBox(height: 7),
-                if(['Admin','Member'].contains(role))...[
-Card(
+                Card(
                   shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
                   color: Colors.blue.shade100,
@@ -637,59 +644,60 @@ Card(
                     // leading: CircleAvatar(
                     //   child: Icon(isConnected ? Icons.bluetooth_connected_outlined : Icons.bluetooth_disabled_outlined),
                     // ),
-                    leading: buildRssiTile(context),
-                    title: Text(
-                      widget.device.platformName, //'eAquaSaver'
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    //leading: _buildIconRole(role), //buildRssiTile(context),
+                    title: Row(
+                      children: [
+                        isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
+                        Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        if (isConnected && _rssi != null)
+                          Text('(${_rssi!} dBm)', style: Theme.of(context).textTheme.bodySmall)
+                      ],
                     ),
                     //subtitle: Text(widget.device.remoteId.toString()),
-                    subtitle: (state is BeaconLoaded)
-                        //? Text(widget.device.remoteId.toString())
-                        ? RichText(
-                            text: TextSpan(
-                              text: 'status: ',
-                              style: const TextStyle(
-                                  fontSize: 11, color: Color.fromARGB(255, 5, 69, 85), fontWeight: FontWeight.bold),
-                              children: [
-                                TextSpan(
-                                  text: deviceState,
-                                  style: TextStyle(
-                                      color: Colors.blue.shade900,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      letterSpacing: 1),
+                    subtitle: /*Row(children: [
+                      buildRssiTile(context),*/
+                        (state is BeaconLoaded)
+                            //? Text(widget.device.remoteId.toString())
+                            ? RichText(
+                                text: TextSpan(
+                                  text: 'status: ',
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Color.fromARGB(255, 5, 69, 85), fontWeight: FontWeight.bold),
+                                  children: [
+                                    TextSpan(
+                                      text: deviceState,
+                                      style: TextStyle(
+                                          color: Colors.blue.shade900,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          letterSpacing: 1),
+                                    ),
+                                  ],
                                 ),
-                                TextSpan(
-                                  text: role,
-                                  style: TextStyle(
-                                      color: Colors.blue.shade900,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      letterSpacing: 1),
-                                ),
-                              ],
-                            ),
-                          )
-                        : Text(widget.device.remoteId.toString()),
+                              )
+                            : Text(widget.device.remoteId.toString()),
+                    //]),
                     trailing: buildConnectIcon(context),
                   ),
                 ),
-
-                // Mostrar datos de beacon
+                if (state is BeaconLoading /*|| role == null*/) ...[
+                  const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
+                  const Padding(
+                      padding: EdgeInsets.only(left: 50, right: 50, top: 5),
+                      child: LinearProgressIndicator(
+                        color: Colors.blue,
+                        backgroundColor: Colors.redAccent,
+                      )),
+                ],
+                if (state is BeaconLoaded && role == null) ...[
+                  const Center(child: Text('Unauthorized...', style: TextStyle())),
+                ],
                 Padding(
                   padding: const EdgeInsets.only(top: 8, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (state is BeaconLoading) ...[
-                        const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
-                        const Padding(
-                            padding: EdgeInsets.only(left: 50, right: 50, top: 5),
-                            child: LinearProgressIndicator(
-                              color: Colors.blue,
-                              backgroundColor: Colors.redAccent,
-                            )),
-                      ],
                       Center(
                         child: Stack(children: [
                           SizedBox(
@@ -922,20 +930,78 @@ Card(
                                 ),
                               ),
                             ),
+                          ] else ...[
+                            Positioned(
+                                top: 125,
+                                left: 130,
+                                child: CircularProgressIndicator(
+                                  color: Colors.green.shade700,
+                                  backgroundColor: Colors.lightGreen.shade200,
+                                )),
                           ],
+                          //if (state is BeaconLoading || state is BeaconInitial) ...[CircularProgressIndicator()],
                         ]),
                       ),
                     ],
                   ),
                 ),
-                ] else if (role=='Credits')...[
+                if (['Admin', 'Member'].contains(role)) ...[
+                  // Mostrar datos de beacon
+
+                  if (state is BeaconLoaded) ...[
+                    OutlinedButton.icon(
+                        onPressed: () async {
+                          if (loading || state.beaconData['state'] == 2) {
+                            return;
+                          }
+                          try {
+                            setState(() {
+                              loading = true;
+                            });
+                            if (state.beaconData['state'] < 2) {
+                              // Power On
+                              await handleStateDevice(5);
+                            }
+                            if (state.beaconData['state'] > 2) {
+                              // Power Off
+                              await handleStateDevice(1);
+                            }
+                          } catch (e) {
+                            debugPrint('---- Change device state error: $e');
+                          } finally {
+                            setState(() {
+                              loading = false;
+                            });
+                          }
+                        },
+                        label: Text(state.beaconData['state'] < 2
+                            ? 'Power On'
+                            : state.beaconData['state'] == 2
+                                ? 'Working'
+                                : 'Power Off'),
+                        icon: _buildIcon(state.beaconData['state'])),
+                  ]
+                  /*IconButton(
+                      onPressed: () async {
+                        final t = await existsDeviceAdmin(supabase.auth.currentUser!.id, widget.device.platformName);
+                        debugPrint('----- $t');
+                      },
+                      icon: Icon(Icons.get_app)),
+
+                  //buildMtuTile(context),*/
+                ] else if (role == 'Credits') ...[
                   Text('Buy credits to use this device!'),
-                ] else if (role=='Recerved')...[
+                ] else if (role == 'Recerved') ...[
                   Text('Recerved mode!')
+                ] else if (role == null) ...[
+                  //Center(child: CircularProgressIndicator())
                 ] else ...[
                   Unauthorized(),
                 ],
-                
+
+                //buildGetServices(context),
+                //..._buildServiceTiles(context, widget.device),
+
                 /*if (state is BeaconLoaded) ...[
                   Center(
                       child: Text(
@@ -1010,49 +1076,6 @@ Card(
                   ),
                 ],*/
                 //Center(child: buildConnectButton(context)),
-                if (state is BeaconLoaded) ...[
-                  OutlinedButton.icon(
-                      onPressed: () async {
-                        if (loading || state.beaconData['state'] == 2) {
-                          return;
-                        }
-                        try {
-                          setState(() {
-                            loading = true;
-                          });
-                          if (state.beaconData['state'] < 2) {
-                            // Power On
-                            await handleStateDevice(5);
-                          }
-                          if (state.beaconData['state'] > 2) {
-                            // Power Off
-                            await handleStateDevice(1);
-                          }
-                        } catch (e) {
-                          debugPrint('---- Change device state error: $e');
-                        } finally {
-                          setState(() {
-                            loading = false;
-                          });
-                        }
-                      },
-                      label: Text(state.beaconData['state'] < 2
-                          ? 'Power On'
-                          : state.beaconData['state'] == 2
-                              ? 'Working'
-                              : 'Power Off'),
-                      icon: _buildIcon(state.beaconData['state'])),
-                ],
-                IconButton(
-                    onPressed: () async {
-                      final t = await existsDeviceAdmin(supabase.auth.currentUser!.id, widget.device.platformName);
-                      debugPrint('----- $t');
-                    },
-                    icon: Icon(Icons.get_app)),
-                buildGetServices(context),
-
-                //buildMtuTile(context),
-                ..._buildServiceTiles(context, widget.device),
               ],
             ),
           ),

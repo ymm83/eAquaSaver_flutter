@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:eaquasaver/bloc/connectivity/connectivity_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -23,7 +24,7 @@ import 'disconnected_screen.dart';
 class DeviceSettings extends StatefulWidget {
   final BluetoothDevice? device;
   //final String? role;
-  const DeviceSettings({super.key, this.device});//, this.role
+  const DeviceSettings({super.key, this.device}); //, this.role
 
   @override
   DeviceSettingsState createState() => DeviceSettingsState();
@@ -48,6 +49,10 @@ class DeviceSettingsState extends State<DeviceSettings> {
   int toggleValue = 1;
   DeviceService? deviceService;
   String? role;
+  final TextEditingController _textController = TextEditingController();
+  bool _isEditing = false;
+  bool _isSaving = false;
+  Device? device;
 
   @override
   void initState() {
@@ -65,11 +70,16 @@ class DeviceSettingsState extends State<DeviceSettings> {
   }
 
   Future<void> _initializeAsync() async {
-    role = await deviceService?.getUserRole();
+    role = await deviceService?.getUserRole(cache: true);
+    debugPrint(':::::::::::::::::::::::::::role: $role');
     if (role == 'Admin') {
       firmwareData = await _searchFirmwareUpdates();
-      setState(() {});
     }
+
+    device = await deviceService?.getDevice(cache: true);
+
+    _textController.text = device!.customName ?? '';
+    setState(() {});
   }
 
   Future<Map<String, dynamic>> _searchFirmwareUpdates() async {
@@ -90,6 +100,50 @@ class DeviceSettingsState extends State<DeviceSettings> {
       });
       return {};
       //debugPrint('Excepción: $e');
+    }
+  }
+
+  void _toggleEditing() {
+    setState(() {
+      _isEditing = !_isEditing;
+    });
+  }
+
+  Future<void> _saveText() async {
+    _toggleEditing();
+    setState(() {
+      _isSaving = true;
+    });
+    try {
+      final data = {
+        'custom_name': _textController.text,
+      };
+      final response =
+          await supabaseEAS.from('device').update(data).eq('id', deviceService!.fixedName).select('*').single();
+      debugPrint('Error inserting device: ${response.toString()}');
+      if (response.containsKey('id')) {
+        await deviceService?.setCache(key: 'device', data: response);
+        //await deviceService?.setCache(key: 'custom_name', value: _textController.text);
+        final cache_device = await deviceService?.getCache(key: 'device');
+        if (cache_device != null) {
+          Device device = Device.fromJson(cache_device);
+          debugPrint('************** device class: ${device.customName} ****************');
+        }
+        debugPrint('************** cache_device: ${cache_device.toString()} ****************');
+
+        //return true;
+        //debugPrint('Dispositivo registrado con ID: ${response['id']}');
+      } else {
+        // return false;
+        //debugPrint('Error: No se obtuvo el ID del dispositivo registrado.');
+      }
+    } catch (error) {
+      //return false;
+      debugPrint('Error inserting device: $error');
+    } finally {
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
@@ -444,6 +498,56 @@ class DeviceSettingsState extends State<DeviceSettings> {
             child: Column(
               children: [
                 _buildRoleIcon(role),
+                Text('$role'),
+                //if (role == 'Admin') ...[
+                Text(
+                  'CUSTOM NAME',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.settings_bluetooth, size: 24.0), // Ícono BLE
+                    SizedBox(width: 10), // Espaciado
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        readOnly: !_isEditing,
+                        maxLength: 16,
+                        decoration: const InputDecoration(
+                          counterText: "",
+                          border: OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.blue),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                        icon: _isSaving == false
+                            ? Icon(_isEditing ? Icons.save_as : Icons.edit)
+                            : CircularProgressIndicator(
+                                color: Colors.green.shade700,
+                                backgroundColor: Colors.lightGreen.shade200,
+                              ),
+                        onPressed: () async {
+                          _isEditing ? await _saveText() : _toggleEditing();
+                        }),
+                  ],
+                ),
+                // ],
+
+                const SizedBox(height: 10),
+                Divider(
+                  thickness: 5,
+                  height: 10,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 10),
                 Text(
                   'TEMPERATURE',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
@@ -688,16 +792,17 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   height: 10,
                   color: Colors.grey[300],
                 ),
+                const SizedBox(height: 10),
                 Text(
                   'FIRMWARE',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 5),
                 ),
                 SizedBox(height: 10),
                 Row(
-                  children: [Text('Current version: $firmwareVersion')],
+                  children: [const SizedBox(width: 20), Text('Current version: $firmwareVersion')],
                 ),
                 Row(
-                  children: [Text('RemoteId: ${widget.device!.remoteId}')],
+                  children: [const SizedBox(width: 20), Text('RemoteId: ${widget.device!.remoteId}')],
                 ),
                 /*if (firmwareTask != TaskStatus.running || firmwareTask != TaskStatus.complete) ...[
                   Row(

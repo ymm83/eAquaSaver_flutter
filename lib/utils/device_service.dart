@@ -1,6 +1,96 @@
 //import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+class UserDevice {
+  final String userId;
+  final String deviceId;
+  final DateTime createdAt;
+  final String role;
+  final int? credits;
+  final DateTime? arrivalDate;
+  final DateTime? leaveDate;
+  final double? targetTemperature;
+  final double? minimalTemperature;
+
+  UserDevice({
+    required this.userId,
+    required this.deviceId,
+    required this.createdAt,
+    required this.role,
+    this.credits,
+    this.arrivalDate,
+    this.leaveDate,
+    this.targetTemperature,
+    this.minimalTemperature,
+  });
+
+  factory UserDevice.fromJson(Map<String, dynamic> json) {
+    return UserDevice(
+      userId: json['user_id'],
+      deviceId: json['device_id'],
+      createdAt: DateTime.parse(json['created_at']),
+      role: json['role'],
+      credits: json['credits'],
+      arrivalDate: json['arrival_date'] != null ? DateTime.parse(json['arrival_date']) : null,
+      leaveDate: json['leave_date'] != null ? DateTime.parse(json['leave_date']) : null,
+      targetTemperature: json['target_temperature'],
+      minimalTemperature: json['minimal_temperature'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'device_id': deviceId,
+      'created_at': createdAt.toIso8601String(),
+      'role': role,
+      'credits': credits,
+      'arrival_date': arrivalDate?.toIso8601String(),
+      'leave_date': leaveDate?.toIso8601String(),
+      'target_temperature': targetTemperature,
+      'minimal_temperature': minimalTemperature,
+    };
+  }
+}
+
+class Device {
+  final String id;
+  final String? model;
+  final String? version;
+  final Map<String, dynamic>? allow;
+  final String? customName;
+
+  Device({
+    required this.id,
+    this.model,
+    this.version,
+    this.allow,
+    this.customName,
+  });
+
+  factory Device.fromJson(Map<String, dynamic> json) {
+    return Device(
+      id: json['id'],
+      model: json['model'],
+      version: json['version'],
+      allow: json['allow'],
+      customName: json['custom_name'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'model': model,
+      'version': version,
+      'allow': allow,
+      'custom_name': customName,
+    };
+  }
+}
 
 class DeviceService {
   final SupabaseQuerySchema supabase;
@@ -10,8 +100,11 @@ class DeviceService {
   List<String> roles = ['Admin', 'Member', 'Credits', 'Recerved'];
   List<String> allowRole = [];
   Map<String, dynamic> allow = {};
+  String fixedName;
+  final storage = new FlutterSecureStorage();
 
-  DeviceService(this.supabase, this.deviceId, this.userId);
+  DeviceService(this.supabase, this.deviceId, this.userId)
+      : fixedName = deviceId.replaceRange(3, 4, 's').substring(0, 16);
 
   String fixedDeviceName(String name) {
     return name.replaceRange(3, 4, 's').substring(0, 16);
@@ -30,7 +123,6 @@ class DeviceService {
   }
 
   Future<void> insertDeviceIfNotExists() async {
-    final fixedName = fixedDeviceName(deviceId);
     final registred = await isRegistred(fixedName);
 
     if (registred == false) {
@@ -42,7 +134,6 @@ class DeviceService {
 
   // * check user - device relation
   Future<bool> existsUser() async {
-    final fixedName = fixedDeviceName(deviceId);
     try {
       final response = await supabase
           .from('user_device')
@@ -59,27 +150,8 @@ class DeviceService {
     }
   }
 
-  /*Future<int> existsUserDevice({required String role}) async {
-    final fixedName = fixedDeviceName(deviceId);
-    try {
-      final response = await supabase
-          .from('user_device')
-          .select('device_id')
-          .eq('device_id', fixedName)
-          .eq('role', role)
-          //.eq('user_id', userId)
-          .count();
-
-      return response.count;
-    } catch (error) {
-      //debugPrint('eeee Error fetching device ID: $error');
-      return 0;
-    }
-  }*/
-
   //* Register device with `realName`.
   Future<bool> registerDevice() async {
-    final fixedName = fixedDeviceName(deviceId);
     try {
       final data = {
         'id': fixedName,
@@ -103,7 +175,6 @@ class DeviceService {
 
   //* register user,device or update user role if hight role is available
   Future<void> registerUserDevice() async {
-    final fixedName = fixedDeviceName(deviceId);
     try {
       final bool registred = await existsUser();
       if (registred == false) {
@@ -114,7 +185,7 @@ class DeviceService {
         final deviceRole = await getAvailableDeviceRole();
         if (userRole != deviceRole[0]) {
           // index {0: 'Admin', 1: 'Member', 2: 'Credits', 3: 'Reserved'}
-          int indexUserRole = roles.indexOf(userRole);
+          int indexUserRole = roles.indexOf(userRole!);
           int indexDeviceRole = roles.indexOf(deviceRole[0]);
 
           if (indexUserRole > indexDeviceRole && [1, 2].contains(indexUserRole)) {
@@ -134,7 +205,6 @@ class DeviceService {
 
   //* get available roles from device.allow jsonb
   Future<List<String>> getAvailableDeviceRole() async {
-    final fixedName = fixedDeviceName(deviceId);
     try {
       final data = await supabase.from('device').select('allow').eq('id', fixedName).single();
       if (data['allow']['a'] == 1) {
@@ -184,18 +254,27 @@ class DeviceService {
   }
 
   // todo getUserRole
-  Future<dynamic> getUserRole() async {
-    final fixedName = fixedDeviceName(deviceId);
-    debugPrint('----- role: ${fixedName.toString()}');
+  Future<dynamic> getUserRole({bool cache = true}) async {
+    //final roleKey = '$fixedName-user_device';
+    debugPrint('------ getUserRole ------');
+    if (cache == true) {
+      Map<String, dynamic> roleData = await getCache(key: 'user_device');
+      debugPrint('----- role from cache: ${roleData['role'].toString()}');
 
+      return roleData['role'];
+      // }
+    }
     try {
-      final role =
-          await supabase.from('user_device').select('role').eq('device_id', fixedName).eq('user_id', userId).single();
-
-      debugPrint('----- role: ${role.toString()}');
-      if (role.containsKey('role')) {
-        return role['role'];
+      final response =
+          await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+      //debugPrint('----- role from supabase: ${response.toString()}');
+      if (response.containsKey('role')) {
+        final role = response['role'];
+        await setCache(key: 'user_device', data: response);
+        debugPrint('----- role from supabase: $role');
+        return role;
       }
+
       //debugPrint('----- allowConfig: ${allowConfig.toString()}');
       //if (allowConfig.count == 1)
       return null;
@@ -207,8 +286,6 @@ class DeviceService {
 
   //* get device.allow settings
   Future<Map<String, dynamic>> getAllowSettings() async {
-    final fixedName = fixedDeviceName(deviceId);
-
     try {
       Map<String, dynamic> response = await supabase.from('device').select('allow').eq('id', fixedName).single();
       debugPrint('----- allow response: ${response.toString()}');
@@ -222,11 +299,120 @@ class DeviceService {
     }
   }
 
+  // get user_device all info from cache or supabase
+  Future<Map<String, dynamic>> getUserDeviceInfo({bool? cache}) async {
+    try {
+      if (cache == true) {
+        final data = await getCache(key: 'user_device');
+        if (data!.containsKey('device_id')) {
+          return data;
+        }
+      }
+      Map<String, dynamic> response =
+          await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+      if (response.containsKey('device_id')) {
+        return response;
+      }
+      return {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  Future<UserDevice?> getUserDevice({bool? cache}) async {
+    try {
+      if (cache == true) {
+        final data = await getUserDeviceInfo(cache: true);
+        return UserDevice.fromJson(data);
+      }
+      Map<String, dynamic> response =
+          await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+      //debugPrint('----- allow response: ${response.toString()}');
+      if (response.containsKey('device_id')) {
+        debugPrint('----- getUserDeviceInfo: ${getUserDeviceInfo.toString()}');
+
+        return UserDevice.fromJson(response);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+//Todo saveToCache
+  Future<void> setCache({String? key, Map<String, dynamic>? data, dynamic value}) async {
+    final custom_key = (key == null) ? fixedName : '$fixedName-$key';
+    try {
+      if (data != null) {
+        await storage.write(key: custom_key, value: jsonEncode(data));
+      }
+      if (value != null) {
+        await storage.write(key: custom_key, value: value);
+      }
+    } catch (error) {
+      //debugPrint('class DeviceService>setCache>error: $error');
+    }
+  }
+
+  //Todo loadFromCache
+  Future<dynamic> getCache({String? key}) async {
+    final customKey = key == null ? fixedName : '$fixedName-$key';
+    try {
+      final cachedData = await storage.read(key: customKey);
+      if (cachedData != null) {
+        try {
+          final decodedData = jsonDecode(cachedData);
+          //debugPrint('Tipo readCache decodificado: ${decodedData.runtimeType}');
+
+          if (decodedData is Map<String, dynamic>) {
+            return decodedData;
+          } else if (decodedData is List) {
+            return decodedData;
+          } else if (decodedData is int || decodedData is double || decodedData is bool) {
+            return decodedData;
+          } else {
+            return cachedData;
+          }
+        } catch (e) {
+          //debugPrint('El valor ${cachedData.runtimeType} no es JSON válido: $e');
+          return cachedData;
+        }
+      }
+      return null; // Si `cachedData` es nulo, retornamos `null`
+    } catch (error) {
+      //debugPrint('Error en getCache: $error');
+      return null;
+    }
+  }
+
+  /*Future<dynamic> getCache({String? key}) async {
+    final customKey = (key == null) ? fixedName : '$fixedName-$key';
+    try {
+      final cachedData = await storage.read(key: customKey);
+      debugPrint('<<<<<<< Tipo readCache: ${cachedData.runtimeType} >>>>>>>');
+      debugPrint('<<<<<<< Tipo $cachedData jsonDecode: ${jsonDecode(cachedData!).runtimeType} >>>>>>>');
+      //if (cachedData != null) {
+      final data = jsonDecode(cachedData);
+      //if (data is Map<String, dynamic>) {
+      // return data;
+      //}
+      //UserDevice userDevice = UserDevice.fromJson(data);
+      // debugPrint('Fn>getCache>toString: ${cachedData.toString()}');
+      // debugPrint('Fn>getCache>user_device.deviceId: ${userDevice.deviceId}');
+      // debugPrint('Fn>getCache>jsonDecode: ${jsonDecode(cachedData)}');
+
+      return data;
+      //}
+      // return null;
+    } catch (error) {
+      //debugPrint('class DeviceService>getCache>error: $error');
+      return null;
+    }
+  }*/
+
   //* register user with a specific role or the hight available role
   Future<bool> registerUser({String? role}) async {
-    final fixedName = fixedDeviceName(deviceId);
     Map data = {};
-
     try {
       if (role == null) {
         await getAvailableDeviceRole(); //return allow config List role and set in allowRole the List
@@ -248,22 +434,204 @@ class DeviceService {
       //debugPrint('Add User device fail');
     }
   }
-}
 
-Widget _buildIconRole(String? role) {
-  ///debugPrint('role: $role');
-  IconData iconData;
-  if (role == 'Admin') {
-    iconData = Icons.admin_panel_settings;
-  } else if (role == 'Member') {
-    iconData = Icons.person;
-  } else if (role == 'Credits') {
-    iconData = Icons.credit_card;
-  } else if (role == 'Recerved') {
-    iconData = Icons.calendar_month;
-  } else {
-    iconData = Icons.lock_outline;
+  //* get device all info from cache or supabase
+  Future<Map<String, dynamic>> getDeviceInfo({bool? cache}) async {
+    try {
+      if (cache == true) {
+        final data = await getCache(key: 'device');
+        return data ?? {};
+      }
+      Map<String, dynamic> response = await supabase.from('device').select('*').eq('id', fixedName).single();
+      if (response.containsKey('id')) {
+        return response;
+      }
+      return {};
+    } catch (e) {
+      return {};
+    }
   }
 
-  return role != null ? Icon(iconData) : const SizedBox.shrink();
+  //* get Device class instance
+  Future<Device?> getDevice({bool? cache}) async {
+    try {
+      if (cache == true) {
+        final data = await getDeviceInfo(cache: true);
+        return Device.fromJson(data);
+      }
+      Map<String, dynamic> response = await supabase.from('device').select('*').eq('id', fixedName).single();
+      if (response.containsKey('id')) {
+        return Device.fromJson(response);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // T E M P E R A T U R E
+  //* get temperature info device preference or user settings
+  //? source device - temperature of user_device
+  //? source profile - temperature of user_profile
+  Future<Map<String, dynamic>> getTemperature({String? source, bool cache = true}) async {
+    try {
+      String? data;
+
+      if (source == null) {
+        if (cache) {
+          data = await storage.read(key: '$fixedName-user_device');
+          data ??= await storage.read(key: '$fixedName-user_profile');
+        }
+
+        if (data != null) {
+          Map<String, dynamic> decodeData = jsonDecode(data);
+          if (decodeData.containsKey('target_temperature')) {
+            return {
+              'target_temperature': decodeData['target_temperature'],
+              'minimal_temperature': decodeData['minimal_temperature'],
+            };
+          }
+        }
+
+        var response =
+            await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+
+        if (response.containsKey('target_temperature')) {
+          await setCache(key: 'user_device', data: response);
+          return {
+            'target_temperature': response['target_temperature'],
+            'minimal_temperature': response['minimal_temperature'],
+          };
+        }
+
+        response =
+            await supabase.from('user_profile').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+
+        if (response.containsKey('target_temperature')) {
+          await setCache(key: 'user_profile', data: response);
+          return {
+            'target_temperature': response['target_temperature'],
+            'minimal_temperature': response['minimal_temperature'],
+          };
+        }
+      } else if (source == 'device') {
+        if (cache) {
+          data = await storage.read(key: '$fixedName-user_device');
+        }
+
+        if (data != null) {
+          Map<String, dynamic> decodeData = jsonDecode(data);
+          if (decodeData.containsKey('target_temperature')) {
+            return {
+              'target_temperature': decodeData['target_temperature'],
+              'minimal_temperature': decodeData['minimal_temperature'],
+            };
+          }
+        }
+
+        var response =
+            await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+
+        if (response.containsKey('target_temperature')) {
+          return {
+            'target_temperature': response['target_temperature'],
+            'minimal_temperature': response['minimal_temperature'],
+          };
+        }
+      } else if (source == 'profile') {
+        if (cache) {
+          data = await storage.read(key: '$fixedName-user_profile');
+        }
+
+        if (data != null) {
+          Map<String, dynamic> decodeData = jsonDecode(data);
+          if (decodeData.containsKey('target_temperature')) {
+            return {
+              'target_temperature': decodeData['target_temperature'],
+              'minimal_temperature': decodeData['minimal_temperature'],
+            };
+          }
+        }
+
+        var response =
+            await supabase.from('user_profile').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+
+        if (response.containsKey('target_temperature')) {
+          return {
+            'target_temperature': response['target_temperature'],
+            'minimal_temperature': response['minimal_temperature'],
+          };
+        }
+      }
+    } catch (e) {
+      // debugPrint(e)
+    }
+
+    return {
+      'target_temperature': null,
+      'minimal_temperature': null,
+    };
+  }
+
+  /*Future<Map<String, dynamic>> getTemperature({String source = 'device', bool cache = true}) async {
+    try {
+      if (cache == true) {
+        //todo load temperature from cache
+        late String? data;
+        if (source == 'device') {
+          data = await storage.read(key: '$fixedName-user_device');
+        }
+        if (source == 'profile') {
+          data = await storage.read(key: '$fixedName-user-profile');
+        }
+        if (data != null) {
+          Map<String, dynamic> decodeData = jsonDecode(data);
+          if (decodeData.containsKey('target_temperature')) {
+            final temperatureData = {
+              'target_temperature': decodeData['target_temperature'],
+              'minimal_temperature': decodeData['minimal_temperature'],
+            };
+            return temperatureData;
+          }
+        }
+      } else {
+        //todo load temperature from supabase
+        String table = (source == 'device') ? 'user_device' : 'user_profile';
+        //String fields = 'minimal_temperature, target_temperature';
+
+        final response =
+            await supabase.from(table).select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+        if (response.containsKey('target_temperature')) {
+          if (source == 'profile') {
+            await setCache(key: 'user_profile', data: response);
+          }
+
+          final temperatureData = {
+            'target_temperature': response['target_temperature'],
+            'minimal_temperature': response['minimal_temperature'],
+          };
+          return temperatureData;
+        }
+      }
+    } catch (e) {
+      // debugPrint(e);
+    }
+
+    return {
+      'target_temperature': null,
+      'minimal_temperature': null,
+    };
+
+    /*try {
+      Map<String, dynamic> response = await supabase.from('device').select('allow').eq('id', fixedName).single();
+      debugPrint('----- allow response: ${response.toString()}');
+      if (response.containsKey('allow')) {
+        allow = response['allow'];
+        return response['allow'];
+      }
+      return {};
+    } catch (e) {
+      return {};
+    }*/
+  }*/
 }

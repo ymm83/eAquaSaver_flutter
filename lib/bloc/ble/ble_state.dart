@@ -22,15 +22,14 @@ class BleScanResults extends BleState {
 
 class BleConnected extends BleState {
   final BluetoothDevice device;
-  //final String? role;
 
-  const BleConnected(this.device, ); //{this.role}
+  const BleConnected(this.device, );
 
   @override
   bool get showDetails => true;
 
   @override
-  List<Object> get props =>  [device]; //role != null ? [device, role!] :
+  List<Object> get props =>  [device];
 }
 
 class BleDisconnected extends BleState {
@@ -39,15 +38,11 @@ class BleDisconnected extends BleState {
 }
 
 class BleDetailsOpen extends BleState {
-  //final String? role;
 
-  const BleDetailsOpen(); //[this.role]
+  const BleDetailsOpen();
 
   @override
   bool get showDetails => true;
-
-  //@override
-  //List<Object> get props => role != null ? [role!] : [];
 }
 
 class BleDetailsClose extends BleState {

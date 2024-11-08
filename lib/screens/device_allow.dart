@@ -1,12 +1,12 @@
-import 'package:eaquasaver/screens/unauthorized_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../screens/unauthorized_screen.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/device_service.dart';
+import '../widgets/custom_widgets.dart';
 import 'disconnected_screen.dart';
 
 class DeviceAllow extends StatefulWidget {
@@ -45,9 +45,9 @@ class _DeviceAllowState extends State<DeviceAllow> {
   }
 
   Future<void> _initializeAsync() async {
-    role = await deviceService?.getUserRole();
-    final allowRole = await deviceService?.getAvailableDeviceRole();
-    //debugPrint('-------getAvailableDeviceRole=${role.toString()}');
+    role = await deviceService!.getUserRole();
+    //final allowRole = await deviceService?.getAvailableDeviceRole();
+    debugPrint('-------role=${role.toString()}');
     final allow = await deviceService!.getAllowSettings();
     if (allow.isNotEmpty) {
       allowA = (allow['a'] == 1) ? true : false;
@@ -60,24 +60,6 @@ class _DeviceAllowState extends State<DeviceAllow> {
     setState(() {});
   }
 
-  Widget _buildRoleIcon(String? role) {
-    ///debugPrint('role: $role');
-    IconData iconData;
-    if (role == 'Admin') {
-      iconData = Icons.admin_panel_settings;
-    } else if (role == 'Member') {
-      iconData = Icons.person;
-    } else if (role == 'Credits') {
-      iconData = Icons.credit_card;
-    } else if (role == 'Recerved') {
-      iconData = Icons.calendar_month;
-    } else {
-      iconData = Icons.lock_outline;
-    }
-
-    return role != null ? Icon(iconData) : const SizedBox.shrink();
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(builder: (context, state) {
@@ -85,9 +67,10 @@ class _DeviceAllowState extends State<DeviceAllow> {
         return SingleChildScrollView(
           padding: EdgeInsets.all(5),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (role == 'Admin') ...[
-                _buildRoleIcon(role),
+                buildRoleIcon(role),
                 SwitchListTile(
                   title: Text('Enable Admins '),
                   subtitle: Text('Allow new admins'),
@@ -140,8 +123,17 @@ class _DeviceAllowState extends State<DeviceAllow> {
                   },
                   secondary: Icon(Icons.calendar_month),
                 ),
-              ] else ...[
+              ] else if (['Member', 'Credits', 'Recerved'].contains(role)) ...[
                 Unauthorized(),
+              ] else ...[
+                buildLoadingLinear(
+                  text: 'Loading settings...',
+                ),
+                Center(
+                  child: buildLoadingCircular(
+                    text: 'Loading settings...',
+                  ),
+                ),
               ]
             ],
           ),
