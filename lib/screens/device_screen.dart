@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
@@ -75,13 +74,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   // Selector de temperatura
   double _currentValue = 60;
-  double _markerValue = 58;
-  double _firstMarkerSize = 10;
-  double _annotationFontSize = 25;
-  String _annotationValue = '60';
+  //double _markerValue = 58;
+  //double _firstMarkerSize = 10;
+  //double _annotationFontSize = 25;
+  //String _annotationValue = '60';
   String _cardAnnotationValue = '60';
   double _cardCurrentValue = 60;
-  double _cardMarkerValue = 58;
+  //double _cardMarkerValue = 58;
   // end selector
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
@@ -89,7 +88,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
   String? role;
   DeviceService? deviceService;
   Device? _device;
+  UserProfile? _profile;
+  Temperature? _temperature;
   final storage = new FlutterSecureStorage();
+  double tempGradoCelsius = 28;
+  double fahrenheit = 60;
+  double minValue = 32; // Valor mínimo del gauge
+  double maxValue = 122; // Valor máximo del gauge
+
+  double celsiusToFahrenheit(double celsius) {
+    return (celsius * 9 / 5) + 32;
+  }
+
+  double fahrenheitToCelsius(double fahrenheit) {
+    return (fahrenheit - 32) * 5 / 9;
+  }
 
   @override
   void initState() {
@@ -144,10 +157,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
         setState(() {});
       }
     });
-    //role = widget!.role;
-    debugPrint('----jsonDecode(true) ${jsonDecode("true").runtimeType}');
-    debugPrint('----jsonDecode(123) ${jsonDecode('123').runtimeType}');
-    debugPrint('----jsonDecode({a:123}) ${jsonDecode('{"a": "123"}').runtimeType}');
 
     _initializeAsync();
   }
@@ -159,11 +168,31 @@ class _DeviceScreenState extends State<DeviceScreen> {
     role = await deviceService?.getUserRole();
 
     _device = await deviceService?.getDevice(cache: true);
+    final profileData = await deviceService?.getUserProfileInfo();
+    //debugPrint('------ profileData: ${profileData.toString()}');
+    _profile = UserProfile.fromJson(profileData!);
     final info = await deviceService?.getUserDeviceInfo();
     await deviceService?.setCache(key: 'user_device', data: info);
-    final temp = await deviceService?.getTemperature(source: 'device', cache: true);
-    debugPrint('------ temperature: ${temp.toString()}');
-  
+    final temp = await deviceService?.getTemperature(cache: true);
+    debugPrint('------ profileData: ${temp.toString()}');
+
+    if (temp != null && temp['target_temperature'] != null) {
+      _temperature = Temperature.fromJson(temp);
+      //debugPrint('->>>----- Temperature.fromJson(temp): ${_temperature!.target}');
+    }
+    if (_temperature?.target != null) {
+      //debugPrint('>>>>>------ temperature > target: ${_temperature!.target}');
+      tempGradoCelsius = _temperature!.target.toDouble();
+      fahrenheit = celsiusToFahrenheit(tempGradoCelsius);
+      _cardCurrentValue = fahrenheit;
+      await _writeMinimalTemperature(_temperature!.minimal.toDouble());
+      await _writeTargetTemperature(_temperature!.target.toDouble());
+    } else {
+      //_temperature = Temperature(minimal: 25, target: 30);
+    }
+    //}
+    //debugPrint('------ profile: ${_profile!.targetTemperature}');
+
     if (mounted) {
       setState(() {});
     }
@@ -232,8 +261,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
-                  //debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
-                  //debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
+                  debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
+                  debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
@@ -357,8 +386,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
       setState(() {
         _currentValue = value.roundToDouble();
         final int currentValue = _currentValue.toInt();
-        _annotationValue = '$currentValue';
-        _markerValue = _currentValue - 2;
+        //_annotationValue = '$currentValue';
+        //_markerValue = _currentValue - 2;
       });
     }
   }
@@ -373,13 +402,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   /// Dragged pointer new value is updated to pointer and
   /// annotation current value.
   void handleCardPointerValueChanged(double value) {
-    debugPrint('${value.toInt()}');
+    //debugPrint('******------ handleCardPointerValueChanged: ${value.toInt()}');
     if (value.toInt() > 6) {
       setState(() {
         _cardCurrentValue = value.roundToDouble();
+        tempGradoCelsius = fahrenheitToCelsius(_cardCurrentValue);
         final int cardCurrentValue = _cardCurrentValue.toInt();
         _cardAnnotationValue = '$cardCurrentValue';
-        _cardMarkerValue = _cardCurrentValue - 2;
+        //_cardMarkerValue = _cardCurrentValue - 2;
       });
     }
   }
@@ -522,7 +552,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return interpolateColor(gradientColors, gradientStops, normalizedValue);
   }
 
-  Future handleStateDevice(int state) async {
+  Future _writeStateDevice(int state) async {
     final stateBytes = BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
     List<BluetoothService> services = await widget.device.discoverServices();
     for (BluetoothService service in services) {
@@ -539,8 +569,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
   }
 
-  Future _handleTemperature(double temperature) async {
-    debugPrint('_handleTemperature param: ${temperature.toInt().toString()}');
+  Future _writeTargetTemperature(double temperature) async {
+    debugPrint('_writeTargetTemperature param: ${temperature.toInt().toString()}');
     int targetTemperature = temperature.toInt() * 10;
     final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
     List<BluetoothService> services = await widget.device.discoverServices();
@@ -557,6 +587,26 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
 
     //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
+  }
+
+  Future _writeMinimalTemperature(double temperature) async {
+    debugPrint('_writeMinimalTemperature param: ${temperature.toInt().toString()}');
+    int minimalTemperature = temperature.toInt() * 10;
+    final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
+    List<BluetoothService> services = await widget.device.discoverServices();
+
+    for (BluetoothService service in services) {
+      if (service.uuid == servEAquaSaverUuid) {
+        for (BluetoothCharacteristic characteristic in service.characteristics) {
+          if (characteristic.uuid == charMinimalTemperatureUuid) {
+            await characteristic.write(minimalBytes);
+            debugPrint('chMinimalTemperatureUuid characteristic true');
+          }
+        }
+      }
+    }
+
+    //debugPrint('Start adjTemp ${temperature.toInt()}  $minimalBytes');
   }
 
   // Función para interpolar colores en el gradiente
@@ -616,10 +666,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double fahrenheit = double.tryParse(_cardAnnotationValue) ?? 0;
-    double tempGradoCelsius = ((fahrenheit - 32) * 5 / 9);
-    double minValue = 32; // Valor mínimo del gauge
-    double maxValue = 122; // Valor máximo del gauge
+    //double fahrenheit = double.tryParse(_cardAnnotationValue) ?? 0;
+    //double tempGradoCelsius = _temperature?.target.toDouble() ?? ((fahrenheit - 32) * 5 / 9);
+    //double minValue = 32; // Valor mínimo del gauge
+    //double maxValue = 122; // Valor máximo del gauge
     return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
       if (state is BeaconLoaded) {
         deviceState = getDeviceState(state.beaconData['state']);
@@ -875,9 +925,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 onPressed: () async {
                                   final updates = {'target_temperature': tempGradoCelsius};
                                   final userId = supabase.auth.currentUser!.id;
-                                  await _handleTemperature(tempGradoCelsius);
-                                  await _storage.write(
-                                      key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                  await _writeTargetTemperature(tempGradoCelsius);
+                                  //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                  //todo add minimal check to update
                                   await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
                                 },
                                 child: const Icon(
@@ -960,11 +1010,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                             });
                             if (state.beaconData['state'] < 2) {
                               // Power On
-                              await handleStateDevice(5);
+                              await _writeStateDevice(5);
                             }
                             if (state.beaconData['state'] > 2) {
                               // Power Off
-                              await handleStateDevice(1);
+                              await _writeStateDevice(1);
                             }
                           } catch (e) {
                             debugPrint('---- Change device state error: $e');

@@ -94,7 +94,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
   Widget _buildConnectButton(BuildContext context) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.blue.shade400,
           foregroundColor: Colors.white,
         ),
         onPressed: (widget.result.advertisementData.connectable) ? widget.onTap : null,

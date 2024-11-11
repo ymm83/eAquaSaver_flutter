@@ -4,6 +4,87 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class Temperature {
+  String source;
+  num minimal;
+  num target;
+
+  Temperature({required this.minimal, required this.target, this.source = 'device'});
+
+  factory Temperature.fromJson(Map<String, dynamic> json) {
+    return Temperature(
+      minimal: json['minimal_temperature'],
+      target: json['target_temperature'],
+      source: json['source'] ?? 'device',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'minimal_temperature': minimal,
+      'target_temperature': target,
+      'source': source,
+    };
+  }
+
+  double celsiusToFahrenheit(num celsius) {
+    return (celsius * 9 / 5) + 32;
+  }
+
+  double get minimalFahrenheit => celsiusToFahrenheit(minimal);
+  double get targetFahrenheit => celsiusToFahrenheit(target);
+}
+
+class UserProfile {
+  String id;
+  String? firstname;
+  String? lastname;
+  String? avatarUrl;
+  String? updatedAt;
+  int? targetTemperature;
+  int? minimalTemperature;
+  String? language;
+
+  UserProfile({
+    required this.id,
+    this.firstname,
+    this.lastname,
+    this.avatarUrl,
+    this.updatedAt,
+    this.targetTemperature,
+    this.minimalTemperature,
+    this.language,
+  });
+
+  // Método para convertir a un mapa (por ejemplo, para guardar en una base de datos)
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id.toString(),
+      'firstname': firstname,
+      'lastname': lastname,
+      'avatar_url': avatarUrl,
+      'updated_at': updatedAt,
+      'target_temperature': targetTemperature,
+      'minimal_temperature': minimalTemperature,
+      'language': language,
+    };
+  }
+
+  // Método para crear un objeto UserProfile a partir de un mapa
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id'],
+      firstname: json['firstname'],
+      lastname: json['lastname'],
+      avatarUrl: json['avatar_url'],
+      updatedAt: json['updated_at'],
+      targetTemperature: json['target_temperature'],
+      minimalTemperature: json['minimal_temperature'],
+      language: json['language'],
+    );
+  }
+}
+
 class UserDevice {
   final String userId;
   final String deviceId;
@@ -31,11 +112,11 @@ class UserDevice {
     return UserDevice(
       userId: json['user_id'],
       deviceId: json['device_id'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: json['created_at'],
       role: json['role'],
       credits: json['credits'],
-      arrivalDate: json['arrival_date'] != null ? DateTime.parse(json['arrival_date']) : null,
-      leaveDate: json['leave_date'] != null ? DateTime.parse(json['leave_date']) : null,
+      arrivalDate: json['arrival_date'],
+      leaveDate: json['leave_date'],
       targetTemperature: json['target_temperature'],
       minimalTemperature: json['minimal_temperature'],
     );
@@ -203,6 +284,41 @@ class DeviceService {
     }
   }
 
+  //* Update supabase user_device -> update cache key: user_device
+  Future<void> updateUserDevice({Map<String, dynamic>? data}) async {
+    try {
+      if (data != null) {
+        final userData = await supabase
+            .from('user_device')
+            .update(data)
+            .eq('device_id', fixedName)
+            .eq('user_id', userId)
+            .select()
+            .single();
+        if (userData.containsKey('device_id')) {
+          await setCache(key: 'user_device', data: userData);
+        }
+      }
+    } catch (e) {
+      //debugPrint('Update user_device fail');
+    }
+  }
+
+  //* Update supabase user_device -> update cache key: user_device
+  //? add function for update minimal and target temperature in user_profile
+  Future<void> updateUserProfile({Map<String, dynamic>? data}) async {
+    try {
+      if (data != null) {
+        final userData = await supabase.from('user_profile').update(data).eq('id', userId).select('*').single();
+        if (userData.containsKey('id')) {
+          await setCache(key: 'user_profile', data: userData);
+        }
+      }
+    } catch (e) {
+      //debugPrint('Update user_profile fail');
+    }
+  }
+
   //* get available roles from device.allow jsonb
   Future<List<String>> getAvailableDeviceRole() async {
     try {
@@ -300,17 +416,50 @@ class DeviceService {
   }
 
   // get user_device all info from cache or supabase
-  Future<Map<String, dynamic>> getUserDeviceInfo({bool? cache}) async {
+  Future<Map<String, dynamic>> getUserDeviceInfo({bool cache = true}) async {
     try {
       if (cache == true) {
         final data = await getCache(key: 'user_device');
-        if (data!.containsKey('device_id')) {
+        //debugPrint('------ Fn>profileData-data: ${data.toString()}');
+
+        if (data != null) {
           return data;
         }
       }
       Map<String, dynamic> response =
           await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+      //debugPrint('------ Fn>profileData-response: ${response.toString()}');
+
       if (response.containsKey('device_id')) {
+        if (cache == true) {
+          await setCache(key: 'user_device', data: response);
+        }
+        return response;
+      }
+      return {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  // get user_device all info from cache or supabase
+  Future<Map<String, dynamic>> getUserProfileInfo({bool cache = true}) async {
+    try {
+      if (cache == true) {
+        final data = await getCache(key: 'user_profile');
+        //debugPrint('------ Fn>getUserProfileInfo-data: ${data.toString()}');
+
+        if (data != null) {
+          return data;
+        }
+      }
+      final response = await supabase.from('user_profile').select('*').eq('id', userId).single();
+      //debugPrint('------ Fn>getUserProfileInfo-response: ${response.toString()}');
+
+      if (response.containsKey('id')) {
+        if (cache == true) {
+          await setCache(key: 'user_profile', data: response);
+        }
         return response;
       }
       return {};
@@ -470,22 +619,22 @@ class DeviceService {
   }
 
   // T E M P E R A T U R E
-  //* get temperature info device preference or user settings
-  //? source device - temperature of user_device
-  //? source profile - temperature of user_profile
+  //* get temperature info device preference in user settings
+  //? source device - get temperature of user_device
+  //? source profile - get temperature of user_profile
   Future<Map<String, dynamic>> getTemperature({String? source, bool cache = true}) async {
     try {
       String? data;
 
       if (source == null) {
-        if (cache) {
+        if (cache == true) {
           data = await storage.read(key: '$fixedName-user_device');
           data ??= await storage.read(key: '$fixedName-user_profile');
         }
 
         if (data != null) {
           Map<String, dynamic> decodeData = jsonDecode(data);
-          if (decodeData.containsKey('target_temperature')) {
+          if (decodeData.containsKey('target_temperature') && decodeData['target_temperature'] != null) {
             return {
               'target_temperature': decodeData['target_temperature'],
               'minimal_temperature': decodeData['minimal_temperature'],
@@ -496,7 +645,7 @@ class DeviceService {
         var response =
             await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
 
-        if (response.containsKey('target_temperature')) {
+        if (response.containsKey('target_temperature') && response['target_temperature'] != null) {
           await setCache(key: 'user_device', data: response);
           return {
             'target_temperature': response['target_temperature'],
@@ -504,10 +653,9 @@ class DeviceService {
           };
         }
 
-        response =
-            await supabase.from('user_profile').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+        response = await supabase.from('user_profile').select('*').eq('id', userId).single();
 
-        if (response.containsKey('target_temperature')) {
+        if (response.containsKey('target_temperature') && response['target_temperature'] != null) {
           await setCache(key: 'user_profile', data: response);
           return {
             'target_temperature': response['target_temperature'],
@@ -515,13 +663,13 @@ class DeviceService {
           };
         }
       } else if (source == 'device') {
-        if (cache) {
+        if (cache == true) {
           data = await storage.read(key: '$fixedName-user_device');
         }
 
         if (data != null) {
           Map<String, dynamic> decodeData = jsonDecode(data);
-          if (decodeData.containsKey('target_temperature')) {
+          if (decodeData.containsKey('target_temperature') && decodeData['target_temperature'] != null) {
             return {
               'target_temperature': decodeData['target_temperature'],
               'minimal_temperature': decodeData['minimal_temperature'],
@@ -532,7 +680,10 @@ class DeviceService {
         var response =
             await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
 
-        if (response.containsKey('target_temperature')) {
+        if (response.containsKey('target_temperature') && response['target_temperature'] != null) {
+          if (cache) {
+            await setCache(key: 'user_device', data: response);
+          }
           return {
             'target_temperature': response['target_temperature'],
             'minimal_temperature': response['minimal_temperature'],
@@ -545,7 +696,7 @@ class DeviceService {
 
         if (data != null) {
           Map<String, dynamic> decodeData = jsonDecode(data);
-          if (decodeData.containsKey('target_temperature')) {
+          if (decodeData.containsKey('target_temperature') && decodeData['target_temperature'] != null) {
             return {
               'target_temperature': decodeData['target_temperature'],
               'minimal_temperature': decodeData['minimal_temperature'],
@@ -553,10 +704,12 @@ class DeviceService {
           }
         }
 
-        var response =
-            await supabase.from('user_profile').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
+        var response = await supabase.from('user_profile').select('*').eq('id', userId).single();
 
-        if (response.containsKey('target_temperature')) {
+        if (response.containsKey('target_temperature') && response['target_temperature'] != null) {
+          if (cache) {
+            await setCache(key: 'user_profile', data: response);
+          }
           return {
             'target_temperature': response['target_temperature'],
             'minimal_temperature': response['minimal_temperature'],
@@ -573,65 +726,8 @@ class DeviceService {
     };
   }
 
-  /*Future<Map<String, dynamic>> getTemperature({String source = 'device', bool cache = true}) async {
-    try {
-      if (cache == true) {
-        //todo load temperature from cache
-        late String? data;
-        if (source == 'device') {
-          data = await storage.read(key: '$fixedName-user_device');
-        }
-        if (source == 'profile') {
-          data = await storage.read(key: '$fixedName-user-profile');
-        }
-        if (data != null) {
-          Map<String, dynamic> decodeData = jsonDecode(data);
-          if (decodeData.containsKey('target_temperature')) {
-            final temperatureData = {
-              'target_temperature': decodeData['target_temperature'],
-              'minimal_temperature': decodeData['minimal_temperature'],
-            };
-            return temperatureData;
-          }
-        }
-      } else {
-        //todo load temperature from supabase
-        String table = (source == 'device') ? 'user_device' : 'user_profile';
-        //String fields = 'minimal_temperature, target_temperature';
-
-        final response =
-            await supabase.from(table).select('*').eq('device_id', fixedName).eq('user_id', userId).single();
-        if (response.containsKey('target_temperature')) {
-          if (source == 'profile') {
-            await setCache(key: 'user_profile', data: response);
-          }
-
-          final temperatureData = {
-            'target_temperature': response['target_temperature'],
-            'minimal_temperature': response['minimal_temperature'],
-          };
-          return temperatureData;
-        }
-      }
-    } catch (e) {
-      // debugPrint(e);
-    }
-
-    return {
-      'target_temperature': null,
-      'minimal_temperature': null,
-    };
-
-    /*try {
-      Map<String, dynamic> response = await supabase.from('device').select('allow').eq('id', fixedName).single();
-      debugPrint('----- allow response: ${response.toString()}');
-      if (response.containsKey('allow')) {
-        allow = response['allow'];
-        return response['allow'];
-      }
-      return {};
-    } catch (e) {
-      return {};
-    }*/
-  }*/
+  //* set temperature settings to device or profile
+  //? source device - set temperature of user_device
+  //? source profile - set temperature of user_profile
+  Future<void> setTemperature({String? source, int? minimal, int? target, bool cache = true}) async {}
 }

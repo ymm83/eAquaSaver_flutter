@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:eaquasaver/bloc/connectivity/connectivity_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -31,13 +30,10 @@ class DeviceSettings extends StatefulWidget {
 }
 
 class DeviceSettingsState extends State<DeviceSettings> {
-  double minimalTemperature = 20;
-  double targetTemperature = 30;
   String firmwareVersion = '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
-  Map userData = {};
   Map<String, dynamic> firmwareData = {};
 
   double _downloadProgress = 0.0;
@@ -53,14 +49,30 @@ class DeviceSettingsState extends State<DeviceSettings> {
   bool _isEditing = false;
   bool _isSaving = false;
   Device? device;
+  final storage = const FlutterSecureStorage();
+
+  num? minimalTemperature;
+  num? targetTemperature;
+  // default values of temperature
+  num iniMinimalTemperature = 20;
+  num iniTargetTemperature = 30;
+  // device temperature
+  num? _dMinimalTemperature;
+  num? _dTargetTemperature;
+  // profile temperature
+  num? _pMinimalTemperature;
+  num? _pTargetTemperature;
 
   @override
   void initState() {
     super.initState();
+    minimalTemperature = iniMinimalTemperature;
+    targetTemperature = iniTargetTemperature;
     getFirmwareVersion();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
     deviceService = DeviceService(supabaseEAS, widget.device!.platformName, supabase.auth.currentUser!.id);
+    toggleValue = 1;
     _initializeAsync();
   }
 
@@ -75,10 +87,30 @@ class DeviceSettingsState extends State<DeviceSettings> {
     if (role == 'Admin') {
       firmwareData = await _searchFirmwareUpdates();
     }
+    await _initializeTemperatureAsync();
 
     device = await deviceService?.getDevice(cache: true);
 
     _textController.text = device!.customName ?? '';
+    setState(() {});
+  }
+
+  Future<void> _initializeTemperatureAsync({int toggle = 1}) async {
+    if (toggle == 1) {
+      final deviceT = await deviceService!.getTemperature(source: 'device', cache: true);
+
+      minimalTemperature = deviceT['minimal_temperature'] ?? iniMinimalTemperature;
+      targetTemperature = deviceT['target_temperature'] ?? iniTargetTemperature;
+      debugPrint('---->>>>> device temperature: ${deviceT.toString()}');
+    }
+    if (toggle == 2) {
+      final profileT = await deviceService!.getTemperature(source: 'profile', cache: true);
+      debugPrint('---->>>>> device temperature ***: ${profileT.toString()}');
+
+      minimalTemperature = profileT['minimal_temperature'] ?? iniMinimalTemperature;
+      targetTemperature = profileT['target_temperature'] ?? iniTargetTemperature;
+      debugPrint('---->>>>> profile temperature: ${profileT.toString()}');
+    }
     setState(() {});
   }
 
@@ -120,7 +152,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
       };
       final response =
           await supabaseEAS.from('device').update(data).eq('id', deviceService!.fixedName).select('*').single();
-      debugPrint('Error inserting device: ${response.toString()}');
+      //debugPrint('Error inserting device: ${response.toString()}');
       if (response.containsKey('id')) {
         await deviceService?.setCache(key: 'device', data: response);
         //await deviceService?.setCache(key: 'custom_name', value: _textController.text);
@@ -239,24 +271,24 @@ class DeviceSettingsState extends State<DeviceSettings> {
   }
 
   void _updateMinimalValue(double newValue) {
-    if (newValue < targetTemperature) {
+    if (newValue < targetTemperature!) {
       setState(() {
-        minimalTemperature = newValue;
+        minimalTemperature = newValue.toInt();
       });
     }
   }
 
   void _updateTargetValue(double newValue) {
-    if (newValue > minimalTemperature) {
+    if (newValue > minimalTemperature!) {
       setState(() {
-        targetTemperature = newValue;
+        targetTemperature = newValue.toInt();
       });
     }
   }
 
   Future _handleMinimalTemperature(double temperature) async {
     int minimalTemperature = temperature.toInt() * 10;
-    //debugPrint('minimalTemperature: ${minimalTemperature.toString()} ');
+
     final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
 
     List<BluetoothService> services = await widget.device!.discoverServices();
@@ -271,28 +303,24 @@ class DeviceSettingsState extends State<DeviceSettings> {
         }
       }
     }
-
-    //debugPrint('Start adjTemp ${temperature.toInt()}  $targetBytes');
   }
 
   void _updateFirstPointer(double newValue) async {
-    final userId = supabase.auth.currentUser!.id;
-    if (newValue < targetTemperature) {
+    //final userId = supabase.auth.currentUser!.id;
+    if (newValue < targetTemperature!) {
       setState(() {
-        minimalTemperature = newValue;
+        minimalTemperature = newValue.toInt();
       });
-      await _handleMinimalTemperature(minimalTemperature);
-      await _storage.write(key: userId, value: json.encode({'target_temperatureemperature': minimalTemperature}));
-      await supabaseEAS
-          .from('user_profile')
-          .update({'minimal_temperatureemperature': minimalTemperature}).eq('id', userId);
+      await _handleMinimalTemperature(newValue);
+      //await _storage.write(key: userId, value: json.encode({'target_temperature': minimalTemperature}));
+      //await supabaseEAS.from('user_profile').update({'minimal_temperature': minimalTemperature}).eq('id', userId);
     }
   }
 
   void _updateSecondPointer(double newValue) {
-    if (newValue > minimalTemperature) {
+    if (newValue > minimalTemperature!) {
       setState(() {
-        targetTemperature = newValue;
+        targetTemperature = newValue.toInt();
       });
     }
   }
@@ -360,113 +388,24 @@ class DeviceSettingsState extends State<DeviceSettings> {
     );
   }
 
-  Future<Map> _getOnlineTemperature() async {
-    /*setState(() {
-      _loading = true;
-    });*/
-    try {
-      final userId = supabase.auth.currentUser!.id;
-      userData = await supabaseEAS
-          .from('user_profile')
-          .select('minimal_temperature, target_temperature')
-          .eq('id', userId)
-          .single();
-      if (userData['minimal_temperature'].runtimeType == Null) {
-        userData.remove('minimal_temperature');
-        userData = {'minimal_temperature': 20, ...userData};
-      }
-
-      if (userData['target_temperature'].runtimeType == Null) {
-        userData.remove('target_temperature');
-        userData = {'target_temperature': 30, ...userData};
-      }
-
-      debugPrint('----- userData online: ${userData.toString()}');
-      //await _storage.delete(key: supabase.auth.currentUser!.id);
-      await _storage.write(key: supabase.auth.currentUser!.id, value: json.encode(userData));
-      //setState(() {});
-      return userData;
-    } on PostgrestException catch (error) {
-      if (mounted) {
-        showSnackBar(error.message, theme: 'error');
-      }
-      userData = {};
-      setState(() {});
-    } catch (error) {
-      /*if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
-      }*/
-    } finally {
-      /*if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }*/
-    }
-    return {};
-  }
-
-  /// Called once a user id is received within `onAuthenticated()`
-  Future<Map> _getLocalTemperature() async {
-    /*setState(() {
-      _loading = true;
-    });*/
-    try {
-      final data = await _storage.read(key: supabase.auth.currentUser!.id);
-      debugPrint('---- Reading Secure Storage');
-      //data = jsonDecode(onValue!);
-
-      userData = json.decode(data!) ?? {};
-      //userData['firstname'] = 'Loba';
-      debugPrint('---userData offline - ${userData.toString()}');
-      return userData;
-    } catch (e) {
-      debugPrint('Error: $e');
-    } finally {
-      /*if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }*/
-    }
-    return {};
-  }
-
   String fixedDeviceName(String name) {
     return name.replaceRange(3, 4, 's').substring(0, 16);
   }
 
-  Future addTemperature(int toggle, int? minimal, int? target) async {
+  Future<void> addTemperature(int toggle, int? minimal, int? target) async {
     Map<String, dynamic> updates = {'minimal_temperature': minimal, 'target_temperature': target};
     debugPrint('---updated Map:${updates.toString()}');
     try {
-      final userId = supabase.auth.currentUser!.id;
-      final deviceId = fixedDeviceName(widget.device!.platformName);
-
       if (toggle == 0 || toggle == 1) {
-        await supabaseEAS.from('user_device').update(updates).eq('user_id', userId).eq('device_id', deviceId);
+        await deviceService!.updateUserDevice(data: updates);
       }
       if (toggle == 2) {
-        await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
+        await deviceService!.updateUserProfile(data: updates);
       }
-
+      await _initializeTemperatureAsync(toggle: toggle);
       debugPrint('---toggle:$toggle--- temperature updated---');
-    } on PostgrestException catch (error) {
-      if (mounted) {
-        showSnackBar(error.message, theme: 'error');
-      }
-      userData = {};
-      setState(() {});
-    } catch (error) {
-      /*if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
-      }*/
-    } finally {
-      /*if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }*/
+    } catch (e) {
+      //
     }
   }
 
@@ -494,20 +433,20 @@ class DeviceSettingsState extends State<DeviceSettings> {
       builder: (context, state) {
         if (state is ConnectivityOnline) {
           return SingleChildScrollView(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: Column(
               children: [
                 _buildRoleIcon(role),
                 Text('$role'),
                 //if (role == 'Admin') ...[
-                Text(
+                const Text(
                   'CUSTOM NAME',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
                 ),
                 Row(
                   children: [
-                    Icon(Icons.settings_bluetooth, size: 24.0), // Ícono BLE
-                    SizedBox(width: 10), // Espaciado
+                    const Icon(Icons.settings_bluetooth, size: 24.0), // Ícono BLE
+                    const SizedBox(width: 10), // Espaciado
                     Expanded(
                       child: TextField(
                         controller: _textController,
@@ -548,14 +487,14 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   color: Colors.grey[300],
                 ),
                 const SizedBox(height: 10),
-                Text(
+                const Text(
                   'TEMPERATURE',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
                 ),
                 Card.outlined(
                   //color: Colors.green.shade100,
                   child: Padding(
-                    padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+                    padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.max,
@@ -566,7 +505,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           inactiveBgColor: Colors.grey,
                           inactiveFgColor: Colors.white,
                           activeBgColors: [
-                            [Colors.red],
+                            const [Colors.red],
                             [Colors.purple.shade400],
                             [Colors.purple.shade800]
                           ],
@@ -575,13 +514,14 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           totalSwitches: 3,
                           minWidth: 50,
                           minHeight: 33,
-                          labels: ['', 'this', 'all'],
-                          icons: [Icons.delete_outline, null, null],
+                          labels: const ['', 'this', 'all'],
+                          icons: const [Icons.delete_outline, null, null],
                           onToggle: (index) async {
                             if (index != null) {
                               setState(() {
                                 toggleValue = index;
                               });
+                              await _initializeTemperatureAsync(toggle: toggleValue);
                             }
                           },
                         ),
@@ -590,11 +530,11 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: 5, left: 10, right: 10, bottom: 10),
+                  padding: const EdgeInsets.only(top: 5, left: 10, right: 10, bottom: 10),
                   child: Column(
                     children: [
                       if (toggleValue == 0) ...[
-                        Row(
+                        const Row(
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -680,7 +620,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                 ),
                 if (toggleValue != 0) ...[
                   Padding(
-                    padding: EdgeInsets.only(left: 10, right: 10),
+                    padding: const EdgeInsets.only(left: 10, right: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.min,
@@ -689,21 +629,21 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           width: 60,
                           child: RichText(
                             textAlign: TextAlign.right,
-                            text: TextSpan(
+                            text: const TextSpan(
                               text: 'minimal: ',
                               style: TextStyle(color: Colors.deepPurple),
                             ),
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.only(left: 6),
                           child: SizedBox(
                             width: 25,
                             child: RichText(
                               textAlign: TextAlign.left,
                               text: TextSpan(
-                                  text: '${minimalTemperature.toInt()}',
-                                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                                  text: minimalTemperature.toString(),
+                                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                             ),
                           ),
                         ),
@@ -718,10 +658,10 @@ class DeviceSettingsState extends State<DeviceSettings> {
                             ),
                             markerPointers: [
                               LinearShapePointer(
-                                value: minimalTemperature,
+                                value: minimalTemperature!.toDouble(),
                                 onChanged: _updateMinimalValue,
                                 onChangeEnd: (value) async {
-                                  await addTemperature(toggleValue, value.toInt(), targetTemperature.toInt());
+                                  await addTemperature(toggleValue, value.toInt(), targetTemperature!.toInt());
                                 },
                                 shapeType: LinearShapePointerType.invertedTriangle,
                               ),
@@ -732,7 +672,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 10, right: 10),
+                    padding: const EdgeInsets.only(left: 10, right: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.min,
@@ -741,21 +681,22 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           width: 60,
                           child: RichText(
                             textAlign: TextAlign.right,
-                            text: TextSpan(
+                            text: const TextSpan(
                               text: 'target: ',
                               style: TextStyle(color: Colors.deepPurple),
                             ),
                           ),
                         ),
                         Padding(
-                            padding: EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.only(left: 6),
                             child: SizedBox(
                               width: 25,
                               child: RichText(
                                 textAlign: TextAlign.left,
                                 text: TextSpan(
-                                    text: '${targetTemperature.toInt()}',
-                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                                    text: targetTemperature.toString(),
+                                    style:
+                                        const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                               ),
                             )),
                         Expanded(
@@ -769,10 +710,10 @@ class DeviceSettingsState extends State<DeviceSettings> {
                             ),
                             markerPointers: [
                               LinearShapePointer(
-                                value: targetTemperature,
+                                value: targetTemperature!.toDouble(),
                                 onChanged: _updateTargetValue,
                                 onChangeEnd: (value) async {
-                                  await addTemperature(toggleValue, minimalTemperature.toInt(), value.toInt());
+                                  await addTemperature(toggleValue, minimalTemperature!.toInt(), value.toInt());
                                 },
                                 shapeType: LinearShapePointerType.invertedTriangle,
                               ),
@@ -783,8 +724,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                     ),
                   ),
                 ],
-                SizedBox(height: 20),
-                SizedBox(
+                const SizedBox(height: 20),
+                const SizedBox(
                   height: 10,
                 ),
                 Divider(
@@ -793,11 +734,11 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   color: Colors.grey[300],
                 ),
                 const SizedBox(height: 10),
-                Text(
+                const Text(
                   'FIRMWARE',
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 5),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   children: [const SizedBox(width: 20), Text('Current version: $firmwareVersion')],
                 ),
