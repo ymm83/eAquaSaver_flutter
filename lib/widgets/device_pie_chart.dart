@@ -30,65 +30,69 @@ class _DevicePieChartState extends State<DevicePieChart> {
       return const Text('No hay datos para mostrar');
     }
 
-    return Column(
-      children: [
-        const SizedBox(
-          height: 60,
-        ),
-        SizedBox(
-          height: 200,
-          width: 200,
-          child: PieChart(
-            PieChartData(
-              sections: [
-                if (totalRecovered > 0)
-                  PieChartSectionData(
-                    color: Colors.blueAccent.shade100,
-                    value: totalRecovered,
-                    title: '${totalRecovered.toInt()} L',
-                    radius: 140,
-                    titleStyle: TextStyle(fontSize: 16, color: Colors.blue.shade900),
-                  ),
-                if (totalHotUsed > 0)
-                  PieChartSectionData(
-                    color: Colors.redAccent.shade100,
-                    value: totalHotUsed,
-                    title: '${totalHotUsed.toInt()} L',
-                    radius: 140,
-                    titleStyle: TextStyle(fontSize: 16, color: Colors.red.shade900),
-                  ),
-                if (totalColdUsed > 0)
-                  PieChartSectionData(
-                    color: Colors.greenAccent.shade100,
-                    value: totalColdUsed,
-                    title: '${totalColdUsed.toInt()} L',
-                    radius: 140,
-                    titleStyle: TextStyle(fontSize: 16, color: Colors.green.shade900),
-                  ),
-              ],
-              borderData: FlBorderData(show: false),
-              centerSpaceRadius: 0,
-              sectionsSpace: 8, // Espaciado entre secciones
+    return SingleChildScrollView(
+      // Agregar SingleChildScrollView para evitar desbordamientos
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 60,
+          ),
+          SizedBox(
+            height: 200,
+            width: 200,
+            child: PieChart(
+              PieChartData(
+                sections: [
+                  if (totalRecovered > 0)
+                    PieChartSectionData(
+                      color: Colors.blueAccent.shade100,
+                      value: totalRecovered,
+                      title: '${totalRecovered.toInt()} L',
+                      radius: 140,
+                      titleStyle: TextStyle(fontSize: 16, color: Colors.blue.shade900),
+                    ),
+                  if (totalHotUsed > 0)
+                    PieChartSectionData(
+                      color: Colors.redAccent.shade100,
+                      value: totalHotUsed,
+                      title: '${totalHotUsed.toInt()} L',
+                      radius: 140,
+                      titleStyle: TextStyle(fontSize: 16, color: Colors.red.shade900),
+                    ),
+                  if (totalColdUsed > 0)
+                    PieChartSectionData(
+                      color: Colors.greenAccent.shade100,
+                      value: totalColdUsed,
+                      title: '${totalColdUsed.toInt()} L',
+                      radius: 140,
+                      titleStyle: TextStyle(fontSize: 16, color: Colors.green.shade900),
+                    ),
+                ],
+                borderData: FlBorderData(show: false),
+                centerSpaceRadius: 0,
+                sectionsSpace: 8, // Espaciado entre secciones
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 30),
-        SizedBox(
-          height: 120,
-          width: 250,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildLegendItem(Colors.blueAccent.shade200, 'Total of water recovered', ''),
-              const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-              _buildLegendItem(Colors.redAccent.shade200, 'Total of hot water used', ''),
-              const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-              _buildLegendItem(Colors.greenAccent.shade200, 'Total of cold water used', ''),
-            ],
+          const SizedBox(height: 30),
+          SizedBox(
+            height: 120,
+            width: 250,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildLegendItem(Colors.blueAccent.shade200, 'Total of water recovered', ''),
+                const SizedBox(height: 16), // Espacio entre elementos de la leyenda
+                _buildLegendItem(Colors.redAccent.shade200, 'Total of hot water used', ''),
+                const SizedBox(height: 16), // Espacio entre elementos de la leyenda
+                _buildLegendItem(Colors.greenAccent.shade200, 'Total of cold water used', ''),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -146,7 +146,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Future<List<BluetoothDevice>> getSystemDevices() async {
     // Esperar el Future que retorna FlutterBluePlus.systemDevices
-    _systemDevices = await FlutterBluePlus.systemDevices([servEAquaSaverUuid]);
+    _systemDevices = await FlutterBluePlus.systemDevices;
     return _systemDevices;
   }
 
