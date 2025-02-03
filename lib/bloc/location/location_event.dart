@@ -6,7 +6,7 @@ abstract class LocationEvent {}
 class LocationStarted extends LocationEvent {}
 
 class LocationChanged extends LocationEvent {
-  final Position position;
+  final LatLng latLng;
 
-  LocationChanged({required this.position});
+  LocationChanged({required this.latLng});
 }

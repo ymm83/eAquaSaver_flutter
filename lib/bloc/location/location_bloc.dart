@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 part 'location_event.dart';
 part 'location_state.dart';
@@ -43,8 +44,8 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       }
 
       _positionSubscription = _geolocator.getPositionStream().listen((Position position) {
-        add(LocationChanged(position: position));
-        _storage.write(key: 'storageLocation', value: jsonEncode(position));
+        add(LocationChanged(latLng: LatLng(position.latitude, position.longitude)));
+        _storage.write(key: 'storageLocation', value: jsonEncode(LatLng(position.latitude, position.longitude)));
       });
     } catch (_) {
       emit(LocationLoadFailure());
@@ -52,7 +53,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   }
 
   void _onLocationChanged(LocationChanged event, Emitter<LocationState> emit) {
-    emit(LocationLoadSuccess(position: event.position));
+    emit(LocationLoadSuccess(latLng: event.latLng));
   }
 
   @override
