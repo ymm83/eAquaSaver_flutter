@@ -3,6 +3,7 @@ import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
 import 'package:eaquasaver/screens/unauthorized_screen.dart';
+import 'package:eaquasaver/widgets/top_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -95,6 +96,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   double fahrenheit = 60;
   double minValue = 32; // Valor mínimo del gauge
   double maxValue = 122; // Valor máximo del gauge
+  bool _isLoading = true;
 
   double celsiusToFahrenheit(double celsius) {
     return (celsius * 9 / 5) + 32;
@@ -158,10 +160,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
 
+    final bsSubscription = widget.device.bondState.listen((value) {
+      print("$value prev:{$widget.device.prevBondState}");
+    });
+    widget.device.cancelWhenDisconnected(bsSubscription);
+
     _initializeAsync();
   }
 
   Future<void> _initializeAsync() async {
+    setState(() {
+      _isLoading = true; // 👈 **Cambio**: Comienza la carga
+    });
+
     deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
     await deviceService?.insertDeviceIfNotExists();
     await deviceService?.registerUserDevice();
@@ -192,10 +203,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
     //}
     //debugPrint('------ profile: ${_profile!.targetTemperature}');
-
-    if (mounted) {
+    setState(() {
+      _isLoading = false; // 👈 **Cambio**: Finaliza la carga
+    });
+    /*if (mounted) {
+        
       setState(() {});
-    }
+    }*/
   }
 
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
@@ -234,6 +248,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     _isDisconnectingSubscription.cancel();
     _beaconTimer.cancel();
     _stopBeaconScanning();
+
     context.read<BeaconBloc>().add(ClearBeacon());
     super.dispose();
   }
@@ -263,6 +278,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   var decodedData = _decodeManufacturerData(value);
                   debugPrint('\n minimalTemperature: ${decodedData['minimalTemperature'].toString()}');
                   debugPrint('\n targetTemperature: ${decodedData['targetTemperature'].toString()}');
+                  debugPrint('\n state: ${decodedData['state'].toString()}');
+
                   context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
@@ -356,6 +373,17 @@ class _DeviceScreenState extends State<DeviceScreen> {
       setState(() {
         _isDiscoveringServices = false;
       });
+    }
+  }
+
+  Future showBondingBox() async {
+    try {
+      await widget.device.createBond(timeout: 240);
+      debugPrint("Bonding success");
+      //showSnackBar("Request Mtu: Success", theme: 'success');
+    } catch (e) {
+      //showSnackBar("Change Mtu Error: $e", theme: 'error');
+      debugPrint("Bonding error: $e");
     }
   }
 
@@ -682,10 +710,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
       return ScaffoldMessenger(
         child: Scaffold(
+          //appBar: AppBarLoadingIndicator(isLoading: _isLoading),
           body: SingleChildScrollView(
             child: Column(
               children: <Widget>[
-                const SizedBox(height: 7),
+                TopLoadingIndicator(isLoading: _isLoading),
+                //const SizedBox(height: 7),
                 Card(
                   shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
@@ -698,7 +728,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     title: Row(
                       children: [
                         isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
-                        Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
+                        //Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
+                        Text(_device?.customName ?? widget.device.platformName,
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         if (isConnected && _rssi != null)
                           Text('(${_rssi!} dBm)', style: Theme.of(context).textTheme.bodySmall)
@@ -740,9 +771,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         backgroundColor: Colors.redAccent,
                       )),
                 ],
-                if (state is BeaconLoaded && role == null) ...[
+                /*if (state is BeaconLoaded && role == null) ...[
                   const Center(child: Text('Unauthorized...', style: TextStyle())),
-                ],
+                ],*/
                 Padding(
                   padding: const EdgeInsets.only(top: 8, bottom: 10),
                   child: Column(
@@ -995,18 +1026,33 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     ],
                   ),
                 ),
-                if (['Admin', 'Member'].contains(role)) ...[
+                if (_isLoading) ...[
+                  // 👈 **Cambio**: Verifica si está cargando
+                  //const Center(child: LinearProgressIndicator()), // 👈 **Cambio**: Indicador de carga
+                  // const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                      onPressed: () async {
+                        await widget.device.connect();
+                        await showBondingBox();
+                      },
+                      label: Text('Vinculate Device'),
+                      icon: Icon(Icons.connected_tv_sharp)),
+                  const Text('Starting...', style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
+                ] else if (role == null) ...[
+                  const Center(child: Text('Unauthorized...', style: TextStyle())),
+                ] else if (['Admin', 'Member'].contains(role)) ...[
                   // Mostrar datos de beacon
 
                   if (state is BeaconLoaded) ...[
                     OutlinedButton.icon(
                         onPressed: () async {
-                          if (loading || state.beaconData['state'] == 2) {
+                          debugPrint('---- >> state.beaconData[state]: ${state.beaconData['state']}');
+                          if (_isLoading || state.beaconData['state'] == 2) {
                             return;
                           }
                           try {
                             setState(() {
-                              loading = true;
+                              _isLoading = true;
                             });
                             if (state.beaconData['state'] < 2) {
                               // Power On
@@ -1020,7 +1066,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                             debugPrint('---- Change device state error: $e');
                           } finally {
                             setState(() {
-                              loading = false;
+                              _isLoading = false;
                             });
                           }
                         },
@@ -1039,97 +1085,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       icon: Icon(Icons.get_app)),
 
                   //buildMtuTile(context),*/
+                ] else if (role == null) ...[
+                  //Center(child: CircularProgressIndicator())
                 ] else if (role == 'Credits') ...[
                   Text('Buy credits to use this device!'),
                 ] else if (role == 'Recerved') ...[
                   Text('Recerved mode!')
-                ] else if (role == null) ...[
-                  //Center(child: CircularProgressIndicator())
                 ] else ...[
                   Unauthorized(),
                 ],
-
-                //buildGetServices(context),
-                //..._buildServiceTiles(context, widget.device),
-
-                /*if (state is BeaconLoaded) ...[
-                  Center(
-                      child: Text(
-                    'Temperature',
-                    style: TextStyle(color: Colors.blue.shade900, fontSize: 16, fontWeight: FontWeight.bold),
-                  )),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        side: const BorderSide(color: Color.fromARGB(255, 149, 172, 190), width: 1),
-                        borderRadius: BorderRadius.circular(10)),
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    child: ListTile(
-                        leading: Transform.flip(
-                          flipX: true,
-                          child: Icon(
-                            Atlas.water_tap_thin,
-                            size: 30,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          if (state.beaconData['coldTemperature'].toString() == 'null')
-                            Text(
-                              '0 °C',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
-                            ),
-                          if (state.beaconData['coldTemperature'].toString() != 'null')
-                            Text(
-                              '${state.beaconData['coldTemperature'].toString().split('.')[0]} °C',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade700),
-                            ),
-                          if (state.beaconData['temperature'].toString() == 'null')
-                            Text(
-                              '0',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
-                            ),
-                          if (state.beaconData['temperature'].toString() != 'null')
-                            Text(
-                              state.beaconData['temperature'].toString().split('.')[0],
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.green.shade800),
-                            ),
-                          if (state.beaconData['hotTemperature'].toString() == 'null')
-                            Text(
-                              '0 °C',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
-                            ),
-                          if (state.beaconData['hotTemperature'].toString() != 'null')
-                            Text(
-                              '${state.beaconData['hotTemperature'].toString().split('.')[0]} °C',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade600),
-                            ),
-                        ]),
-                        subtitle: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Text(
-                            'cold pipe',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-                          Text(
-                            'current',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black),
-                          ),
-                          Text(
-                            'hot pipe',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-                        ]),
-                        trailing: Icon(
-                          Atlas.water_tap_thin,
-                          size: 30,
-                          color: Colors.red.shade500,
-                        )),
-                  ),
-                ],*/
-                //Center(child: buildConnectButton(context)),
               ],
             ),
           ),
-          //floatingActionButton: buildConnectButton(context),
         ),
       );
     });

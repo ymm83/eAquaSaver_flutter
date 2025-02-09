@@ -71,6 +71,10 @@ class _DeviceAllowState extends State<DeviceAllow> {
             children: [
               if (role == 'Admin') ...[
                 buildRoleIcon(role),
+                Text(
+                  'Access control',
+                  style: TextStyle(fontSize: 16),
+                ),
                 SwitchListTile(
                   title: Text('Enable Admins '),
                   subtitle: Text('Allow new admins'),
