@@ -45,7 +45,9 @@ class _WaterScreenState extends State<WaterScreen> {
         _addressData = addressData;
         _address = _getAddressString(addressData);
       });
-      debugPrint('------ address:$_address');
+      debugPrint('------ addressData: $addressData');
+
+      debugPrint('------ address: $_address');
       if (addressData['address']['country_code'] == 'fr') {
         final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
         final euaComune = await franceEuaCommune(nomCommune);
@@ -85,9 +87,9 @@ class _WaterScreenState extends State<WaterScreen> {
 
           return BlocBuilder<LocationBloc, LocationState>(
             builder: (context, locationState) {
-              if (locationState is LocationLoadSuccess) {
+              /*if (locationState is LocationLoadSuccess) {
                 return Center(child: Text('Water Screen ${locationState.position}'));
-              }
+              }*/
 
               if (_locationData == null) {
                 return const Center(child: CircularProgressIndicator());

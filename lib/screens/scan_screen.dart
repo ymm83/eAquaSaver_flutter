@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:eaquasaver/widgets/app_bar_loading_indicator.dart';
+import 'package:eaquasaver/widgets/top_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -146,7 +148,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Future<List<BluetoothDevice>> getSystemDevices() async {
     // Esperar el Future que retorna FlutterBluePlus.systemDevices
-    _systemDevices = await FlutterBluePlus.systemDevices;
+    List<Guid> withServices = [charEnabledUuid];
+    List<BluetoothDevice> _systemDevices = await FlutterBluePlus.systemDevices(withServices);
+    //List<BluetoothDevice> _systemDevices = [];
+    //_systemDevices = await FlutterBluePlus.systemDevices([charEnabledUuid]);
     return _systemDevices;
   }
 
@@ -241,7 +246,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
-        .where((r) => (r.device.advName.toString().startsWith('eASb', 0) ||
+        .where((r) => (/*r.device.advName.toString().startsWith('eASb', 0) ||*/
             r.device.platformName.toString().startsWith('eASs', 0)))
         .map((r) => ScanResultTile(
               result: r,
@@ -250,27 +255,38 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         .toList();
   }
 
+  Widget _buildTitle(String title, {double? size = 16}) {
+    return Center(child: Text(title, style: TextStyle(fontSize: size)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       child: Scaffold(
+        appBar: AppBarLoadingIndicator(isLoading: _isScanning),
         body: RefreshIndicator(
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
-              if (_systemDevices.isNotEmpty) const Center(child: Text('My devices', style: TextStyle())),
-              if (_systemDevices.isNotEmpty) ..._buildSystemDeviceTiles(context),
-              if (_isScanning) const Center(child: Text('Searching eAquaSaver devices...', style: TextStyle())),
-              if (_isScanning)
-                const Padding(
-                  padding: EdgeInsets.only(left: 50, right: 50, top: 5),
-                  child: LinearProgressIndicator(
-                    color: Colors.blue,
-                    backgroundColor: Colors.redAccent,
-                  ),
-                ),
+              SizedBox(
+                height: 5,
+              ),
+              //TopLoadingIndicator(isLoading: _isScanning),
+              if (_systemDevices.isNotEmpty) ...[
+                _buildTitle('My devices:'),
+                ..._buildSystemDeviceTiles(context),
+              ],
+
+              if (_isScanning) _buildTitle('Searching eAquaSaver devices...', size: 14.5),
+              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('No divices found. Try again!'),
               /*if (!_isScanning && _scanResults.isNotEmpty)
-                Center(child: Text('${_scanResults.length} dispositivos encontrados:', style: const TextStyle())),*/
+                Center(
+                    child: Text('${_buildScanResultTiles(context).length} dispositivos encontrados:',
+                        style: const TextStyle())),*/
+              SizedBox(
+                height: 5,
+              ),
+              if (!_isScanning && _buildScanResultTiles(context).isNotEmpty) _buildTitle('Devices found:'),
               if (!_isScanning) ..._buildScanResultTiles(context),
             ],
           ),

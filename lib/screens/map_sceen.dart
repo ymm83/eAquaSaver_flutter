@@ -67,6 +67,10 @@ class MapScreenState extends State<MapScreen> {
           debugPrint('_paris stop drag marker moved to: $latLng'),
         },
         onDragEnd: (details, latLng) {
+          double lat = latLng.latitude;
+          double lng = latLng.longitude;
+
+          BlocProvider.of<LocationBloc>(context).add(LocationChanged(latLng: LatLng(lat, lng)));
           _mapController.move(latLng, 5); //zoom adjust
           debugPrint('_paris start drag marker moved to: $latLng');
           setState(() {
@@ -104,6 +108,17 @@ class MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _fetchStorageLocation() async {
+    final data = await _storage.read(key: 'storageLocation');
+    if (data != null) {
+      final jsondata = jsonDecode(data);
+      _locationData = LatLng(jsondata['latitude'], jsondata['longitude']);
+      setState(() {
+        _isLocationAvailable = true; // Hay ubicación almacenada
+      });
+    }
+  }
+
+  Future<void> _saveStorageLocation() async {
     final data = await _storage.read(key: 'storageLocation');
     if (data != null) {
       final jsondata = jsonDecode(data);

@@ -81,7 +81,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            widget.result.device.remoteId.str,
+            widget.result.device.platformName,
             style: Theme.of(context).textTheme.bodySmall,
           )
         ],
@@ -203,6 +203,7 @@ class _ScanResultTileState extends State<ScanResultTile> {
         if ((adv.appearance ?? 0) > 0) _buildAdvRow(context, 'Appearance', '0x${adv.appearance!.toRadixString(16)}'),
         if (!adv.connectable && adv.msd.isNotEmpty)
           _buildAdvRow(context, 'Manufacturer Data', getNiceManufacturerData(adv.msd)),
+        if (adv.connectable) _buildAdvRow(context, 'RemoteId', widget.result.device.remoteId.str),
         if (adv.serviceUuids.isNotEmpty) _buildAdvRow(context, 'Service UUIDs', getNiceServiceUuids(adv.serviceUuids)),
         if (adv.serviceData.isNotEmpty) _buildAdvRow(context, 'Service Data', getNiceServiceData(adv.serviceData)),
       ],
