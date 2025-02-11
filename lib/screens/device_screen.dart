@@ -46,8 +46,9 @@ String getDeviceState(int value) {
 
 class DeviceScreen extends StatefulWidget {
   final BluetoothDevice device;
+  final PageController pageController;
   //final String? role;
-  const DeviceScreen({super.key, required this.device}); //, this.role
+  const DeviceScreen({super.key, required this.device, required this.pageController}); //, this.role
 
   @override
   State<DeviceScreen> createState() => _DeviceScreenState();
@@ -65,6 +66,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
   late StreamSubscription<bool> _isConnectingSubscription;
   late StreamSubscription<bool> _isDisconnectingSubscription;
+  late StreamSubscription<BluetoothBondState> bsSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
@@ -97,6 +99,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   double minValue = 32; // Valor mínimo del gauge
   double maxValue = 122; // Valor máximo del gauge
   bool _isLoading = true;
+  BluetoothBondState bondState = BluetoothBondState.none;
 
   double celsiusToFahrenheit(double celsius) {
     return (celsius * 9 / 5) + 32;
@@ -124,6 +127,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         _services = [];
       } else if (state == BluetoothConnectionState.disconnected) {
         _stopBeaconScanning();
+        widget.pageController.jumpToPage(0);
       }
 
       if (state == BluetoothConnectionState.connected && _rssi == null) {
@@ -157,15 +161,27 @@ class _DeviceScreenState extends State<DeviceScreen> {
       _isDisconnecting = value;
       if (mounted) {
         setState(() {});
+        //widget.pageController.jumpToPage(0);
       }
     });
 
-    final bsSubscription = widget.device.bondState.listen((value) {
-      print("$value prev:{$widget.device.prevBondState}");
+    bsSubscription = widget.device.bondState.listen((value) {
+      setState(() {
+        bondState = value;
+      });
+      if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
+        _gotoScanScreenAsync();
+      }
+      debugPrint("--------$value prev:${widget.device.prevBondState}");
+      debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
     });
     widget.device.cancelWhenDisconnected(bsSubscription);
 
     _initializeAsync();
+  }
+
+  Future<void> _gotoScanScreenAsync() async {
+    await widget.device.disconnect(queue: false);
   }
 
   Future<void> _initializeAsync() async {
@@ -716,6 +732,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
               children: <Widget>[
                 TopLoadingIndicator(isLoading: _isLoading),
                 //const SizedBox(height: 7),
+                /*if(bondState==BluetoothBondState.bonded)...[
+                  Text('$bondState'),
+                ]else if(bondState==BluetoothBondState.none)...[
+                  Text('$bondState'),
+                ]else if(bondState==BluetoothBondState.bonding)...[
+                  Text('$bondState'),
+                ],*/
+                
                 Card(
                   shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
@@ -890,7 +914,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                         onValueChanged: handleCardPointerValueChanged,
                                         onValueChangeEnd: handleCardPointerValueChanged,
                                         onValueChanging: handleCardPointerValueChanging,
-                                        enableDragging: true,
+                                        enableDragging: bondState==BluetoothBondState.bonded ? true : false,
                                         enableAnimation: false,
                                         markerHeight: 30,
                                         markerWidth: 30,
@@ -953,14 +977,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
                                 elevation: 10,
                                 highlightElevation: 10,
-                                onPressed: () async {
+                                onPressed: bondState==BluetoothBondState.bonded ? ()  async {
                                   final updates = {'target_temperature': tempGradoCelsius};
                                   final userId = supabase.auth.currentUser!.id;
                                   await _writeTargetTemperature(tempGradoCelsius);
                                   //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
                                   //todo add minimal check to update
                                   await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
-                                },
+                                } : null,
                                 child: const Icon(
                                   Atlas.medium_thermometer_bold,
                                   size: 30,
@@ -1027,17 +1051,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   ),
                 ),
                 if (_isLoading) ...[
-                  // 👈 **Cambio**: Verifica si está cargando
-                  //const Center(child: LinearProgressIndicator()), // 👈 **Cambio**: Indicador de carga
-                  // const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                      onPressed: () async {
-                        await widget.device.connect();
-                        await showBondingBox();
-                      },
-                      label: Text('Vinculate Device'),
-                      icon: Icon(Icons.connected_tv_sharp)),
-                  const Text('Starting...', style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
+                  Text(bondState == BluetoothBondState.none || bondState == BluetoothBondState.bonded ? 'Starting...' : 'Bonding', style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
                 ] else if (role == null) ...[
                   const Center(child: Text('Unauthorized...', style: TextStyle())),
                 ] else if (['Admin', 'Member'].contains(role)) ...[

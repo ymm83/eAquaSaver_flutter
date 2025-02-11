@@ -165,7 +165,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
     try {
       _scanResults.clear();
-      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5), androidUsesFineLocation: true);
     } catch (e) {
       showSnackBar("Start Scan Error: $e", theme: 'error');
     }
@@ -228,6 +228,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildSystemDeviceTiles(BuildContext context) {
     return _systemDevices.map((d) {
+      debugPrint('-------- _systemDevices: ${d.prevBondState} - ${d.advName} - ');
       return SystemDeviceTile(
         device: d,
         onOpen: () {
@@ -269,7 +270,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           child: ListView(
             children: <Widget>[
               SizedBox(
-                height: 5,
+                height: 5, 
               ),
               //TopLoadingIndicator(isLoading: _isScanning),
               if (_systemDevices.isNotEmpty) ...[

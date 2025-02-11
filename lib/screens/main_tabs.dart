@@ -114,7 +114,7 @@ class _MainTabsState extends State<MainTabs> {
               BlocBuilder<BleBloc, BleState>(
                 builder: (context, state) {
                   if (state is BleConnected) {
-                    return DeviceScreen(device: state.device);
+                    return DeviceScreen(device: state.device, pageController: _pageController);
                   }
                   return const Center(child: CircularProgressIndicator());
                 },
