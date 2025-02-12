@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'package:eaquasaver/widgets/app_bar_loading_indicator.dart';
-import 'package:eaquasaver/widgets/top_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utils/extra.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../utils/snackbar_helper.dart';
+import '../widgets/app_bar_loading_indicator.dart';
 import '../widgets/system_device_tile.dart';
 import '../widgets/scan_result_tile.dart';
 import '../api/ble_characteristics_uuids.dart';
@@ -226,7 +225,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
-  List<Widget> _buildSystemDeviceTiles(BuildContext context) {
+  /*List<Widget> _buildSystemDeviceTiles(BuildContext context) {
     return _systemDevices.map((d) {
       debugPrint('-------- _systemDevices: ${d.prevBondState} - ${d.advName} - ');
       return SystemDeviceTile(
@@ -243,7 +242,31 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         },
       );
     }).toList();
-  }
+  }*/
+
+  List<Widget> _buildSystemDeviceTiles(BuildContext context) {
+  return _systemDevices.map((d) {
+    return StreamBuilder<BluetoothBondState>(
+      stream: d.bondState,
+      initialData: BluetoothBondState.none, // Default initial state
+      builder: (context, snapshot) {
+        final bondState = snapshot.data ?? BluetoothBondState.none;
+        debugPrint('Device: ${d.advName}, Bond State: $bondState');
+
+        return SystemDeviceTile(
+          device: d,
+          bondState: bondState, // Pass the bond state to the tile
+          onOpen: () {
+            onConnectPressed(d);
+          },
+          onConnect: () {
+            onConnectPressed(d);
+          },
+        );
+      },
+    );
+  }).toList();
+}
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
