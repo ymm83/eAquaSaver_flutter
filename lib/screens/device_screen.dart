@@ -172,6 +172,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
       if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
         _gotoScanScreenAsync();
       }
+      if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       debugPrint("--------$value prev:${widget.device.prevBondState}");
       debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
     });
@@ -181,7 +186,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<void> _gotoScanScreenAsync() async {
-    await widget.device.disconnect(queue: false);
+    await widget.device.disconnect(queue: true);
   }
 
   Future<void> _initializeAsync() async {
@@ -739,7 +744,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 ]else if(bondState==BluetoothBondState.bonding)...[
                   Text('$bondState'),
                 ],*/
-                
+
                 Card(
                   shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
@@ -755,8 +760,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         //Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
                         Text(_device?.customName ?? widget.device.platformName,
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        if (isConnected && _rssi != null)
-                          Text('(${_rssi!} dBm)', style: Theme.of(context).textTheme.bodySmall)
+                        if (isConnected && _rssi != null) Text('(${_rssi!} dBm)', style: TextStyle(fontSize: 11)),
                       ],
                     ),
                     //subtitle: Text(widget.device.remoteId.toString()),
@@ -914,7 +918,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                         onValueChanged: handleCardPointerValueChanged,
                                         onValueChangeEnd: handleCardPointerValueChanged,
                                         onValueChanging: handleCardPointerValueChanging,
-                                        enableDragging: bondState==BluetoothBondState.bonded ? true : false,
+                                        enableDragging: bondState == BluetoothBondState.bonded ? true : false,
                                         enableAnimation: false,
                                         markerHeight: 30,
                                         markerWidth: 30,
@@ -977,14 +981,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
                                 elevation: 10,
                                 highlightElevation: 10,
-                                onPressed: bondState==BluetoothBondState.bonded ? ()  async {
-                                  final updates = {'target_temperature': tempGradoCelsius};
-                                  final userId = supabase.auth.currentUser!.id;
-                                  await _writeTargetTemperature(tempGradoCelsius);
-                                  //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
-                                  //todo add minimal check to update
-                                  await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
-                                } : null,
+                                onPressed: bondState == BluetoothBondState.bonded
+                                    ? () async {
+                                        final updates = {'target_temperature': tempGradoCelsius};
+                                        final userId = supabase.auth.currentUser!.id;
+                                        await _writeTargetTemperature(tempGradoCelsius);
+                                        //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                        //todo add minimal check to update
+                                        await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
+                                      }
+                                    : null,
                                 child: const Icon(
                                   Atlas.medium_thermometer_bold,
                                   size: 30,
@@ -1051,7 +1057,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   ),
                 ),
                 if (_isLoading) ...[
-                  Text(bondState == BluetoothBondState.none || bondState == BluetoothBondState.bonded ? 'Starting...' : 'Bonding', style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
+                  Text(
+                      bondState == BluetoothBondState.none || bondState == BluetoothBondState.bonded
+                          ? 'Starting...'
+                          : 'Bonding...',
+                      style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
                 ] else if (role == null) ...[
                   const Center(child: Text('Unauthorized...', style: TextStyle())),
                 ] else if (['Admin', 'Member'].contains(role)) ...[
