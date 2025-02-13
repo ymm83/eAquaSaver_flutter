@@ -124,17 +124,17 @@ class BeaconBloc extends Bloc<BeaconEvent, BeaconState> {
       await FlutterBluePlus.startScan(
         timeout: const Duration(seconds: 3),
       );
-      debugPrint('----------- _onStartScan>remoteId:$remoteId'); // q
+      //debugPrint('----------- _onStartScan>remoteId:$remoteId'); // q
 
       _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) async {
         for (ScanResult r in results) {
           if (r.advertisementData.advName == 'eAquaS Beacon') {
-            debugPrint('----------- _onStartScan > onScanResults:${r.toString()}'); // q
+            //debugPrint('----------- _onStartScan > onScanResults:${r.toString()}'); // q
             if (r.device.remoteId.toString().isNotEmpty) {
               if (r.advertisementData.manufacturerData.isNotEmpty) {
                 for (var value in r.advertisementData.manufacturerData.values) {
                   final decodedData = _decodeManufacturerData(value, emit);
-                  debugPrint('-------rrrrrrrrrrrrrrrr:${decodedData.toString()}');
+                  //debugPrint('-------rrrrrrrrrrrrrrrr:${decodedData.toString()}');
 
                   if (!emit.isDone) {
                     emit(BeaconLoaded(decodedData));

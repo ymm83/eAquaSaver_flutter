@@ -50,7 +50,7 @@ class _IssueFormState extends State<IssueForm> {
   void dispose() {
     issueTitleController.dispose();
     issueBodyController.dispose();
-    debugPrint('DISPOSE CALLED');
+    //debugPrint('DISPOSE CALLED');
     super.dispose();
   }
 
@@ -108,7 +108,7 @@ class _IssueFormState extends State<IssueForm> {
         },
       ).select();
       if (data.isNotEmpty) {
-        debugPrint('Issue añadido correctamente!');
+       // debugPrint('Issue añadido correctamente!');
       }
     } catch (error) {
       if (mounted) {
@@ -142,7 +142,7 @@ class _IssueFormState extends State<IssueForm> {
           .select()
           .single();
       if (data.isNotEmpty) {
-        debugPrint('Issue actualizado correctamente!');
+        //debugPrint('Issue actualizado correctamente!');
         showSnackBar('Issue updated successfully', theme:'success');
       }
     } catch (error) {

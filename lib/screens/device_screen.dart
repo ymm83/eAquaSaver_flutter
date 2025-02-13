@@ -177,8 +177,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
           _isLoading = false;
         });
       }
-      debugPrint("--------$value prev:${widget.device.prevBondState}");
-      debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
+      //debugPrint("--------$value prev:${widget.device.prevBondState}");
+      //debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
     });
     widget.device.cancelWhenDisconnected(bsSubscription);
 
