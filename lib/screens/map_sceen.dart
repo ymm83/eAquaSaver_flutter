@@ -42,7 +42,7 @@ class MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
-    super.initState(); // Asegúrate de llamar a super.initState()
+    super.initState(); 
     _fetchStorageLocation();
     _serviceStatusStream = Geolocator.getServiceStatusStream().listen((status) => _updateGPSStatus(status));
     _gpsEnabled().then((gpsState) {

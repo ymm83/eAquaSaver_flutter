@@ -58,75 +58,69 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
     return _connectionState == BluetoothConnectionState.connected;
   }
 
+  Widget _buildDeviceCard({
+    required Color borderColor,
+    required Color cardColor,
+    required IconData leadingIcon,
+    required Widget subtitle,
+    required VoidCallback? onPressed,
+    required IconData trailingIcon,
+    Color? leadingBackgroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: borderColor, width: 2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        color: cardColor,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: leadingBackgroundColor,
+            child: Icon(leadingIcon),
+          ),
+          title: Text(widget.device.platformName),
+          subtitle: subtitle,
+          trailing: IconButton(
+            onPressed: onPressed,
+            icon: Icon(trailingIcon),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    //widget.device.bondState
     if (widget.device.isConnected) {
-      return Container(
-          // Agregado para definir el tamaño
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.blue, width: 2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            color: Colors.blue.shade100,
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.bluetooth_connected)),
-              title: Text(widget.device.platformName),
-              subtitle: Text(widget.device.remoteId.str), //Text('Bond State: ${widget.bondState}'),
-              trailing: IconButton(
-                onPressed: isConnected ? widget.onOpen : widget.onConnect,
-                icon: (isConnected ? const Icon(Icons.link) : Icon(Icons.link_off)),
-              ),
-            ),
-          ));
+      return _buildDeviceCard(
+        borderColor: Colors.blue,
+        cardColor: Colors.blue.shade100,
+        leadingIcon: Icons.bluetooth_connected,
+        subtitle: Text(widget.device.remoteId.str),
+        onPressed: isConnected ? widget.onOpen : widget.onConnect,
+        trailingIcon: isConnected ? Icons.link : Icons.link_off,
+      );
     } else if (widget.device.prevBondState == BluetoothBondState.bonding) {
-      return Container(
-          // Agregado para definir el tamaño
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.red, width: 2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            color: Colors.red.shade100,
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Icon(Icons.bluetooth_disabled),
-                backgroundColor: Colors.red.shade100,
-              ),
-              title: Text(widget.device.platformName),
-              subtitle: Text(
-                'Pairing failed!',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, letterSpacing: 1.5),
-              ),
-              trailing: const IconButton(
-                onPressed: null,
-                icon: Icon(Icons.lock_rounded),
-              ),
-            ),
-          ));
+      return _buildDeviceCard(
+        borderColor: Colors.red,
+        cardColor: Colors.red.shade100,
+        leadingIcon: Icons.bluetooth_disabled,
+        subtitle: Text('Pairing failed!', style: TextStyle(color: Colors.red.shade700, letterSpacing: 1.5)),
+        onPressed: null,
+        trailingIcon: Icons.lock_rounded,
+        leadingBackgroundColor: Colors.red.shade100,
+      );
     } else {
-      return Container(
-          // Agregado para definir el tamaño
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.blue, width: 2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            color: Colors.blue.shade100,
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.bluetooth_connected)),
-              title: Text(widget.device.platformName),
-              subtitle: Text(widget.device.remoteId.str), //Text('Bond State: ${widget.bondState}'),
-              trailing: IconButton(
-                onPressed: isConnected ? widget.onOpen : widget.onConnect,
-                icon: (isConnected ? const Icon(Icons.link) : Icon(Icons.link_off)),
-              ),
-            ),
-          ));
+      return _buildDeviceCard(
+        borderColor: Colors.blue,
+        cardColor: Colors.blue.shade100,
+        leadingIcon: Icons.bluetooth_connected,
+        subtitle: Text(widget.device.remoteId.str),
+        onPressed: isConnected ? widget.onOpen : widget.onConnect,
+        trailingIcon: isConnected ? Icons.link : Icons.link_off,
+      );
     }
   }
 }
