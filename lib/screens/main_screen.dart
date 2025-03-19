@@ -134,7 +134,17 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   fit: BoxFit.cover,
                   height: 40,
                 ),
-                Image.asset('assets/app_title.png', fit: BoxFit.cover)
+                const SizedBox(width: 10),
+                Text(
+                  'eAquaSaver',
+                  style: TextStyle(
+                      fontSize: 25,
+                      color: Colors.grey.shade600,
+                      fontFamily: 'ChakraPetch',
+                      fontWeight: FontWeight.w500,
+                      fontStyle: FontStyle.italic),
+                ),
+                //Image.asset('assets/app_title.png', fit: BoxFit.cover)
               ],
             ),
             centerTitle: true,
@@ -142,7 +152,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             actions: const [
               Padding(padding: EdgeInsets.only(right: 10), child: Icon(Icons.notifications_active)),
             ]),
-        body: screens[_currentIndex],
+            body: screens[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           selectedItemColor: Colors.blue.shade600,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),

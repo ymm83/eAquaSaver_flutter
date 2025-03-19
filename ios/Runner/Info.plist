@@ -144,5 +144,7 @@
                 The example App requires temporary access to the device&apos;s precise location.
             </string>
         </dict>
+        <key>NSBluetoothAlwaysUsageDescription</key>
+        <string>This app needs Bluetooth to function</string>    
     </dict>
 </plist>
