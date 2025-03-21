@@ -102,6 +102,10 @@ flutter:
   assets:
     - assets/
   fonts:
+      - family: ZenDots
+        fonts:
+          - asset: assets/fonts/ZenDots-Regular.ttf
+            weight: 400  
       - family: ChakraPetch
         fonts:
           - asset: assets/fonts/ChakraPetch-Light.ttf
