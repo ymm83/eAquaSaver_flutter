@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_login.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/snackbar_helper.dart';
+import '../utils/app_colors.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -316,7 +317,7 @@ class _UserDashboardState extends State<UserDashboard> {
                   color: Colors.blue.shade100,
                   child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.blue.shade300,
+                        backgroundColor: Colors.blueGrey.shade100,
                         child: ((userData['firstname'] == null && userData['lastname'] == null) ||
                                 avatarLetter(userData['firstname'], userData['lastname']) == 'icon')
                             ? const Icon(Icons.person)
@@ -411,6 +412,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
               ],
             ),
+      backgroundColor: AppColors.body,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:eaquasaver/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/ble/ble_bloc.dart';
@@ -78,71 +79,88 @@ class _MainTabsState extends State<MainTabs> {
     return BlocBuilder<BleBloc, BleState>(
       builder: (context, state) {
         return Scaffold(
-          // a==b ? a : ? a==c ? c : b
-          appBar: AppBar(
-            leading: state is BleConnected && state.showDetails && [2, 3, 4].contains(pageIndex)
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      _pageController.jumpToPage(1); // manager
-                    },
-                  )
-                : (pageIndex == 1)
-                    ? IconButton(
+          body: Column(
+            children: [
+              Container(
+                color: AppColors.bgColor,
+                child: Row(
+                  children: [
+                    if (state is BleConnected && state.showDetails && [2, 3, 4].contains(pageIndex))
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          _pageController.jumpToPage(1); // manager
+                        },
+                      )
+                    else if (pageIndex == 1)
+                      IconButton(
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () {
                           _pageController.jumpToPage(0); // Scan
                           context.read<BleBloc>().add(const DetailsClose());
                         },
-                      )
-                    : null,
-            actions: state is BleConnected && state.showDetails ? _managerButtons(context) : _scanButtons(context),
-            backgroundColor: Colors.green[100],
-            elevation: 0,
-            title: Text(_pageTitle[pageIndex]),
-          ),
-          body: PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            pageSnapping: true,
-            controller: _pageController,
-            onPageChanged: (index) {
-              pageIndex = index;
-              setState(() {});
-            },
-            children: [
-              ScanScreen(pageController: _pageController),
-              BlocBuilder<BleBloc, BleState>(
-                builder: (context, state) {
-                  if (state is BleConnected) {
-                    return DeviceScreen(device: state.device, pageController: _pageController);
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
+                      ),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          _pageTitle[pageIndex],
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    ...(state is BleConnected && state.showDetails ? _managerButtons(context) : _scanButtons(context)),
+                  ],
+                ),
               ),
-              BlocBuilder<BleBloc, BleState>(
-                builder: (context, state) {
-                  if (state is BleConnected) {
-                    return DeviceSettings(device: state.device);
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
+              Expanded(
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  pageSnapping: true,
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    pageIndex = index;
+                    setState(() {});
+                  },
+                  children: [
+                    ScanScreen(pageController: _pageController),
+                    BlocBuilder<BleBloc, BleState>(
+                      builder: (context, state) {
+                        if (state is BleConnected) {
+                          return DeviceScreen(device: state.device, pageController: _pageController);
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+                    BlocBuilder<BleBloc, BleState>(
+                      builder: (context, state) {
+                        if (state is BleConnected) {
+                          return DeviceSettings(device: state.device);
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+                    BlocBuilder<BleBloc, BleState>(
+                      builder: (context, state) {
+                        if (state is BleConnected) {
+                          return DeviceCharts(device: state.device);
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+                    BlocBuilder<BleBloc, BleState>(
+                      builder: (context, state) {
+                        if (state is BleConnected) {
+                          return DeviceAllow(device: state.device);
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    )
+                  ],
+                ),
               ),
-              BlocBuilder<BleBloc, BleState>(
-                builder: (context, state) {
-                  if (state is BleConnected) {
-                    return DeviceCharts(device: state.device);
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
-              ),
-              BlocBuilder<BleBloc, BleState>(
-                builder: (context, state) {
-                  if (state is BleConnected) {
-                    return DeviceAllow(device: state.device);
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
-              )
             ],
           ),
         );

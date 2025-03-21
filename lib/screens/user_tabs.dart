@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/snackbar_helper.dart';
+import '../utils/app_colors.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -79,44 +80,64 @@ class _UserTabsState extends State<UserTabs> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
-        //key: scaffoldMessengerKey,
-        child: Scaffold(
-      appBar: AppBar(
-        leading: _currentPage > 0
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_outlined),
-                onPressed: () => _navigateToPage(0),
-              )
-            : null,
-        leadingWidth: 40,
-        actions: _currentPage == 0
-            ? _actionsDefault(context)
-            : ([3, 4, 5].contains(_currentPage))
-                ? _actionsIssue(context)
-                : _actionsDefault(context),
-        backgroundColor: Colors.green[100],
-        elevation: 0,
-        title: Text(_pageTitle),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Column(
+          children: [
+            // AppBar personalizado
+            Container(
+              color: AppColors.body, // Color de fondo del AppBar
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  // Botón de retroceso (back)
+                  if (_currentPage > 0)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_outlined),
+                      onPressed: () => _navigateToPage(0),
+                    ),
+                  // Título de la página
+                  Expanded(
+                    child:  Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 0), // Ajusta el padding si es necesario
+                        child: Text(
+                          _pageTitle,
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400, color: Colors.blue.shade900),
+                        ),
+                      ),
+                    
+                  ),
+                  // Acciones del AppBar
+                  if (_currentPage == 0) ..._actionsDefault(context),
+                  if ([3, 4, 5].contains(_currentPage)) ..._actionsIssue(context),
+                ],
+              ),
+            ),
+            // Contenido de la página
+            Expanded(
+              child: PageView(
+                physics: const NeverScrollableScrollPhysics(),
+                pageSnapping: false,
+                controller: _userTabController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                    _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
+                  });
+                },
+                children: [
+                  const UserDashboard(),
+                  const AccountScreen(),
+                  ReviewsScreen(pageController: _userTabController),
+                  IssueScreen(pageController: _userTabController),
+                  IssueForm(typeForm: 'new', pageController: _userTabController),
+                  IssueForm(typeForm: 'edit', pageController: _userTabController),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        pageSnapping: false,
-        controller: _userTabController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-            _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
-          });
-        },
-        children: [
-          const UserDashboard(),
-          const AccountScreen(),
-          ReviewsScreen(pageController: _userTabController),
-          IssueScreen(pageController: _userTabController),
-          IssueForm(typeForm: 'new', pageController: _userTabController),
-          IssueForm(typeForm: 'edit', pageController: _userTabController),
-        ],
-      ),
-    ));
+    );
   }
 }

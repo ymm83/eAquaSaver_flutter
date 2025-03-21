@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:eaquasaver/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -124,36 +125,63 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       scaffoldMessengerKey: scaffoldMessengerKey,
       color: Colors.greenAccent,
       home: Scaffold(
-        appBar: AppBar(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/company_logo.png',
-                  fit: BoxFit.cover,
-                  height: 40,
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            // AppBar personalizado
+            Container(
+              height: 130,
+              child: AppBar(
+                elevation: 0.0,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/company_logo.png',
+                      fit: BoxFit.cover,
+                      height: 40,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'eAquaSaver',
+                      style: TextStyle(
+                        fontSize: 25,
+                        color: AppColors.title,
+                        fontFamily: 'ZenDots',
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  'eAquaSaver',
-                  style: TextStyle(
-                      fontSize: 25,
-                      color: Colors.grey.shade600,
-                      fontFamily: 'ChakraPetch',
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic),
-                ),
-                //Image.asset('assets/app_title.png', fit: BoxFit.cover)
-              ],
+                centerTitle: true,
+                backgroundColor: AppColors.appBar,
+                actions: const [
+                  Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Icon(
+                      Icons.notifications_active,
+                      color: AppColors.title,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            centerTitle: true,
-            backgroundColor: Colors.green[100],
-            actions: const [
-              Padding(padding: EdgeInsets.only(right: 10), child: Icon(Icons.notifications_active)),
-            ]),
-            body: screens[_currentIndex],
+            // Contenido principal debajo del AppBar
+            Padding(
+              padding: EdgeInsets.only(top: 85),
+              child: Card(
+                child: screens[_currentIndex],
+                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                elevation: 8,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+                clipBehavior: Clip.antiAlias,
+              ),
+            ),
+          ],
+        ),
         bottomNavigationBar: BottomNavigationBar(
+          //backgroundColor: Colors.blue.shade100,
           selectedItemColor: Colors.blue.shade600,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           currentIndex: _currentIndex,
@@ -165,7 +193,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
-              label: 'Main',
+              label: 'Home',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.water_drop_outlined),
