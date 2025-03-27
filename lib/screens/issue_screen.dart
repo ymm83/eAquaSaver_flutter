@@ -142,6 +142,7 @@ class _IssueScreenState extends State<IssueScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
       return Scaffold(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
           builder: (context, connectivityState) {
             if (connectivityState is ConnectivityOffline) {
@@ -220,7 +221,7 @@ class _IssueScreenState extends State<IssueScreen> {
                           .startOf(DurationUnit.second)
                           .fromNow();
                       return Card(
-                        color: const Color.fromARGB(255, 191, 241, 239),
+                        color: Colors.amber.shade50,
                         child: ListTile(
                           key: UniqueKey(),
                           title: Text(

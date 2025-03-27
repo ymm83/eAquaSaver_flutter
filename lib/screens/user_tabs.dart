@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/snackbar_helper.dart';
-import '../utils/app_colors.dart';
 import 'user_dashboard.dart';
 import 'reviews_screen.dart';
 import 'account_screen.dart';
@@ -50,15 +49,15 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsDefault(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(1),
       ),
       IconButton(
-        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(2),
       ),
       IconButton(
-        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(3),
       ),
     ];
@@ -67,11 +66,11 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsIssue(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(3),
       ),
       IconButton(
-        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(4),
       ),
     ];
@@ -81,19 +80,19 @@ class _UserTabsState extends State<UserTabs> {
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       child: Scaffold(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         extendBodyBehindAppBar: true,
         body: Column(
           children: [
-            // AppBar personalizado
             Container(
-              color: AppColors.body, // Color de fondo del AppBar
+              color: Theme.of(context).appBarTheme.backgroundColor, // Color de fondo del AppBar
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
                   // Botón de retroceso (back)
                   if (_currentPage > 0)
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_outlined),
+                      icon: Icon(Icons.arrow_back_outlined, color: Colors.blue[900], size: 30,),
                       onPressed: () => _navigateToPage(0),
                     ),
                   // Título de la página

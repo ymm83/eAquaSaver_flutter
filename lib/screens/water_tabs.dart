@@ -45,30 +45,79 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final waterTabsController = Scaffold(
-      appBar: AppBar(
+    return ScaffoldMessenger(
+      child: Scaffold(
+          extendBodyBehindAppBar: true,
+          body: Column(
+            children: [
+              Container(
+                color: Theme.of(context).appBarTheme.backgroundColor, // Color de fondo del AppBar
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 0), // Ajusta el padding si es necesario
+                        child: Text(
+                          pageTitle,
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400, color: Colors.blue.shade900),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.science_outlined,
+                        color: Colors.blue[900],
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          pageTitle = 'Water';
+                          pageChanged = 0;
+                        });
+                        _navigateToPage(0);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.blue[900],
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          pageTitle = 'Location';
+                          pageChanged = 1;
+                        });
+                        _navigateToPage(1);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  pageSnapping: true,
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      pageChanged = index;
+                      pageTitle = index == 0 ? 'Water' : 'Location';
+                    });
+                  },
+                  children: const [
+                    WaterScreen(),
+                    MapScreen(),
+                  ],
+                ),
+              ),
+            ],
+          )
+
+          /*appBar: AppBar(
         actions: [
-          IconButton(
-            icon: Icon(Icons.science_outlined, color: Colors.blue[900]),
-            onPressed: () {
-              setState(() {
-                pageTitle = 'Water';
-                pageChanged = 0;
-              });
-              _navigateToPage(0);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.location_on_outlined, color: Colors.blue[900]),
-            onPressed: () {
-              setState(() {
-                pageTitle = 'Location';
-                pageChanged = 1;
-              });
-              _navigateToPage(1);
-            },
-          ),
-        ],
+          
         backgroundColor: Colors.green[100],
         elevation: 0,
         title: Text(pageTitle),
@@ -91,6 +140,8 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
     );
     return Scaffold(
       body: waterTabsController,
+    );*/
+          ),
     );
   }
 }

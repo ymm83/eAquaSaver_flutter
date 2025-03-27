@@ -1,4 +1,3 @@
-import 'package:eaquasaver/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/ble/ble_bloc.dart';
@@ -79,10 +78,11 @@ class _MainTabsState extends State<MainTabs> {
     return BlocBuilder<BleBloc, BleState>(
       builder: (context, state) {
         return Scaffold(
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           body: Column(
             children: [
               Container(
-                color: AppColors.bgColor,
+                color: Theme.of(context).appBarTheme.backgroundColor,
                 child: Row(
                   children: [
                     if (state is BleConnected && state.showDetails && [2, 3, 4].contains(pageIndex))

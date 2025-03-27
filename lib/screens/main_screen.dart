@@ -1,10 +1,15 @@
 import 'dart:async';
 
-import 'package:eaquasaver/utils/app_colors.dart';
+//import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
+//import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import 'package:eaquasaver/provider/theme_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:water_drop_nav_bar/water_drop_nav_bar.dart';
 
 import '../utils/snackbar_helper.dart';
 import 'bluetooth_off_screen.dart';
@@ -107,15 +112,18 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     // Determina la pantalla a mostrar en la pestaña Main
     Widget mainScreen = (_adapterState == BluetoothAdapterState.on && _locationStatus == true)
         ? const MainTabs()
         : BluetoothOffScreen(adapterState: _adapterState);
 
+    var scaffoldKey = GlobalKey<ScaffoldState>();
+
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [
-      mainScreen,
       const WaterTabs(),
+      mainScreen,
       const UserTabs(
         key: Key('userTabs'),
       ),
@@ -124,63 +132,236 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
       color: Colors.greenAccent,
-      home: Scaffold(
-        extendBodyBehindAppBar: true,
-        body: Stack(
-          children: [
-            // AppBar personalizado
-            Container(
-              height: 130,
-              child: AppBar(
-                elevation: 0.0,
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/company_logo.png',
-                      fit: BoxFit.cover,
-                      height: 40,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'eAquaSaver',
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: AppColors.title,
-                        fontFamily: 'ZenDots',
-                        fontWeight: FontWeight.w400,
+      home: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          systemNavigationBarColor: Theme.of(context).scaffoldBackgroundColor,
+          //systemNavigationBarIconBrightness: Theme.of(context).brightness,
+        ),
+        child: Scaffold(
+          drawer: Drawer(
+            child: ListView(
+              clipBehavior: Clip.antiAlias,
+              padding: EdgeInsets.zero, // Elimina el padding predeterminado
+              children: [
+                // Header del Drawer
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/company_logo.png',
+                            fit: BoxFit.cover,
+                            height: 80,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'eAquaSaver',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Theme.of(context).appBarTheme.foregroundColor,
+                              fontFamily: 'ZenDots',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
+                      SizedBox(height: 8),
+                      /* Text(
+                        'Usuario: John Doe',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),*/
+                    ],
+                  ),
+                ),
+
+                // Opciones del Drawer
+                ListTile(
+                  leading: Icon(Icons.home_outlined, color: Colors.blue),
+                  title: Text('Inicio'),
+                  onTap: () {
+                    // Acción al seleccionar esta opción
+                    Navigator.pop(context); // Cierra el Drawer
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.water_drop_outlined, color: Colors.blue),
+                  title: Text('Agua'),
+                  onTap: () {
+                    // Acción al seleccionar esta opción
+                    Navigator.pop(context); // Cierra el Drawer
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.person_2_outlined, color: Colors.blue),
+                  title: Text('Perfil'),
+                  onTap: () {
+                    // Acción al seleccionar esta opción
+                    Navigator.pop(context); // Cierra el Drawer
+                  },
+                ),
+
+                // Divisor
+                Divider(),
+
+                // Opción de cerrar sesión
+                ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red),
+                  title: Text('Cerrar sesión'),
+                  onTap: () {
+                    // Acción para cerrar sesión
+                    Navigator.pop(context); // Cierra el Drawer
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Dark Mode'),
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) => themeProvider.setThemeMode(
+                    value ? ThemeMode.dark : ThemeMode.light,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          extendBodyBehindAppBar: true,
+          body: Stack(
+            children: [
+              // AppBar personalizado
+              Container(
+                height: 130,
+                child: AppBar(
+                  elevation: 0.0,
+                  leading: Builder(
+                    builder: (BuildContext context) {
+                      return IconButton(
+                        icon: Icon(Icons.menu, color: Theme.of(context).appBarTheme.foregroundColor),
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer(); // Abre el Drawer
+                        },
+                      );
+                    },
+                  ),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/company_logo.png',
+                        fit: BoxFit.cover,
+                        height: 40,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'eAquaSaver',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                          fontFamily: 'ZenDots',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  centerTitle: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  actions: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 10),
+                      child: InkWell(
+                        child: Icon(
+                          Icons.notifications_active,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                        onTap: () => null,
+                      ), // Ensure Scaffold is in context
                     ),
                   ],
                 ),
-                centerTitle: true,
-                backgroundColor: AppColors.appBar,
-                actions: const [
-                  Padding(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Icon(
-                      Icons.notifications_active,
-                      color: AppColors.title,
-                    ),
-                  ),
-                ],
               ),
-            ),
-            // Contenido principal debajo del AppBar
-            Padding(
-              padding: EdgeInsets.only(top: 85),
-              child: Card(
-                child: screens[_currentIndex],
-                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                elevation: 8,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
-                clipBehavior: Clip.antiAlias,
+              // Contenido principal debajo del AppBar
+              Padding(
+                padding: EdgeInsets.only(top: 85),
+                child: Card(
+                  child: screens[_currentIndex],
+                  margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+                  clipBehavior: Clip.antiAlias,
+                ),
               ),
-            ),
+            ],
+          ),
+          bottomNavigationBar: WaterDropNavBar(
+            bottomPadding: 10.0,
+            inactiveIconColor: Theme.of(context).primaryColor,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            waterDropColor: Colors.blue,
+            onItemSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            selectedIndex: _currentIndex,
+            barItems: [
+              BarItem(
+                filledIcon: Icons.water_drop_rounded,
+                outlinedIcon: Icons.water_drop_outlined,
+              ),
+              BarItem(
+                filledIcon: Icons.home_rounded,
+                outlinedIcon: Icons.home_outlined,
+              ),
+              BarItem(
+                filledIcon: Icons.person_2_rounded,
+                outlinedIcon: Icons.person_2_outlined,
+              )
+            ],
+          ),
+          /*bottomNavigationBar: CurvedNavigationBar(
+          iconPadding: 14,
+          color: AppColors.appBar,
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+          buttonBackgroundColor: Colors.grey.shade600,
+          items: [
+            CurvedNavigationBarItem(
+                child: Icon(
+                  Icons.water_drop_outlined,
+                  color: Colors.white,
+                ),
+                label: 'Water',
+                labelStyle: TextStyle(color: Colors.white)),
+            CurvedNavigationBarItem(
+                child: Icon(
+                  Icons.home_outlined,
+                  color: Colors.white,
+                ),
+                label: 'Home',
+                labelStyle: TextStyle(color: Colors.white)),
+            CurvedNavigationBarItem(
+                child: Icon(
+                  Icons.person_2_outlined,
+                  color: Colors.white,
+                ),
+                label: 'User',
+                labelStyle: TextStyle(color: Colors.white)),
           ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),*/
+          /*bottomNavigationBar: BottomNavigationBar(
           //backgroundColor: Colors.blue.shade100,
           selectedItemColor: Colors.blue.shade600,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -204,6 +385,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
               label: 'User',
             ),
           ],
+        ),*/
         ),
       ),
       navigatorObservers: [BluetoothAdapterStateObserver()],

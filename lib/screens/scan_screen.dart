@@ -214,10 +214,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         builder: (BuildContext context, Widget? child) {
           return Transform.rotate(
             angle: _controller.value * 2 * 3.141592653589793,
-            child: const Icon(
+            child: Icon(
               Icons.sync,
               size: 40,
-              color: Colors.purple,
+              color: Theme.of(context).appBarTheme.backgroundColor,
             ),
           );
         },
@@ -245,28 +245,28 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }*/
 
   List<Widget> _buildSystemDeviceTiles(BuildContext context) {
-  return _systemDevices.map((d) {
-    return StreamBuilder<BluetoothBondState>(
-      stream: d.bondState,
-      initialData: BluetoothBondState.none, // Default initial state
-      builder: (context, snapshot) {
-        final bondState = snapshot.data ?? BluetoothBondState.none;
-        debugPrint('Device: ${d.advName}, Bond State: $bondState');
+    return _systemDevices.map((d) {
+      return StreamBuilder<BluetoothBondState>(
+        stream: d.bondState,
+        initialData: BluetoothBondState.none, // Default initial state
+        builder: (context, snapshot) {
+          final bondState = snapshot.data ?? BluetoothBondState.none;
+          debugPrint('Device: ${d.advName}, Bond State: $bondState');
 
-        return SystemDeviceTile(
-          device: d,
-          bondState: bondState, // Pass the bond state to the tile
-          onOpen: () {
-            onConnectPressed(d);
-          },
-          onConnect: () {
-            onConnectPressed(d);
-          },
-        );
-      },
-    );
-  }).toList();
-}
+          return SystemDeviceTile(
+            device: d,
+            bondState: bondState, // Pass the bond state to the tile
+            onOpen: () {
+              onConnectPressed(d);
+            },
+            onConnect: () {
+              onConnectPressed(d);
+            },
+          );
+        },
+      );
+    }).toList();
+  }
 
   List<Widget> _buildScanResultTiles(BuildContext context) {
     return _scanResults
@@ -287,13 +287,20 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       child: Scaffold(
-        appBar: AppBarLoadingIndicator(isLoading: _isScanning),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        appBar: AppBarLoadingIndicator(
+          isLoading: _isScanning,
+          backgroundColor: Colors.blue.shade200,
+          progressColor: Colors.red.shade300,
+          boxColor: Theme.of(context).appBarTheme.backgroundColor,
+          height: 1.5,
+        ),
         body: RefreshIndicator(
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
               SizedBox(
-                height: 5, 
+                height: 5,
               ),
               //TopLoadingIndicator(isLoading: _isScanning),
               if (_systemDevices.isNotEmpty) ...[

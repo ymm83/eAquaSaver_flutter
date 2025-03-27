@@ -7,7 +7,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_login.dart';
 import '../provider/supabase_provider.dart';
 import '../utils/snackbar_helper.dart';
-import '../utils/app_colors.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -412,7 +411,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
               ],
             ),
-      backgroundColor: AppColors.body,
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
     );
   }
 }

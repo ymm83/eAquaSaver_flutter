@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/snackbar_helper.dart';
-import '../utils/app_colors.dart';
 
 class BluetoothOffScreen extends StatefulWidget {
   const BluetoothOffScreen({super.key, this.adapterState});
@@ -188,7 +187,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
           activeTrackColor: Colors.blue.shade700,
           title: buildTitle('Bluetooth'),
           subtitle: buildSubtitle(context),
-          value: _bluetoothAdapterState == BluetoothAdapterState.off ? false : true, // Usamos la variable de estado
+          value: _bluetoothAdapterState == BluetoothAdapterState.on ? true : false, // Usamos la variable de estado
           onChanged: (bool value) async {
             try {
               if (Platform.isAndroid) {
@@ -198,9 +197,9 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
               showSnackBar("Error Turning On: $e", theme: 'error');
             }
           },
-          secondary: _bluetoothAdapterState == BluetoothAdapterState.off
-              ? Icon(Icons.bluetooth_disabled, size: 50.0, color: Colors.grey.shade400)
-              : Icon(Icons.bluetooth_connected_outlined, size: 50.0, color: Colors.blue.shade700),
+          secondary: _bluetoothAdapterState == BluetoothAdapterState.on
+              ? Icon(Icons.bluetooth_connected_outlined, size: 50.0, color: Colors.blue.shade700)
+              : Icon(Icons.bluetooth_disabled, size: 50.0, color: Colors.grey.shade400),
         );
       },
     );
@@ -209,7 +208,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       body: Container(
         margin: EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(
@@ -230,7 +229,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                         // Contenedor con el texto
                         Container(
                           decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 248, 214, 213), // Color de fondo
+                            color: Colors.blue.shade100, // Color de fondo
                             borderRadius: BorderRadius.circular(20), // Bordes redondeados
                           ),
                           width: MediaQuery.of(context).size.width * 0.8,
@@ -244,7 +243,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w400,
-                              color: AppColors.appBar,
+                              color: Theme.of(context).appBarTheme.backgroundColor,
                             ),
                             softWrap: true, // Permite que el texto se divida en varias líneas
                           ),
