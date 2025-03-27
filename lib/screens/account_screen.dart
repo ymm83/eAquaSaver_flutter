@@ -117,6 +117,7 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

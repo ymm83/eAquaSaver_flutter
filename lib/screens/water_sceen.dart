@@ -41,10 +41,12 @@ class _WaterScreenState extends State<WaterScreen> {
       final longitude = locationData['longitude'] ?? '0';
 
       final addressData = await getReverseLocation({'latitude': latitude, 'longitude': longitude});
-      setState(() {
-        _addressData = addressData;
-        _address = _getAddressString(addressData);
-      });
+      if (mounted) {
+        setState(() {
+          _addressData = addressData;
+          _address = _getAddressString(addressData);
+        });
+      }
       debugPrint('------ addressData: $addressData');
 
       debugPrint('------ address: $_address');
@@ -79,6 +81,7 @@ class _WaterScreenState extends State<WaterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
         builder: (context, connectivityState) {
           if (connectivityState is ConnectivityOffline) {

@@ -69,6 +69,9 @@ dependencies:
   path_provider: ^2.1.5
   toggle_switch: ^2.3.0
   path_provider_android: ^2.2.10
+  curved_labeled_navigation_bar: ^2.0.6
+  water_drop_nav_bar: ^2.2.2
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

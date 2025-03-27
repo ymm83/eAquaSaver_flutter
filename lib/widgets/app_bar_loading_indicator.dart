@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'top_loading_indicator.dart';
 
@@ -8,16 +6,11 @@ class AppBarLoadingIndicator extends StatelessWidget implements PreferredSizeWid
   final Color? progressColor;
   final Color? backgroundColor;
   final Color? boxColor;
-  final double height;
+  final double? height;
 
-  const AppBarLoadingIndicator({
-    Key? key,
-    required this.isLoading,
-    this.progressColor,
-    this.backgroundColor,
-    this.boxColor,
-    this.height=0
-  }) : super(key: key);
+  const AppBarLoadingIndicator(
+      {Key? key, required this.isLoading, this.progressColor, this.backgroundColor, this.boxColor, this.height = 0})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +25,12 @@ class AppBarLoadingIndicator extends StatelessWidget implements PreferredSizeWid
           progressColor: progressColor,
           backgroundColor: backgroundColor,
           boxColor: boxColor,
+          height: height,
         ),
       ],
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(4 + height); // Altura de la AppBar + el LoadingIndicator
+  Size get preferredSize => Size.fromHeight(height ?? 1); // Altura de la AppBar + el LoadingIndicator
 }

@@ -108,7 +108,7 @@ class _IssueFormState extends State<IssueForm> {
         },
       ).select();
       if (data.isNotEmpty) {
-       // debugPrint('Issue añadido correctamente!');
+        // debugPrint('Issue añadido correctamente!');
       }
     } catch (error) {
       if (mounted) {
@@ -143,7 +143,7 @@ class _IssueFormState extends State<IssueForm> {
           .single();
       if (data.isNotEmpty) {
         //debugPrint('Issue actualizado correctamente!');
-        showSnackBar('Issue updated successfully', theme:'success');
+        showSnackBar('Issue updated successfully', theme: 'success');
       }
     } catch (error) {
       if (mounted) {
@@ -164,6 +164,7 @@ class _IssueFormState extends State<IssueForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       body: BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
         return SingleChildScrollView(
           child: Column(
