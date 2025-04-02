@@ -22,7 +22,8 @@ ARG USER_GID=$USER_UID
 RUN  apt update \
     && apt install -y sudo \
     && apt install -y openjdk-17-jdk-headless --no-install-recommends \
-    && apt install -y wget curl git xz-utils zip unzip --no-install-recommends 
+    && apt install -y wget curl git xz-utils zip unzip --no-install-recommends \
+    && apt install -y ruby ruby-dev
 
 # Clean Up
 RUN	apt-get autoremove -y \
@@ -46,6 +47,15 @@ ENV ANDROID_BUILD_TOOLS_VERSION=33.0.0
 ENV ANDROID_HOME=/android-sdk-linux
 ENV ANDROID_SDK_ROOT="$ANDROID_HOME"
 ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/cmdline-tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
+# ENV LC_ALL=en_US.UTF-8
+# ENV LANG=en_US.UTF-8
+
+RUN echo 'deb http://ftp.de.debian.org/debian sid main' >> /etc/apt/sources.list
+
+RUN apt update \
+    && apt install -y build-essential
+RUN sudo gem install google-api-client
+RUN sudo gem install fastlane -NV
 
 #
 # Flutter SDK
