@@ -62,3 +62,6 @@ android/gradle/wrapper/gradle-wrapper.properties
 android/gradle/wrapper/gradle-wrapper.properties
 android/gradle.properties
 android/gradle.properties
+android/key.properties
+
+./fastlane-*

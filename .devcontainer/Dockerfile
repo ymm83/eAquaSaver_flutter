@@ -7,7 +7,7 @@
 FROM debian:latest
 
 #Locale
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
 # This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
 # property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
@@ -47,8 +47,6 @@ ENV ANDROID_BUILD_TOOLS_VERSION=33.0.0
 ENV ANDROID_HOME=/android-sdk-linux
 ENV ANDROID_SDK_ROOT="$ANDROID_HOME"
 ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/cmdline-tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
-# ENV LC_ALL=en_US.UTF-8
-# ENV LANG=en_US.UTF-8
 
 RUN echo 'deb http://ftp.de.debian.org/debian sid main' >> /etc/apt/sources.list
 
@@ -65,6 +63,7 @@ ENV FLUTTER_VERSION="3.22.1"
 # Make sure to use the needed channel and version for this.
 ENV FLUTTER_HOME=/flutter
 ENV PATH=${PATH}:${FLUTTER_HOME}/bin
+ENV FLUTTER_ROOT=${PATH}:${FLUTTER_HOME}/bin
 
 #
 # Android SDK	
