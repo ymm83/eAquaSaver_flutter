@@ -92,3 +92,7 @@ RUN flutter config --android-sdk "${ANDROID_SDK_ROOT}"
 RUN yes | flutter doctor --android-licenses
 RUN flutter config --no-analytics
 RUN flutter update-packages
+
+# Fastlane plugins
+RUN gem install git
+RUN fastlane add_plugin flutter_version_manager
