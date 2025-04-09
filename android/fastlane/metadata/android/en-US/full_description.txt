@@ -1,0 +1,1 @@
+This app allow you to connect to and control yours eAquaSaver devices.

@@ -19,25 +19,40 @@
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/iOS-Fastlane.gitlab-ci.yml
 
 stages:
-  - build
-  - test
-  - deploy
+  - unit_tests
+  - test_flight
 
 variables:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
-  GIT_STRATEGY: clone
 
-build:
-  stage: build
-  script:
-    - bundle install
-    - bundle exec fastlane build
+before_script:
+  - gem install bundler
+  - bundle install
+
+unit_tests:
+  dependencies: []
+  stage: unit_tests
   artifacts:
     paths:
-      - ./*.ipa
+      - fastlane/screenshots
+      - fastlane/logs
+  script:
+    - fastlane tests
+  tags:
+    - ios
 
-deploy:
-  stage: deploy
-  script: echo "Define your deployment script!"
-  environment: production
+test_flight_build:
+  dependencies: []
+  stage: test_flight
+  artifacts:
+    paths:
+      - fastlane/screenshots
+      - fastlane/logs
+  script:
+    - fastlane beta
+  tags:
+    - ios
+  only:
+     - /^release-.*$/
+     - master
