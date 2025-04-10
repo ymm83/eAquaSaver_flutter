@@ -95,4 +95,5 @@ RUN flutter update-packages
 
 # Fastlane plugins
 RUN gem install git
-RUN fastlane add_plugin flutter_version_manager
+# RUN pwd
+# RUN cd /workspaces/eaquasaver_flutter_app/android && fastlane add_plugin flutter_version_manager

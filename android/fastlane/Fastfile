@@ -33,8 +33,8 @@ platform :android do
   lane :apply_new_version do
     flutter_version_manager(
       arguments: "-apply",
-      yml: "./version.yml",
-      pubspec: "./example_pubspec.yaml")
+      yml: "../../version.yml",
+      pubspec: "../../pubspec.yaml")
   end
 
   desc "Deploy a new version to the Google Play"
