@@ -1,0 +1,18 @@
+stages:
+  - triggers
+
+trigger_android:
+  stage: triggers
+  trigger:
+    include: ./Android-Fastlane.gitlab-ci.yml
+  # rules:
+  #   - changes:
+  #       - a/*
+
+trigger_ios:
+  stage: triggers
+  trigger:
+    include: ./iOS-Fastlane.gitlab-ci.yml
+  rules:
+    # - changes:
+    #     - b/*

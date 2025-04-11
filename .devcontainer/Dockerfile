@@ -94,6 +94,7 @@ RUN flutter config --no-analytics
 RUN flutter update-packages
 
 # Fastlane plugins
-RUN gem install git
-# RUN pwd
-# RUN cd /workspaces/eaquasaver_flutter_app/android && fastlane add_plugin flutter_version_manager
+RUN gem install bundler
+# RUN bundler install
+
+# RUN dart pub get
