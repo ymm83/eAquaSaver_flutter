@@ -299,7 +299,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
-              SizedBox(
+              const SizedBox(
                 height: 5,
               ),
               //TopLoadingIndicator(isLoading: _isScanning),

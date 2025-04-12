@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   flutter_blue_plus: ^1.35.3
   supabase_flutter: ^2.5.4
-  cloudflare_turnstile: ^0.4.0
+  cloudflare_turnstile: 0.4.2
   flutter_colorful_tab: ^0.1.1
   geolocator: ^12.0.0
   geolocator_android: 4.5.5
@@ -72,6 +72,7 @@ dependencies:
   curved_labeled_navigation_bar: ^2.0.6
   water_drop_nav_bar: ^2.2.2
   shared_preferences: ^2.3.3
+  flex_color_scheme: ^8.0.2
 
 dev_dependencies:
   flutter_test:
@@ -105,38 +106,37 @@ flutter:
   assets:
     - assets/
   fonts:
-      - family: ZenDots
-        fonts:
-          - asset: assets/fonts/ZenDots-Regular.ttf
-            weight: 400  
-      - family: ChakraPetch
-        fonts:
-          - asset: assets/fonts/ChakraPetch-Light.ttf
-            weight: 300
-          - asset: assets/fonts/ChakraPetch-LightItalic.ttf
-            weight: 300
-            style: italic
-          - asset: assets/fonts/ChakraPetch-Regular.ttf
-            weight: 400
-          - asset: assets/fonts/ChakraPetch-Italic.ttf
-            weight: 400
-            style: italic
-          - asset: assets/fonts/ChakraPetch-Medium.ttf
-            weight: 500
-          - asset: assets/fonts/ChakraPetch-MediumItalic.ttf
-            weight: 500
-            style: italic
-          - asset: assets/fonts/ChakraPetch-SemiBold.ttf
-            weight: 600
-          - asset: assets/fonts/ChakraPetch-SemiBoldItalic.ttf
-            weight: 600
-            style: italic
-          - asset: assets/fonts/ChakraPetch-Bold.ttf
-            weight: 700
-          - asset: assets/fonts/ChakraPetch-BoldItalic.ttf
-            weight: 700
-            style: italic
-
+    - family: ZenDots
+      fonts:
+        - asset: assets/fonts/ZenDots-Regular.ttf
+          weight: 400
+    - family: ChakraPetch
+      fonts:
+        - asset: assets/fonts/ChakraPetch-Light.ttf
+          weight: 300
+        - asset: assets/fonts/ChakraPetch-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ChakraPetch-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ChakraPetch-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ChakraPetch-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ChakraPetch-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ChakraPetch-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ChakraPetch-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ChakraPetch-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/ChakraPetch-BoldItalic.ttf
+          weight: 700
+          style: italic
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

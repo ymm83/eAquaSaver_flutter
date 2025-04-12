@@ -26,8 +26,19 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
+    //for testing in emulator
+    //Navigator.of(context).pushReplacementNamed('/main');
     final session = supabase.auth.currentSession;
     if (session != null) {
+      /*  Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => Theme(
+            data: Theme.of(context), // Hereda el tema actual
+            child: const BLEMainScreen(),
+          ),
+        ),
+      );*/
+
       Navigator.of(context).pushReplacementNamed('/main');
     } else {
       Navigator.of(context).pushReplacementNamed('/login');
@@ -43,6 +54,7 @@ class _SplashPageState extends State<SplashPage> {
         children: [
           Image(
             image: AssetImage('assets/company_logo.png'),
+            fit: BoxFit.contain,
             width: 200,
             height: 150,
           ),

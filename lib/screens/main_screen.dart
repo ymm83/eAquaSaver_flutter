@@ -138,9 +138,11 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           //systemNavigationBarIconBrightness: Theme.of(context).brightness,
         ),
         child: Scaffold(
+          key: scaffoldKey,
           drawer: Drawer(
+            elevation: 5,
             child: ListView(
-              clipBehavior: Clip.antiAlias,
+              clipBehavior: Clip.hardEdge,
               padding: EdgeInsets.zero, // Elimina el padding predeterminado
               children: [
                 // Header del Drawer
@@ -152,6 +154,14 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).appBarTheme.foregroundColor),
+                          onPressed: () => scaffoldKey.currentState?.closeDrawer(),
+                        ),
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -234,6 +244,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             ),
           ),
           extendBodyBehindAppBar: true,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           body: Stack(
             children: [
               // AppBar personalizado
@@ -241,15 +252,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                 height: 130,
                 child: AppBar(
                   elevation: 0.0,
-                  leading: Builder(
-                    builder: (BuildContext context) {
-                      return IconButton(
-                        icon: Icon(Icons.menu, color: Theme.of(context).appBarTheme.foregroundColor),
-                        onPressed: () {
-                          Scaffold.of(context).openDrawer(); // Abre el Drawer
-                        },
-                      );
-                    },
+                  leading: IconButton(
+                    icon: Icon(Icons.menu, color: Theme.of(context).appBarTheme.iconTheme?.color),
+                    onPressed: () => scaffoldKey.currentState?.openDrawer(),
                   ),
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -301,31 +306,55 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: WaterDropNavBar(
-            bottomPadding: 10.0,
-            inactiveIconColor: Theme.of(context).primaryColor,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            waterDropColor: Colors.blue,
-            onItemSelected: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            selectedIndex: _currentIndex,
-            barItems: [
-              BarItem(
-                filledIcon: Icons.water_drop_rounded,
-                outlinedIcon: Icons.water_drop_outlined,
+          bottomNavigationBar: Container(
+            //margin: EdgeInsets.only(left: 10, right: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Colors.blue,
+                  width: 0.4,
+                ),
+                /*bottom: BorderSide(
+                  color: Colors.blue,
+                  width: 2.0,
+                ),
+                left: BorderSide(
+                  color: Colors.blue,
+                  width: 2.0,
+                ),
+                right: BorderSide(
+                  color: Colors.blue,
+                  width: 2.0,
+                ),*/
               ),
-              BarItem(
-                filledIcon: Icons.home_rounded,
-                outlinedIcon: Icons.home_outlined,
-              ),
-              BarItem(
-                filledIcon: Icons.person_2_rounded,
-                outlinedIcon: Icons.person_2_outlined,
-              )
-            ],
+            ),
+            child: WaterDropNavBar(
+              bottomPadding: 0.0,
+              iconSize: 33,
+              inactiveIconColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              waterDropColor: Colors.blue,
+              onItemSelected: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              selectedIndex: _currentIndex,
+              barItems: [
+                BarItem(
+                  filledIcon: Icons.water_drop_rounded,
+                  outlinedIcon: Icons.water_drop_outlined,
+                ),
+                BarItem(
+                  filledIcon: Icons.home_rounded,
+                  outlinedIcon: Icons.home_outlined,
+                ),
+                BarItem(
+                  filledIcon: Icons.person_2_rounded,
+                  outlinedIcon: Icons.person_2_outlined,
+                )
+              ],
+            ),
           ),
           /*bottomNavigationBar: CurvedNavigationBar(
           iconPadding: 14,

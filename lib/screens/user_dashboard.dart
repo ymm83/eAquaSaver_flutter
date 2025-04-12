@@ -250,7 +250,16 @@ class _UserDashboardState extends State<UserDashboard> {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedOut) {
         if (mounted) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginPage())).then((_) {
+          Navigator.of(context)
+              .push(
+            MaterialPageRoute(
+              builder: (context) => Theme(
+                data: Theme.of(context), // Hereda el tema actual
+                child: const LoginPage(),
+              ),
+            ),
+          )
+              .then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           });
         }
