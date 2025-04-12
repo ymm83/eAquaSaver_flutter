@@ -51,7 +51,7 @@ ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/cmdline-tools/bin:${ANDROID_HOME}
 # Flutter SDK
 # https://flutter.dev/docs/development/tools/sdk/releases?tab=linux
 ENV FLUTTER_CHANNEL="stable"
-ENV FLUTTER_VERSION="3.22.1"
+ENV FLUTTER_VERSION="3.29.0"
 # Make sure to use the needed channel and version for this.
 ENV FLUTTER_HOME=/flutter
 ENV PATH=${PATH}:${FLUTTER_HOME}/bin
