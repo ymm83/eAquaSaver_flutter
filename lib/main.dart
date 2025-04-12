@@ -1,9 +1,10 @@
-import 'package:eaquasaver/utils/theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+//import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'screens/bluetooth_off_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
@@ -15,6 +16,7 @@ import 'bloc/connectivity/connectivity_bloc.dart';
 import 'bloc/beacon/beacon_bloc.dart';
 import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
+import 'utils/theme_colors.dart';
 import 'bloc/issue/issue_bloc.dart';
 
 //final supabase = Supabase.instance.client;
@@ -55,15 +57,17 @@ class MyApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'eAquaSaver',
+      debugShowCheckedModeBanner: false,
       theme: lightAppTheme,
       darkTheme: darkAppTheme,
       themeMode: themeProvider.themeMode,
       initialRoute: '/splash',
       routes: <String, WidgetBuilder>{
-        '/splash': (_) => const SplashPage(),
-        '/main': (_) => const BLEMainScreen(),
-        '/login': (_) => const LoginPage(),
-        '/account': (_) => const AccountScreen(),
+        '/splash': (context) => const SplashPage(),
+        '/main': (context) => const BLEMainScreen(),
+        '/login': (context) => const LoginPage(),
+        '/account': (context) => const AccountScreen(),
+        '/required': (context) => const BluetoothOffScreen(),
       },
     );
   }

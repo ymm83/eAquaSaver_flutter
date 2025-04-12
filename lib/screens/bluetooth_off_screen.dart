@@ -208,7 +208,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Container(
         margin: EdgeInsets.only(top: 20, left: 20, right: 20),
         child: Column(
