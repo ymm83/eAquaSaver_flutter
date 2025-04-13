@@ -250,7 +250,16 @@ class _UserDashboardState extends State<UserDashboard> {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedOut) {
         if (mounted) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginPage())).then((_) {
+          Navigator.of(context)
+              .push(
+            MaterialPageRoute(
+              builder: (context) => Theme(
+                data: Theme.of(context), // Hereda el tema actual
+                child: const LoginPage(),
+              ),
+            ),
+          )
+              .then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           });
         }
@@ -316,7 +325,7 @@ class _UserDashboardState extends State<UserDashboard> {
                   color: Colors.blue.shade100,
                   child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.blue.shade300,
+                        backgroundColor: Colors.blueGrey.shade100,
                         child: ((userData['firstname'] == null && userData['lastname'] == null) ||
                                 avatarLetter(userData['firstname'], userData['lastname']) == 'icon')
                             ? const Icon(Icons.person)
@@ -411,6 +420,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
               ],
             ),
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
     );
   }
 }

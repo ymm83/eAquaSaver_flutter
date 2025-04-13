@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 //import 'dart:math';
 import 'package:atlas_icons/atlas_icons.dart';
@@ -66,7 +67,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
   late StreamSubscription<bool> _isConnectingSubscription;
   late StreamSubscription<bool> _isDisconnectingSubscription;
-  late StreamSubscription<BluetoothBondState> bsSubscription;
+  late StreamSubscription<BluetoothBondState> _bsSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
@@ -126,6 +127,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       if (state == BluetoothConnectionState.connected) {
         _services = [];
       } else if (state == BluetoothConnectionState.disconnected) {
+        debugPrint('--------------- D I S C O N E C T E D');
         _stopBeaconScanning();
         widget.pageController.jumpToPage(0);
       }
@@ -165,23 +167,28 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
 
-    bsSubscription = widget.device.bondState.listen((value) {
-      setState(() {
-        bondState = value;
-      });
-      if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
-        _gotoScanScreenAsync();
-      }
-      if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
+    if (Platform.isAndroid) {
+      _bsSubscription = widget.device.bondState.listen((value) {
         setState(() {
-          _isLoading = false;
+          bondState = value;
         });
-      }
-      //debugPrint("--------$value prev:${widget.device.prevBondState}");
-      //debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
-    });
-    widget.device.cancelWhenDisconnected(bsSubscription);
-
+        if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
+          _gotoScanScreenAsync();
+        }
+        if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        //debugPrint("--------$value prev:${widget.device.prevBondState}");
+        //debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
+      });
+      widget.device.cancelWhenDisconnected(_bsSubscription);
+    } else if (Platform.isIOS) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
     _initializeAsync();
   }
 
@@ -263,6 +270,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   void dispose() {
+    if (Platform.isAndroid) {
+      _bsSubscription.cancel();
+    }
     _connectionStateSubscription.cancel();
     _mtuSubscription.cancel();
     _isConnectingSubscription.cancel();
@@ -759,8 +769,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
                         //Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
                         Text(_device?.customName ?? widget.device.platformName,
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        if (isConnected && _rssi != null) Text('(${_rssi!} dBm)', style: TextStyle(fontSize: 11)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (isConnected && _rssi != null) Text('(${_rssi!} dBm)', style: TextStyle(fontSize: 10)),
                       ],
                     ),
                     //subtitle: Text(widget.device.remoteId.toString()),
@@ -787,7 +797,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               )
                             : Text(widget.device.remoteId.toString()),
                     //]),
-                    trailing: buildConnectIcon(context),
+                    //trailing: buildConnectIcon(context),
                   ),
                 ),
                 if (state is BeaconLoading /*|| role == null*/) ...[

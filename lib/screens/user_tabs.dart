@@ -49,15 +49,15 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsDefault(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(1),
       ),
       IconButton(
-        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(2),
       ),
       IconButton(
-        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(3),
       ),
     ];
@@ -66,11 +66,11 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsIssue(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(3),
       ),
       IconButton(
-        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900]),
+        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900], size: 30,),
         onPressed: () => _navigateToPage(4),
       ),
     ];
@@ -79,44 +79,64 @@ class _UserTabsState extends State<UserTabs> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
-        //key: scaffoldMessengerKey,
-        child: Scaffold(
-      appBar: AppBar(
-        leading: _currentPage > 0
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_outlined),
-                onPressed: () => _navigateToPage(0),
-              )
-            : null,
-        leadingWidth: 40,
-        actions: _currentPage == 0
-            ? _actionsDefault(context)
-            : ([3, 4, 5].contains(_currentPage))
-                ? _actionsIssue(context)
-                : _actionsDefault(context),
-        backgroundColor: Colors.green[100],
-        elevation: 0,
-        title: Text(_pageTitle),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        extendBodyBehindAppBar: true,
+        body: Column(
+          children: [
+            Container(
+              color: Theme.of(context).appBarTheme.backgroundColor, // Color de fondo del AppBar
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  // Botón de retroceso (back)
+                  if (_currentPage > 0)
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_outlined, color: Colors.blue[900], size: 30,),
+                      onPressed: () => _navigateToPage(0),
+                    ),
+                  // Título de la página
+                  Expanded(
+                    child:  Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 0), // Ajusta el padding si es necesario
+                        child: Text(
+                          _pageTitle,
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400, color: Colors.blue.shade900),
+                        ),
+                      ),
+                    
+                  ),
+                  // Acciones del AppBar
+                  if (_currentPage == 0) ..._actionsDefault(context),
+                  if ([3, 4, 5].contains(_currentPage)) ..._actionsIssue(context),
+                ],
+              ),
+            ),
+            // Contenido de la página
+            Expanded(
+              child: PageView(
+                physics: const NeverScrollableScrollPhysics(),
+                pageSnapping: false,
+                controller: _userTabController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                    _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
+                  });
+                },
+                children: [
+                  const UserDashboard(),
+                  const AccountScreen(),
+                  ReviewsScreen(pageController: _userTabController),
+                  IssueScreen(pageController: _userTabController),
+                  IssueForm(typeForm: 'new', pageController: _userTabController),
+                  IssueForm(typeForm: 'edit', pageController: _userTabController),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        pageSnapping: false,
-        controller: _userTabController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-            _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
-          });
-        },
-        children: [
-          const UserDashboard(),
-          const AccountScreen(),
-          ReviewsScreen(pageController: _userTabController),
-          IssueScreen(pageController: _userTabController),
-          IssueForm(typeForm: 'new', pageController: _userTabController),
-          IssueForm(typeForm: 'edit', pageController: _userTabController),
-        ],
-      ),
-    ));
+    );
   }
 }

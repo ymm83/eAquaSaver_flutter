@@ -66,7 +66,7 @@ class _DeviceAllowState extends State<DeviceAllow> {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(builder: (context, state) {
       return ScaffoldMessenger(
         child: Scaffold(
-          appBar: AppBarLoadingIndicator(isLoading: role==null),
+          appBar: AppBarLoadingIndicator(isLoading: role==null, height: 1.5,),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(5),
             child: Column(

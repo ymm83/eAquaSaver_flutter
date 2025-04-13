@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+//import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'screens/bluetooth_off_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/auth_login.dart';
 import 'screens/main_screen.dart';
 import 'config/supabase.dart';
 import 'provider/supabase_provider.dart';
+import 'provider/theme_provider.dart';
 import 'bloc/connectivity/connectivity_bloc.dart';
 import 'bloc/beacon/beacon_bloc.dart';
 import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
+import 'utils/theme_colors.dart';
 import 'bloc/issue/issue_bloc.dart';
 
 //final supabase = Supabase.instance.client;
@@ -33,6 +38,7 @@ Future<void> main() async {
         BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
         BlocProvider(create: (context) => BeaconBloc()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: SupabaseProvider(
         client: supabase,
@@ -48,29 +54,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'eAquaSaver',
-      
-      theme: ThemeData.light().copyWith(
-        primaryColor: Colors.green,
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.green,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.green,
-          ),
-        ),
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: lightAppTheme,
+      darkTheme: darkAppTheme,
+      themeMode: themeProvider.themeMode,
       initialRoute: '/splash',
       routes: <String, WidgetBuilder>{
-        '/splash': (_) => const SplashPage(),
-        '/main': (_) => const BLEMainScreen(),
-        '/login': (_) => const LoginPage(),
-        '/account': (_) => const AccountScreen(),
+        '/splash': (context) => const SplashPage(),
+        '/main': (context) => const BLEMainScreen(),
+        '/login': (context) => const LoginPage(),
+        '/account': (context) => const AccountScreen(),
+        '/required': (context) => const BluetoothOffScreen(),
       },
     );
   }

@@ -62,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<bool> userDeleting(String email) async {
     try {
       final bool pending = await supabase.rpc('check_user_pending_deletion', params: {'email': email});
+      //debugPrint('pending_to delete: $pending');
       return pending;
       // ignore: empty_catches
     } catch (e) {}
@@ -332,7 +333,16 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         showSnackBar('Reset password successful!', theme: 'success', onHideCallback: () {
           //debugPrint('..................entrando......................');
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+          Navigator.of(context)
+              .push(
+            MaterialPageRoute(
+              builder: (context) => Theme(
+                data: Theme.of(context), // Hereda el tema actual
+                child: const BLEMainScreen(),
+              ),
+            ),
+          )
+              .then((_) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           });
         });
@@ -344,7 +354,16 @@ class _LoginPageState extends State<LoginPage> {
         if (error.message.startsWith('New password should be different')) {
           showSnackBar('Your lost password is: "${_newpasswordController.text}"', theme: 'warning', onHideCallback: () {
             //debugPrint('..................entrando......................');
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BLEMainScreen())).then((_) {
+            Navigator.of(context)
+                .push(
+              MaterialPageRoute(
+                builder: (context) => Theme(
+                  data: Theme.of(context), // Hereda el tema actual
+                  child: const BLEMainScreen(),
+                ),
+              ),
+            )
+                .then((_) {
               Navigator.of(context).popUntil((route) => route.isFirst);
             });
           });
@@ -608,6 +627,7 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 20.0),
           Center(
             child: CloudFlareTurnstile(
+              //mode: TurnstileMode.managed,
               siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
               options: _options,
               controller: _controller,
@@ -620,9 +640,9 @@ class _LoginPageState extends State<LoginPage> {
               onTokenExpired: () async {
                 await _controller.refreshToken();
               },
-              onError: (error) async {
+              /* onError: (error) async {
                 await _controller.refreshToken();
-              },
+              },*/
             ),
           ),
           Row(

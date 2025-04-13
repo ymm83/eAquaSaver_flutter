@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import '../widgets/tile_providers.dart';
 import '../bloc/location/location_bloc.dart';
 
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -42,7 +43,7 @@ class MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
-    super.initState(); 
+    super.initState();
     _fetchStorageLocation();
     _serviceStatusStream = Geolocator.getServiceStatusStream().listen((status) => _updateGPSStatus(status));
     _gpsEnabled().then((gpsState) {
@@ -241,6 +242,7 @@ class MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       body: BlocBuilder<LocationBloc, LocationState>(
         builder: (context, state) {
           LatLng initialPosition = _paris;
