@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/snackbar_helper.dart';
 
@@ -239,7 +240,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                           // Limita el ancho del contenedor
 
                           child: Text(
-                            'For this App to work properly, you must enable Bluetooth and Location services to communicate with the BLE services of eAquaSaver devices!',
+                            'services.required'.tr(),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w400,

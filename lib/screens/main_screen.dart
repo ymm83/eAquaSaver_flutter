@@ -3,6 +3,7 @@ import 'dart:async';
 //import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 //import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:eaquasaver/provider/theme_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -173,7 +174,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            'eAquaSaver',
+                            'app_title'.tr(),
                             style: TextStyle(
                               fontSize: 20,
                               color: Theme.of(context).appBarTheme.foregroundColor,

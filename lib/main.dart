@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 //import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'screens/bluetooth_off_screen.dart';
 import 'screens/splash_screen.dart';
@@ -25,25 +26,33 @@ final FlutterBluePlus flutterBlue = FlutterBluePlus();
 final connectivity = Connectivity();
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized(); //
   await SupabaseConfig.initializeSupabase();
   final supabase = SupabaseConfig.getClient();
   final supabaseEAS = SupabaseConfig.getEasClient();
   //final supabase = Supabase.instance.client;
   //runApp(const MyApp());
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => BleBloc(flutterBlue)),
-        BlocProvider(create: (context) => IssueBloc(supabase)),
-        BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
-        BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
-        BlocProvider(create: (context) => BeaconBloc()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-      ],
-      child: SupabaseProvider(
-        client: supabase,
-        eASclient: supabaseEAS,
-        child: const MyApp(),
+    EasyLocalization(
+      supportedLocales: const [Locale('fr'), Locale('en'), Locale('es')],
+      path: 'assets/i18n',
+      fallbackLocale: const Locale('en'),
+      saveLocale: true,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => BleBloc(flutterBlue)),
+          BlocProvider(create: (context) => IssueBloc(supabase)),
+          BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
+          BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
+          BlocProvider(create: (context) => BeaconBloc()),
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ],
+        child: SupabaseProvider(
+          client: supabase,
+          eASclient: supabaseEAS,
+          child: const MyApp(),
+        ),
       ),
     ),
   );
@@ -56,11 +65,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      title: 'eAquaSaver',
+      //title: 'app_title'.tr(),
       debugShowCheckedModeBanner: false,
       theme: lightAppTheme,
       darkTheme: darkAppTheme,
       themeMode: themeProvider.themeMode,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       initialRoute: '/splash',
       routes: <String, WidgetBuilder>{
         '/splash': (context) => const SplashPage(),

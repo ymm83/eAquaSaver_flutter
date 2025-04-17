@@ -14,7 +14,7 @@ final ThemeData darkAppTheme = ThemeData.dark().copyWith(
       iconTheme: IconThemeData(color: Colors.white),
       actionsIconTheme: IconThemeData(color: Colors.white)),
   colorScheme: const ColorScheme.dark(
-    surface: Colors.black,
+    surface: Colors.white70,
     secondary: Colors.red,
   ),
   buttonTheme: const ButtonThemeData(
@@ -32,13 +32,14 @@ final ThemeData darkAppTheme = ThemeData.dark().copyWith(
 final ThemeData lightAppTheme = ThemeData.light().copyWith(
   brightness: Brightness.light,
   primaryColor: Colors.white,
-  scaffoldBackgroundColor: Colors.blue[200],
+  cardColor: Colors.black45,
+  scaffoldBackgroundColor: Colors.blue[50],
   drawerTheme: const DrawerThemeData(scrimColor: Colors.black),
-  appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.blue,
-      foregroundColor: Color(0xFF0D0B02),
-      iconTheme: IconThemeData(color: Color(0xFF0D0B02)),
-      actionsIconTheme: IconThemeData(color: Color(0xFF0D0B02))),
+  appBarTheme: AppBarTheme(
+      backgroundColor: Colors.blue[50],
+      foregroundColor: const Color(0xFF0D0B02),
+      iconTheme: const IconThemeData(color: Color(0xFF0D0B02)),
+      actionsIconTheme: const IconThemeData(color: Color(0xFF0D0B02))),
   colorScheme: const ColorScheme.light(
     surface: Colors.black,
     secondary: Colors.black,

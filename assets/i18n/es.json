@@ -1,0 +1,64 @@
+{
+    "app_title": "eAquaSaver",
+    "lang": {
+        "fr" : "Francés 🇫🇷",
+        "en" : "Inglés 🇬🇧",
+        "es" : "Español 🇪🇸"
+    },
+    "login": {
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "new_password": "Nueva contraseña",
+        "code": "Código",
+        "repeat": "Repetir",
+        "sign_in": "Iniciar sesión",
+        "sign_up": "Registrarse",
+        "forgot_password": "¿Olvidaste tu contraseña?",
+        "loading": "Cargando",
+        "no_account": "¿No tienes cuenta? Regístrate",
+        "no_internet": "Sin conexión a internet",
+        "offline": "Sin conexión",
+        "step": {
+            "signin": {"btn": "Iniciar sesión", "title": "Inicio de sesión"},
+            "signup": {"btn": "Registrarse", "title": "Formulario de registro"},
+            "forgot": {"btn": "Recuperación", "title": "Restablecer contraseña"},
+            "reset": {"btn": "Restablecer contraseña", "title": "Recuperación de cuenta"}
+          }
+    },
+    "validation": {
+        "email": {
+          "required": "¡El correo electrónico es requerido!",
+          "pending_deletion": "¡El correo está pendiente de eliminación!",
+          "invalid": "¡El correo electrónico no es válido!"
+        },
+        "password": {
+          "required": "¡Ingresa una contraseña!",
+          "too_short": "La contraseña es muy corta. ({length}/6+)"
+        },
+        "new_password": {
+          "required": "¡Ingresa una nueva contraseña!",
+          "too_short": "La nueva contraseña es muy corta. ({length}/6+)"
+        },
+        "confirm_password": {
+          "required": "Confirma la contraseña.",
+          "too_short": "La confirmación de contraseña es muy corta. ({length}/6+)",
+          "mismatch": "Las contraseñas no coinciden."
+        },
+        "code": {
+          "required": "Ingresa el código enviado al correo.",
+          "invalid_length": "El código debe tener 6 dígitos. ({length}/6)"
+        },
+        "captcha": {
+          "required": "¡Por favor completa el captcha!"
+        }
+    },
+    "errors": {
+        "email_required": "¡Se requiere email!",
+        "invalid_email": "¡El email no es válido!",
+        "password_required": "¡Ingresa una contraseña!",
+        "password_short": "La contraseña es muy corta"
+    },
+    "services": {
+      "required": "¡Para que esta aplicación funcione correctamente debe activar los servicios de Bluetooth y Ubicación para comunicarse con los servicios BLE de los dispositivos eAquaSaver!"
+    }
+}

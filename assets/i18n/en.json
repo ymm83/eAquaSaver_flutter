@@ -1,0 +1,64 @@
+{
+    "app_title": "eAquaSaver",
+    "lang": {
+        "fr" : "French 🇫🇷",
+        "en" : "English 🇬🇧",
+        "es" : "Spanish 🇪🇸"
+    },
+    "login": {
+        "email": "Email",
+        "password": "Password",
+        "new_password": "new password",
+        "code": "code",
+        "repeat": "repeat",
+        "sign_in": "Sign in",
+        "sign_up": "Sign up",
+        "forgot_password": "Forgot your password?",
+        "loading": "Loading",
+        "no_account": "Don't have an account? Sign up",
+        "no_internet": "No internet connection",
+        "offline": "Offline",
+        "step":{
+            "signin" : {"btn": "Sign in", "title": "Sign in form"},
+            "signup" : {"btn": "Sign up", "title": "Sign up form"},
+            "forgot" : {"btn": "Recovery", "title": "Reset password form"},
+            "reset" : {"btn": "Reset password", "title": "Recover account form"}
+        }
+    },
+    "validation": {
+        "email": {
+          "required": "Email is required!",
+          "pending_deletion": "The email is pending deletion!",
+          "invalid": "The email is invalid!"
+        },
+        "password": {
+          "required": "Enter a password!",
+          "too_short": "Password is too short. ({length}/6+)"
+        },
+        "new_password": {
+          "required": "Enter a new password!",
+          "too_short": "The new password is too short. ({length}/6+)"
+        },
+        "confirm_password": {
+          "required": "Confirm the password.",
+          "too_short": "Password confirmation is too short. ({length}/6+)",
+          "mismatch": "The passwords do not match."
+        },
+        "code": {
+          "required": "Enter the code sent to the email.",
+          "invalid_length": "The code must be 6 digits long. ({length}/6)"
+        },
+        "captcha": {
+          "required": "Please complete the captcha!"
+        }
+    },
+    "errors": {
+        "email_required": "Email is required!",
+        "invalid_email": "The email is invalid!",
+        "password_required": "Enter a password!",
+        "password_short": "Password is too short"
+    },
+    "services" : {
+      "required" : "For this App to work properly, you must enable Bluetooth and Location services to communicate with the BLE services of eAquaSaver devices!"
+    }
+}
