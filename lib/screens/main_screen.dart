@@ -91,6 +91,27 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
     super.initState();
   }
 
+  Future<void> _signOut() async {
+    /*setState(() {
+      _loading = true;
+    });*/
+    try {
+      await supabase.auth.signOut();
+    } on AuthException catch (error) {
+      if (mounted) {
+        showSnackBar(error.message, theme: 'error');
+      }
+    } catch (error) {
+      if (mounted) {
+        showSnackBar('Unexpected error occurred', theme: 'error');
+      }
+    } /*finally {
+      setState(() {
+        _loading = true;
+      });
+    }*/
+  }
+
   Future<void> _initializeState() async {
     final initialAdapterState = await FlutterBluePlus.adapterState.first;
     setState(() {
@@ -123,8 +144,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
 
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [
-      const WaterTabs(),
       mainScreen,
+      const WaterTabs(),
       const UserTabs(
         key: Key('userTabs'),
       ),
@@ -202,7 +223,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Inicio'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                    //scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 ListTile(
@@ -210,7 +231,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Agua'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                    //scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 ListTile(
@@ -218,7 +239,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Perfil'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                     //scaffoldKey.currentState?.closeDrawer(); 
                   },
                 ),
 
@@ -229,9 +250,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                 ListTile(
                   leading: Icon(Icons.logout, color: Colors.red),
                   title: Text('Cerrar sesión'),
-                  onTap: () {
-                    // Acción para cerrar sesión
-                    Navigator.pop(context); // Cierra el Drawer
+                  onTap: () async {
+                    await _signOut();
+                    scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 SwitchListTile(
@@ -343,12 +364,12 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
               selectedIndex: _currentIndex,
               barItems: [
                 BarItem(
-                  filledIcon: Icons.water_drop_rounded,
-                  outlinedIcon: Icons.water_drop_outlined,
-                ),
-                BarItem(
                   filledIcon: Icons.home_rounded,
                   outlinedIcon: Icons.home_outlined,
+                ),
+                BarItem(
+                  filledIcon: Icons.water_drop_rounded,
+                  outlinedIcon: Icons.water_drop_outlined,
                 ),
                 BarItem(
                   filledIcon: Icons.person_2_rounded,

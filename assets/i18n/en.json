@@ -56,9 +56,18 @@
         "email_required": "Email is required!",
         "invalid_email": "The email is invalid!",
         "password_required": "Enter a password!",
-        "password_short": "Password is too short"
+        "password_short": "Password is too short",
+        "unexpected": "Unexpected error occurred",
+        "try_again" : "An error was ocurred, try again later!"
     },
     "services" : {
       "required" : "For this App to work properly, you must enable Bluetooth and Location services to communicate with the BLE services of eAquaSaver devices!"
+    },
+    "sign_out": "Sign out",
+    "user":{
+      "confirm_deletion" : "Are you sure you want to delete your account?",
+      "delete_account": "Delete account",
+      "confirm": "Confirm ({count} s)",
+      "confirmed_deletion":"Your deletion request will be completed within an hour! Your session will close in 5 seconds!"
     }
 }

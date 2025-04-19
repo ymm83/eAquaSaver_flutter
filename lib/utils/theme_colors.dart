@@ -31,7 +31,7 @@ final ThemeData darkAppTheme = ThemeData.dark().copyWith(
 
 final ThemeData lightAppTheme = ThemeData.light().copyWith(
   brightness: Brightness.light,
-  primaryColor: Colors.white,
+  primaryColor: Colors.blueAccent,
   cardColor: Colors.black45,
   scaffoldBackgroundColor: Colors.blue[50],
   drawerTheme: const DrawerThemeData(scrimColor: Colors.black),

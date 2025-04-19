@@ -427,7 +427,7 @@ class _LoginPageState extends State<LoginPage> {
                 .push(
               MaterialPageRoute(
                 builder: (context) => Theme(
-                  data: Theme.of(context), // Hereda el tema actual
+                  data: Theme.of(context), 
                   child: const BLEMainScreen(),
                 ),
               ),
@@ -549,10 +549,9 @@ class _LoginPageState extends State<LoginPage> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: null, // Eliminamos la AppBar
+      appBar: null, 
       body: Stack(
         children: [
-          // Contenido principal
           BlocBuilder<ConnectivityBloc, ConnectivityState>(
             builder: (context, state) {
               return _buildLoginForm(context, state);
@@ -591,7 +590,7 @@ class _LoginPageState extends State<LoginPage> {
                           selectedLang = newValue!;
                         });
                         context.setLocale(Locale((newValue!.locale.toString())));
-                        debugPrint('Locale--------- ${newValue!.locale.toString()}');
+                        //debugPrint('Locale--------- ${newValue!.locale.toString()}');
                       },
                       items: languageList.map<DropdownMenuItem<Language>>((Language value) {
                         return DropdownMenuItem<Language>(

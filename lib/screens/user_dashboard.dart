@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -56,15 +57,12 @@ class _UserDashboardState extends State<UserDashboard> {
       //debugPrint('response: ${resp.user.toString()}');
       //debugPrint('Pending delete status: ${resp.user!.userMetadata!['pending_delete']}');
       if (resp.user?.userMetadata!['pending_delete'] == true) {
-        message = {
-          'text': 'Your deletion request will be completed within an hour! Your session will close in 5 seconds!',
-          'type': 'success'
-        };
+        message = {'text': '', 'type': 'success'};
       } else {
-        message = {'text': 'An error was ocurred, try again later!', 'type': 'error'};
+        message = {'text': 'error.try_again'.tr(), 'type': 'error'};
       }
     } catch (e) {
-      message = {'text': 'An error was ocurred, try again later!', 'type': 'error'};
+      message = {'text': 'error.try_again'.tr(), 'type': 'error'};
     }
     // Aquí puedes ejecutar la acción de eliminación
     if (message['type'] == 'success') {
@@ -170,7 +168,7 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('error.unexpected'.tr(), theme: 'error');
       }
     } finally {
       setState(() {
@@ -194,7 +192,7 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('error.unexpected'.tr(), theme: 'error');
       }
     } finally {
       setState(() {
@@ -342,7 +340,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 const SizedBox(height: 30),
                 TextButton.icon(
-                    onPressed: _signOut, label: const Text('Sign Out'), icon: const Icon(Icons.exit_to_app_outlined)),
+                    onPressed: _signOut, label: Text('sign_out'.tr()), icon: const Icon(Icons.exit_to_app_outlined)),
                 const SizedBox(
                   height: 200,
                 ),
@@ -357,17 +355,15 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 Offstage(
                   offstage: !_isDeleting,
-                  child: const Center(
-                      child:
-                          Text('Are you sure you want to delete your account?', style: TextStyle(color: Colors.red))),
+                  child: Center(child: Text('user.confirm_deletion'.tr(), style: TextStyle(color: Colors.red))),
                 ),
                 Offstage(
                   offstage: _isDeleting,
                   child: TextButton.icon(
                       onPressed: _startCountdown,
-                      label: const Text(
-                        'Delete account',
-                        style: TextStyle(color: Colors.red),
+                      label: Text(
+                        'user.delete_account'.tr(),
+                        style: const TextStyle(color: Colors.red),
                       ),
                       icon: const Icon(
                         Icons.delete,
@@ -380,7 +376,7 @@ class _UserDashboardState extends State<UserDashboard> {
                       offstage: (_countdown == 0 || _countdown == 11),
                       child: ElevatedButton(
                         onPressed: null, // Botón deshabilitado
-                        child: Text('Confirmar ($_countdown s)'),
+                        child: Text('user.confirm'.tr(namedArgs: {'count': _countdown.toString()})),
                       ),
                     ),
                     Offstage(

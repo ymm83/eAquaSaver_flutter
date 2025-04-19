@@ -56,9 +56,18 @@
         "email_required": "¡Se requiere email!",
         "invalid_email": "¡El email no es válido!",
         "password_required": "¡Ingresa una contraseña!",
-        "password_short": "La contraseña es muy corta"
+        "password_short": "La contraseña es muy corta",
+        "unexpected": "Ocurrió un error inesperado",
+        "try_again": "¡Ocurrió un error, inténtalo de nuevo más tarde!"
     },
     "services": {
       "required": "¡Para que esta aplicación funcione correctamente debe activar los servicios de Bluetooth y Ubicación para comunicarse con los servicios BLE de los dispositivos eAquaSaver!"
+    },
+    "sign_out": "Cerrar sesión",
+    "user": {
+      "confirm_deletion": "¿Estás seguro de que quieres eliminar tu cuenta?",
+      "delete_account": "Eliminar cuenta",
+      "confirm": "Confirmar ({count} s)",
+      "confirmed_deletion": "¡Tu solicitud de eliminación se completará en una hora! ¡Tu sesión se cerrará en 5 segundos!"
     }
 }
