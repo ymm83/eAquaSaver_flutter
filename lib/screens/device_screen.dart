@@ -797,7 +797,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                               )
                             : Text(widget.device.remoteId.toString()),
                     //]),
-                    //trailing: buildConnectIcon(context),
+                    trailing: buildConnectIcon(context),
                   ),
                 ),
                 if (state is BeaconLoading /*|| role == null*/) ...[
