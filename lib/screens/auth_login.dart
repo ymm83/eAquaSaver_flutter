@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
@@ -427,7 +428,7 @@ class _LoginPageState extends State<LoginPage> {
                 .push(
               MaterialPageRoute(
                 builder: (context) => Theme(
-                  data: Theme.of(context), 
+                  data: Theme.of(context),
                   child: const BLEMainScreen(),
                 ),
               ),
@@ -500,6 +501,11 @@ class _LoginPageState extends State<LoginPage> {
       //_showPassword = true;
       //_password2Visible = true;
       //_newpasswordVisible = true;
+      final turnstileKey = dotenv.env['TURNSTILE_SITE_KEY'] ?? '';
+      debugPrint('- - - -- - - - -- -  - $turnstileKey');
+      if (turnstileKey.isEmpty) {
+        throw Exception('❌ Falta TURNSTILE_SITE_KEY en .env');
+      }
       supabase = SupabaseProvider.getClient(context);
       //authStep = AuthSteps.signIn;
       _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
@@ -549,7 +555,7 @@ class _LoginPageState extends State<LoginPage> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: null, 
+      appBar: null,
       body: Stack(
         children: [
           BlocBuilder<ConnectivityBloc, ConnectivityState>(
@@ -571,7 +577,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Selector de idioma
-                  Container(
+                  /* Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: Colors.transparent,
@@ -607,9 +613,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         );
+                      
                       }).toList(),
                     ),
-                  ),
+                  ),*/
 
                   // Botón de tema oscuro/claro
                   AnimatedSwitcher(
@@ -857,8 +864,8 @@ class _LoginPageState extends State<LoginPage> {
             offstage: authStep != AuthSteps.reset,
             child: TextFormField(
               controller: _codeController,
-              decoration:InputDecoration(
-                  icon:  const Icon(Icons.security_update_good),
+              decoration: InputDecoration(
+                  icon: const Icon(Icons.security_update_good),
                   //hintText: 'The email address?',
                   labelText: 'login.code'.tr(),
                   counterText: ""),
@@ -884,7 +891,7 @@ class _LoginPageState extends State<LoginPage> {
               visibleOffIcon: Icons.visibility_off_outlined,
               visibleOnIcon: Icons.visibility_outlined,
               hintText: '',
-              decoration:  InputDecoration(
+              decoration: InputDecoration(
                 icon: const Icon(Icons.lock_outline),
                 labelText: 'login.password'.tr(),
               ),
@@ -965,7 +972,7 @@ class _LoginPageState extends State<LoginPage> {
             child: KeyedSubtree(
               key: ValueKey('turnstile_${context.locale.languageCode}_${themeProvider.isDarkMode}'),
               child: CloudflareTurnstile(
-                siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
+                siteKey: dotenv.env['TURNSTILE_SITE_KEY']!,
                 options: _getTurnstileOptions(themeProvider.isDarkMode),
                 controller: _controller,
                 onTokenReceived: (token) {

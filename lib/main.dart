@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 //import 'package:flex_color_scheme/flex_color_scheme.dart';
@@ -27,7 +28,14 @@ final connectivity = Connectivity();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized(); //
+  await EasyLocalization.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final anonKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+  if (supabaseUrl == null || anonKey == null) {
+    throw Exception("Faltan variables de entorno para Supabase");
+  }
   await SupabaseConfig.initializeSupabase();
   final supabase = SupabaseConfig.getClient();
   final supabaseEAS = SupabaseConfig.getEasClient();

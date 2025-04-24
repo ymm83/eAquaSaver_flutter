@@ -75,6 +75,8 @@ dependencies:
   flex_color_scheme: ^8.0.2
   flutter_inappwebview: ^6.2.0-beta.2
   easy_localization: ^3.0.7+1
+  flutter_dotenv: ^5.2.1
+
 
 dev_dependencies:
   flutter_test:
@@ -108,6 +110,7 @@ flutter:
   assets:
     - assets/
     - assets/i18n/
+    - .env
   fonts:
     - family: ZenDots
       fonts:

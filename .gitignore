@@ -30,6 +30,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/android/app/.cxx/*
+pubspec.lock
 
 
 # Symbolication related
@@ -62,3 +64,10 @@ android/gradle/wrapper/gradle-wrapper.properties
 android/gradle/wrapper/gradle-wrapper.properties
 android/gradle.properties
 android/gradle.properties
+pubspec.lock
+.gitignore
+pubspec.lock
+android/build/reports/problems/problems-report.html
+android/gradle.properties
+android/gradle.properties
+.env
