@@ -1,73 +1,219 @@
 {
-    "app_title": "eAquaSaver",
+  "app_title": "eAquaSaver",
     "lang": {
-        "fr" : "French 🇫🇷",
-        "en" : "English 🇬🇧",
-        "es" : "Spanish 🇪🇸"
+        "fr": "French 🇫🇷",
+        "en": "English 🇬🇧",
+        "es": "Spanish 🇪🇸"
     },
     "login": {
         "email": "Email",
         "password": "Password",
-        "new_password": "new password",
-        "code": "code",
-        "repeat": "repeat",
+        "new_password": "New password",
+        "code": "Code",
+        "repeat": "Repeat",
         "sign_in": "Sign in",
         "sign_up": "Sign up",
+        "sign_out": "Sign out",
         "forgot_password": "Forgot your password?",
+        "lost_password": "Your lost password is: ",
         "loading": "Loading",
-        "no_account": "Don't have an account? Sign up",
+        "no_account": "Don't have an account? Sign up!",
         "no_internet": "No internet connection",
         "offline": "Offline",
-        "step":{
-            "signin" : {"btn": "Sign in", "title": "Sign in form"},
-            "signup" : {"btn": "Sign up", "title": "Sign up form"},
-            "forgot" : {"btn": "Recovery", "title": "Reset password form"},
-            "reset" : {"btn": "Reset password", "title": "Recover account form"}
+        "step": {
+            "signin": {"btn": "Sign in", "title": "Sign-in form"},
+            "signup": {"btn": "Sign up", "title": "Sign-up form"},
+            "forgot": {"btn": "Recover", "title": "Password reset form"},
+            "reset": {"btn": "Reset password", "title": "Account recovery form"}
         }
     },
     "validation": {
         "email": {
           "required": "Email is required!",
-          "pending_deletion": "The email is pending deletion!",
-          "invalid": "The email is invalid!"
+          "pending_deletion": "This email is pending deletion!",
+          "invalid": "Invalid email address!"
         },
         "password": {
-          "required": "Enter a password!",
-          "too_short": "Password is too short. ({length}/6+)"
+          "required": "Password is required!",
+          "too_short": "Password is too short ({length}/6+)"
         },
         "new_password": {
-          "required": "Enter a new password!",
-          "too_short": "The new password is too short. ({length}/6+)"
+          "required": "New password is required!",
+          "too_short": "New password is too short ({length}/6+)"
         },
         "confirm_password": {
-          "required": "Confirm the password.",
-          "too_short": "Password confirmation is too short. ({length}/6+)",
-          "mismatch": "The passwords do not match."
+          "required": "Please confirm your password",
+          "too_short": "Confirmation password is too short ({length}/6+)",
+          "mismatch": "Passwords do not match"
         },
         "code": {
-          "required": "Enter the code sent to the email.",
-          "invalid_length": "The code must be 6 digits long. ({length}/6)"
+          "required": "Please enter the verification code sent to your email",
+          "invalid_length": "Code must be 6 digits (current: {length}/6)"
         },
         "captcha": {
-          "required": "Please complete the captcha!"
+          "required": "Please complete the CAPTCHA verification!"
         }
     },
     "errors": {
-        "email_required": "Email is required!",
-        "invalid_email": "The email is invalid!",
-        "password_required": "Enter a password!",
-        "password_short": "Password is too short",
-        "unexpected": "Unexpected error occurred",
-        "try_again" : "An error was ocurred, try again later!"
+      "error": "Error",
+      "email_required": "Email is required!",
+      "invalid_email": "Invalid email address!",
+      "password_required": "Password is required!",
+      "password_short": "Password is too short",
+      "unexpected": "An unexpected error occurred",
+      "try_again": "An error occurred. Please try again later!",
+      "env": {
+        "turnstile_missing": "❌ Missing TURNSTILE_SITE_KEY in .env",
+        "supabase_missing": "❌ Missing Supabase environment variables in .env"
+      }, 
+      "invalid_credentials": "❌ Invalid email or password. Please try again.",
+      "unconfirmed_email": "❌ Please verify your email before logging in.",
+      "authentication": "❌ Authentication error",
+      "generic_error": "❌ An unexpected error occurred",
+      "email_registered": "❌ This email is already registered",
+      "ble": {
+        "on_connect": "Connection error",
+        "on_stop": "Scan stop error",
+        "on_scan": "Scan start error",
+        "system_devices": "System devices error",
+        "scan_error": "Scan error",
+        "url_firmware": "Firmware URL retrieval error!"
+      },
+      "offline": "You are offline", 
+      "issue_not_deleted": "Failed to delete the issue record"
     },
-    "services" : {
-      "required" : "For this App to work properly, you must enable Bluetooth and Location services to communicate with the BLE services of eAquaSaver devices!"
+    "success": {
+      "check_email_link": "✔ Check your email for the login link!",
+      "account_created": "✔ Account created successfully!",
+      "check_email_code": "✔ Check your email for the reset code!",
+      "password_reset": "✔ Password reset successfully!",
+      "profile_updated": "✔ Profile updated successfully!",
+      "issue_deleted": "✔ Issue deleted successfully!",
+      "issue_updated": "✔ Issue updated successfully!"
     },
-    "sign_out": "Sign out",
-    "user":{
-      "confirm_deletion" : "Are you sure you want to delete your account?",
+    "services": {
+      "required": "For this app to work properly you must enable Bluetooth and Location services to communicate with eAquaSaver (BLE) devices.",
+      "no_internet": "No internet connection"
+    },
+    "user": {
+      "confirm_deletion": "Are you sure you want to delete your account?",
       "delete_account": "Delete account",
       "confirm": "Confirm ({count} s)",
-      "confirmed_deletion":"Your deletion request will be completed within an hour! Your session will close in 5 seconds!"
+      "confirmed_deletion": "Your account will be deleted within an hour. The session will end in 5 seconds!",
+      "form": {
+        "first_name": "First name",
+        "last_name": "Last name"
+      }
+    },
+    "notify": {
+      "firmware": "New firmware available!"
+    }, 
+    "ui": {
+      "btn": {
+        "saving": "Saving...",
+        "update": "Update",
+        "cancel": "Cancel",
+        "close": "Close",
+        "confirm": "Confirm",
+        "accept": "Accept",
+        "save_rating": "Save rating",
+        "save_comment": "Save comment"
+      },
+      "label": {
+        "downloading": "Downloading",
+        "custom_name": "Custom name",
+        "temperature": "Temperature",
+        "minimal": "Minimum",
+        "target": "Target",
+        "firmware": "Firmware",
+        "update_eas_device": "Update eAquaSaver device",
+        "enter_password": "Enter password",
+        "comment": "Comment",
+        "loading": "Loading...",
+        "profile": "Profile"
+      },
+      "tab": {
+        "scan": "Scan devices",
+        "manager": "Manager",
+        "settings": "Settings",
+        "statistics": "Statistics",
+        "users": "Users",
+        "dashboard": "Dashboard",
+        "profile": "Profile",
+        "reviews": "Reviews",
+        "issues": "My issues",
+        "new_issue": "New issue",
+        "edit_issue": "Edit issue",
+        "water": "Water",
+        "location": "Location"
+      }
+    },
+    "map": {
+      "location_method": "Select location method",
+      "last_position": "Use last position",
+      "automatic_position": "Use automatic position",
+      "manual_position": "Manual position",
+      "fetching_location": "Fetching location...",
+      "select_method": "Select method",
+      "unknown_city": "Unknown city",
+      "unknown_country": "Unknown country"
+    },
+    "scan": {
+      "devices_found": "Devices found",
+      "no_devices": "No devices found. Please try again!",
+      "my_devices": "My devices",
+      "searching_devices": "Searching for eAquaSaver devices..."
+   },
+   "device": {
+      "no_data": "No data available",
+      "unauthorized": "Unauthorized access",
+      "restricted": "Restricted area",
+      "access_control": "Access control",
+      "enable_admins": "Enable administrators",
+      "allow_admins": "Allow new administrators",
+      "enable_members": "Enable members",
+      "allow_members": "Allow new members",
+      "enable_credits": "Enable credits system",
+      "allow_credits": "Require payment for service access",
+      "enable_reserved": "Enable reserved users",
+      "allow_reserved": "Allow reserved users",
+      "loading_settings": "Loading settings...",
+      "device_temperature": "Device temperature", 
+      "delete_temperature": "Delete values for this device?", 
+      "save_temperature_this": "Save values for this device", 
+      "save_temperature_all": "Save values for all my devices", 
+      "current_version": "Current version",
+      "remote_id": "Remote ID",
+      "download_progress": "Download progress",
+      "firmware_ready": "Firmware ready",
+      "download_update": "Download update",
+      "water": {
+        "total_recovered": "Total water recovered",
+        "total_hot_used": "Total hot water used",
+        "total_cold_used": "Total cold water used",
+        "recovered": "Recovered",
+        "hot_used": "Hot water used",
+        "cold_used": "Cold water used" 
+      }
+    }, 
+    "water": {
+      "stored_location": "Stored location",
+      "loading_address": "Loading address...",
+      "address": "Address:",
+      "network": "NETWORK:",
+      "loading_analysis": "Loading analysis data...",
+      "no_data": "No data available"
+    },
+    "issue": {
+      "delete_title": "Delete issue",
+      "describe": "Describe the issue",
+      "edit": "Edit issue",
+      "app": "Application",
+      "device": "Device",
+      "summary": "Summary",
+      "description": "Description",
+      "target": "Target",
+      "status": "Status",
+      "delete_question": "Delete this issue?"
     }
 }

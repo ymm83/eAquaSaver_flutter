@@ -59,10 +59,10 @@ class _UserDashboardState extends State<UserDashboard> {
       if (resp.user?.userMetadata!['pending_delete'] == true) {
         message = {'text': '', 'type': 'success'};
       } else {
-        message = {'text': 'error.try_again'.tr(), 'type': 'error'};
+        message = {'text': 'errors.try_again'.tr(), 'type': 'error'};
       }
     } catch (e) {
-      message = {'text': 'error.try_again'.tr(), 'type': 'error'};
+      message = {'text': 'errors.try_again'.tr(), 'type': 'error'};
     }
     // Aquí puedes ejecutar la acción de eliminación
     if (message['type'] == 'success') {
@@ -168,7 +168,7 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('error.unexpected'.tr(), theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       setState(() {
@@ -192,7 +192,7 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('error.unexpected'.tr(), theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       setState(() {
@@ -340,7 +340,9 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 const SizedBox(height: 30),
                 TextButton.icon(
-                    onPressed: _signOut, label: Text('sign_out'.tr()), icon: const Icon(Icons.exit_to_app_outlined)),
+                    onPressed: _signOut,
+                    label: Text('login.sign_out'.tr()),
+                    icon: const Icon(Icons.exit_to_app_outlined)),
                 const SizedBox(
                   height: 200,
                 ),
@@ -391,9 +393,9 @@ class _UserDashboardState extends State<UserDashboard> {
                                   _countdown = 11;
                                 }); // Ejecutar la acción al confirmar
                               },
-                              label: const Text(
-                                'cancel',
-                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                              label:  Text(
+                                'ui.btn.cancel'.tr(),
+                                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
                               ),
                               icon: const Icon(
                                 Icons.cancel,
@@ -401,8 +403,8 @@ class _UserDashboardState extends State<UserDashboard> {
                               )),
                           TextButton.icon(
                               onPressed: _executeDeleteAction,
-                              label: const Text(
-                                'confirm',
+                              label: Text(
+                                'ui.btn.confirm'.tr(),
                                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                               ),
                               icon: const Icon(

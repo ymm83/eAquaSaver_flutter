@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../bloc/ble/ble_bloc.dart';
 import 'device_allow.dart';
 import 'device_charts.dart';
@@ -16,7 +17,7 @@ class MainTabs extends StatefulWidget {
 
 class _MainTabsState extends State<MainTabs> {
   int pageIndex = 0;
-  final List<String> _pageTitle = ['Scan Devices', 'Manager', 'Settings', 'Statistics', 'Users'];
+  final List<String> _pageTitle = ['ui.tab.scan'.tr(), 'ui.tab.manager'.tr(), 'ui.tab.settings'.tr(), 'ui.tab.statistics'.tr(), 'ui.tab.users'.tr()];
   final PageController _pageController = PageController();
 
   List<Widget> _scanButtons(BuildContext context) {

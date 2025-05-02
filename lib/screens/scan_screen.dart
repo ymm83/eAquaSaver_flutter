@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -105,7 +106,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         setState(() {});
       }
     }, onError: (e) {
-      showSnackBar("Scan Error: $e", theme: 'error');
+      showSnackBar("${'errors.ble.scan_error'}: $e", theme: 'error');
     });
 
     _isScanningSubscription = FlutterBluePlus.isScanning.listen((state) {
@@ -160,13 +161,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     try {
       _systemDevices = await getSystemDevices();
     } catch (e) {
-      showSnackBar("System Devices Error: $e", theme: 'error');
+      showSnackBar("${'errors.ble.system_devices'}: $e", theme: 'error');
     }
     try {
       _scanResults.clear();
       await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5), androidUsesFineLocation: true);
     } catch (e) {
-      showSnackBar("Start Scan Error: $e", theme: 'error');
+      showSnackBar("${'errors.ble.on_scan'.tr()}: $e", theme: 'error');
     }
     if (mounted) {
       setState(() {});
@@ -181,13 +182,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       });
       _controller.stop();
     } catch (e) {
-      showSnackBar("Stop Scan Error: $e", theme: 'error');
+      showSnackBar("${'errors.ble.on_stop'.tr()}: $e", theme: 'error');
     }
   }
 
   void onConnectPressed(BluetoothDevice device) {
     device.connectAndUpdateStream().catchError((e) {
-      showSnackBar("Connect Error: $e", theme: 'error');
+      showSnackBar("${'errors.ble.on_connect'.tr()}: $e", theme: 'error');
     });
     context.read<BleBloc>().add(ConnectToDevice(device));
     context.read<BleBloc>().add(const DetailsOpen());
@@ -251,7 +252,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         initialData: BluetoothBondState.none, // Default initial state
         builder: (context, snapshot) {
           final bondState = snapshot.data ?? BluetoothBondState.none;
-          debugPrint('Device: ${d.advName}, Bond State: $bondState');
+          //debugPrint('Device: ${d.advName}, Bond State: $bondState');
 
           return SystemDeviceTile(
             device: d,
@@ -304,20 +305,20 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ),
               //TopLoadingIndicator(isLoading: _isScanning),
               if (_systemDevices.isNotEmpty) ...[
-                _buildTitle('My devices:'),
+                _buildTitle('scan.my_devices'.tr()),
                 ..._buildSystemDeviceTiles(context),
               ],
 
-              if (_isScanning) _buildTitle('Searching eAquaSaver devices...', size: 14.5),
-              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('No divices found. Try again!'),
+              if (_isScanning) _buildTitle('scan.searching_devices'.tr(), size: 14.5),
+              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('scan.no_divices'.tr()),
               /*if (!_isScanning && _scanResults.isNotEmpty)
                 Center(
                     child: Text('${_buildScanResultTiles(context).length} dispositivos encontrados:',
                         style: const TextStyle())),*/
-              SizedBox(
+              const SizedBox(
                 height: 5,
               ),
-              if (!_isScanning && _buildScanResultTiles(context).isNotEmpty) _buildTitle('Devices found:'),
+              if (!_isScanning && _buildScanResultTiles(context).isNotEmpty) _buildTitle('scan.devices_found'.tr()),
               if (!_isScanning) ..._buildScanResultTiles(context),
             ],
           ),

@@ -1,73 +1,219 @@
 {
-    "app_title": "eAquaSaver",
-    "lang": {
-        "fr": "Français 🇫🇷",
-        "en": "Anglais 🇬🇧",
-        "es": "Espagnol 🇪🇸"
-      },
-    "login": {
-        "email": "E-mail",
-        "password": "Mot de passe",
-        "new_password": "nouveau mot de passe",
-        "code": "code",
-        "repeat": "répéter",
-        "sign_in": "Se connecter",
-        "sign_up": "S'inscrire",
-        "forgot_password": "Mot de passe oublié?",
-        "loading": "Chargement",
-        "no_account": "Pas de compte? Inscrivez-vous",
-        "no_internet": "Pas de connexion Internet",
-        "offline": "Hors ligne",
-        "step": {
-            "signin": {"btn": "Se connecter", "title": "Formulaire de connexion"},
-            "signup": {"btn": "S'inscrire", "title": "Formulaire d'inscription"},
-            "forgot": {"btn": "Récupération", "title": "Formulaire de réinitialisation du mot de passe"},
-            "reset": {"btn": "Réinitialiser le mot de passe", "title": "Formulaire de récupération de compte"}
-          }
-    },
-    "validation": {
-        "email": {
-          "required": "L'email est requis !",
-          "pending_deletion": "L'email est en attente de suppression !",
-          "invalid": "L'email n'est pas valide !"
-        },
-        "password": {
-          "required": "Entrez un mot de passe !",
-          "too_short": "Le mot de passe est trop court. ({length}/6+)"
-        },
-        "new_password": {
-          "required": "Entrez un nouveau mot de passe !",
-          "too_short": "Le nouveau mot de passe est trop court. ({length}/6+)"
-        },
-        "confirm_password": {
-          "required": "Confirmez le mot de passe.",
-          "too_short": "La confirmation du mot de passe est trop courte. ({length}/6+)",
-          "mismatch": "Les mots de passe ne correspondent pas."
-        },
-        "code": {
-          "required": "Entrez le code envoyé à l'email.",
-          "invalid_length": "Le code doit contenir 6 chiffres. ({length}/6)"
-        },
-        "captcha": {
-          "required": "Veuillez compléter le captcha !"
-        }
-    },
-    "errors": {
-        "email_required": "Email requis!",
-        "invalid_email": "L'email est invalide!",
-        "password_required": "Entrez un mot de passe!",
-        "password_short": "Mot de passe trop court",
-        "unexpected": "Une erreur inattendue s'est produite",
-        "try_again": "Une erreur est survenue, veuillez réessayer plus tard!"
-    },
-    "services": {
-      "required": "Pour que cette application fonctionne correctement vous devez activer les services Bluetooth et de localisation pour communiquer avec les services BLE des appareils eAquaSaver !"
-    },
+  "app_title": "eAquaSaver",
+  "lang": {
+    "fr": "Français 🇫🇷",
+    "en": "Anglais 🇬🇧",
+    "es": "Espagnol 🇪🇸"
+  },
+  "login": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "new_password": "Nouveau mot de passe",
+    "code": "Code",
+    "repeat": "Répéter",
+    "sign_in": "Se connecter",
+    "sign_up": "S'inscrire",
     "sign_out": "Se déconnecter",
-    "user": {
-      "confirm_deletion": "Êtes-vous sûr de vouloir supprimer votre compte ?",
-      "delete_account": "Supprimer le compte",
-      "confirm": "Confirmer ({count} s)",
-      "confirmed_deletion": "Votre demande de suppression sera traitée dans l'heure ! Votre session se fermera dans 5 secondes !"
+    "forgot_password": "Mot de passe oublié ?",
+    "lost_password": "Votre mot de passe perdu est : ",
+    "loading": "Chargement",
+    "no_account": "Pas de compte ? Inscrivez-vous !",
+    "no_internet": "Pas de connexion internet",
+    "offline": "Hors ligne",
+    "step": {
+      "signin": {"btn": "Se connecter", "title": "Formulaire de connexion"},
+      "signup": {"btn": "S'inscrire", "title": "Formulaire d'inscription"},
+      "forgot": {"btn": "Récupérer", "title": "Formulaire de réinitialisation"},
+      "reset": {"btn": "Réinitialiser le mot de passe", "title": "Formulaire de récupération"}
     }
+  },
+  "validation": {
+    "email": {
+      "required": "L'email est requis !",
+      "pending_deletion": "Cet email est en attente de suppression !",
+      "invalid": "Email invalide !"
+    },
+    "password": {
+      "required": "Le mot de passe est requis !",
+      "too_short": "Mot de passe trop court ({length}/6+)"
+    },
+    "new_password": {
+      "required": "Un nouveau mot de passe est requis !",
+      "too_short": "Nouveau mot de passe trop court ({length}/6+)"
+    },
+    "confirm_password": {
+      "required": "Confirmez le mot de passe",
+      "too_short": "Confirmation trop courte ({length}/6+)",
+      "mismatch": "Les mots de passe ne correspondent pas"
+    },
+    "code": {
+      "required": "Entrez le code de vérification envoyé par email",
+      "invalid_length": "Le code doit avoir 6 chiffres (actuel : {length}/6)"
+    },
+    "captcha": {
+      "required": "Complétez la vérification CAPTCHA !"
+    }
+  },
+  "errors": {
+    "error": "Erreur",
+    "email_required": "L'email est requis !",
+    "invalid_email": "Email invalide !",
+    "password_required": "Le mot de passe est requis !",
+    "password_short": "Mot de passe trop court",
+    "unexpected": "Une erreur inattendue est survenue",
+    "try_again": "Une erreur est survenue. Réessayez plus tard !",
+    "env": {
+      "turnstile_missing": "❌ Clé TURNSTILE_SITE_KEY manquante dans .env",
+      "supabase_missing": "❌ Variables d'environnement Supabase manquantes"
+    },
+    "invalid_credentials": "❌ Email ou mot de passe incorrect. Réessayez.",
+    "unconfirmed_email": "❌ Veuillez vérifier votre email avant de vous connecter.",
+    "authentication": "❌ Erreur d'authentification",
+    "generic_error": "❌ Erreur inattendue",
+    "email_registered": "❌ Cet email est déjà enregistré",
+    "ble": {
+      "on_connect": "Erreur de connexion",
+      "on_stop": "Erreur d'arrêt du scan",
+      "on_scan": "Erreur de démarrage du scan",
+      "system_devices": "Erreur des appareils système",
+      "scan_error": "Erreur de scan",
+      "url_firmware": "Erreur lors de la récupération de l'URL du firmware !"
+    },
+    "offline": "Hors ligne",
+    "issue_not_deleted": "Échec de la suppression du rapport"
+  },
+  "success": {
+    "check_email_link": "✔ Vérifiez votre email pour le lien de connexion !",
+    "account_created": "✔ Compte créé avec succès !",
+    "check_email_code": "✔ Vérifiez votre email pour le code de réinitialisation !",
+    "password_reset": "✔ Mot de passe réinitialisé avec succès !",
+    "profile_updated": "✔ Profil mis à jour avec succès !",
+    "issue_deleted": "✔ Rapport supprimé avec succès !",
+    "issue_updated": "✔ Rapport mis à jour avec succès !"
+  },
+  "services": {
+    "required": "Pour que cette application fonctionne correctement, vous devez activer le Bluetooth et la Localisation pour communiquer avec les appareils eAquaSaver (BLE).",
+    "no_internet": "Pas de connexion internet"
+  },
+  "user": {
+    "confirm_deletion": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+    "delete_account": "Supprimer le compte",
+    "confirm": "Confirmer ({count} s)",
+    "confirmed_deletion": "Votre compte sera supprimé dans une heure. La session se terminera dans 5 secondes !",
+    "form": {
+      "first_name": "Prénom",
+      "last_name": "Nom"
+    }
+  },
+  "notify": {
+    "firmware": "Nouvelle mise à jour du firmware disponible !"
+  },
+  "ui": {
+    "btn": {
+      "saving": "Enregistrement...",
+      "update": "Mettre à jour",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "confirm": "Confirmer",
+      "accept": "Accepter",
+      "save_rating": "Enregistrer la note",
+      "save_comment": "Enregistrer le commentaire"
+    },
+    "label": {
+      "downloading": "Téléchargement",
+      "custom_name": "Nom personnalisé",
+      "temperature": "Température",
+      "minimal": "Minimum",
+      "target": "Cible",
+      "firmware": "Firmware",
+      "update_eas_device": "Mettre à jour l'appareil eAquaSaver",
+      "enter_password": "Entrer le mot de passe",
+      "comment": "Commentaire",
+      "loading": "Chargement...",
+      "profile": "Profil"
+    },
+    "tab": {
+      "scan": "Scanner les appareils",
+      "manager": "Gestionnaire",
+      "settings": "Paramètres",
+      "statistics": "Statistiques",
+      "users": "Utilisateurs",
+      "dashboard": "Tableau de bord",
+      "profile": "Profil",
+      "reviews": "Avis",
+      "issues": "Mes rapports",
+      "new_issue": "Nouveau rapport",
+      "edit_issue": "Modifier le rapport",
+      "water": "Eau",
+      "location": "Localisation"
+    }
+  },
+  "map": {
+    "location_method": "Sélectionner la méthode de localisation",
+    "last_position": "Utiliser la dernière position",
+    "automatic_position": "Utiliser la position automatique",
+    "manual_position": "Position manuelle",
+    "fetching_location": "Récupération de la position...",
+    "select_method": "Sélectionner la méthode",
+    "unknown_city": "Ville inconnue",
+    "unknown_country": "Pays inconnu"
+  },
+  "scan": {
+    "devices_found": "Appareils trouvés",
+    "no_devices": "Aucun appareil trouvé. Veuillez réessayer !",
+    "my_devices": "Mes appareils",
+    "searching_devices": "Recherche d'appareils eAquaSaver..."
+  },
+  "device": {
+    "no_data": "Aucune donnée disponible",
+    "unauthorized": "Accès non autorisé",
+    "restricted": "Zone restreinte",
+    "access_control": "Contrôle d'accès",
+    "enable_admins": "Activer les administrateurs",
+    "allow_admins": "Autoriser de nouveaux administrateurs",
+    "enable_members": "Activer les membres",
+    "allow_members": "Autoriser de nouveaux membres",
+    "enable_credits": "Activer le système de crédits",
+    "allow_credits": "Paiement requis pour l'accès au service",
+    "enable_reserved": "Activer les utilisateurs réservés",
+    "allow_reserved": "Autoriser les utilisateurs réservés",
+    "loading_settings": "Chargement des paramètres...",
+    "device_temperature": "Température de l'appareil",
+    "delete_temperature": "Supprimer les valeurs de cet appareil ?",
+    "save_temperature_this": "Enregistrer les valeurs pour cet appareil",
+    "save_temperature_all": "Enregistrer les valeurs pour tous mes appareils",
+    "current_version": "Version actuelle",
+    "remote_id": "ID distant",
+    "download_progress": "Progression du téléchargement",
+    "firmware_ready": "Firmware prêt",
+    "download_update": "Télécharger la mise à jour",
+    "water": {
+      "total_recovered": "Eau récupérée totale",
+      "total_hot_used": "Eau chaude utilisée totale",
+      "total_cold_used": "Eau froide utilisée totale",
+      "recovered": "Récupérée",
+      "hot_used": "Eau chaude utilisée",
+      "cold_used": "Eau froide utilisée"
+    }
+  },
+  "water": {
+    "stored_location": "Localisation enregistrée",
+    "loading_address": "Chargement de l'adresse...",
+    "address": "Adresse :",
+    "network": "RÉSEAU :",
+    "loading_analysis": "Chargement des données d'analyse...",
+    "no_data": "Aucune donnée disponible"
+  },
+  "issue": {
+    "delete_title": "Supprimer le rapport",
+    "describe": "Décrivez le problème",
+    "edit": "Modifier le rapport",
+    "app": "Application",
+    "device": "Appareil",
+    "summary": "Résumé",
+    "description": "Description",
+    "target": "Cible",
+    "status": "Statut",
+    "delete_question": "Supprimer ce rapport ?"
+  }
 }

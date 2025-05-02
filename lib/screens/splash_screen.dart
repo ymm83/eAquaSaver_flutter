@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../provider/supabase_provider.dart';
@@ -47,37 +48,37 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Color.fromARGB(255, 237, 243, 250),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image(
+          const Image(
             image: AssetImage('assets/company_logo.png'),
             fit: BoxFit.contain,
             width: 200,
             height: 150,
           ),
-          SizedBox(height: 20),
-          Center(
+          const SizedBox(height: 20),
+          const Center(
               child: Text(
             'eAquaSaver App',
             style: TextStyle(fontSize: 27, color: Color.fromARGB(255, 3, 50, 138), fontWeight: FontWeight.bold),
           )),
-          SizedBox(height: 10),
-          Padding(
+          const SizedBox(height: 10),
+          const Padding(
               padding: EdgeInsets.all(20),
               child: LinearProgressIndicator(
                 color: Colors.blue,
                 backgroundColor: Colors.redAccent,
               )),
-          Center(child: SizedBox(height: 10)),
+          const Center(child: SizedBox(height: 10)),
           Center(
               child: Text(
-            'Loading...',
-            style: TextStyle(fontSize: 17, color: Color.fromARGB(255, 3, 50, 138)),
+            'ui.label.loading'.tr(),
+            style: const TextStyle(fontSize: 17, color: Color.fromARGB(255, 3, 50, 138)),
           )),
-          Padding(
+          const Padding(
               padding: EdgeInsets.only(top: 100),
               child: Text(
                 'SantRoss Tech Company ®',

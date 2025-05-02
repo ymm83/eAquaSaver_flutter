@@ -23,7 +23,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   void _onLocationStarted(LocationStarted event, Emitter<LocationState> emit) async {
     emit(LocationLoadInProgress());
     final cache = await _storage.readAll();
-    debugPrint('--- cache loction: $cache');
+   // debugPrint('--- cache loction: $cache');
     try {
       bool serviceEnabled = await _geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {

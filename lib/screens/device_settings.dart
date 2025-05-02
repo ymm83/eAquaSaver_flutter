@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:eaquasaver/bloc/connectivity/connectivity_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -128,7 +128,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
       //debugPrint('firmware version data: ${newVersionData.toString()}');
     } catch (e) {
       setState(() {
-        _statusMessage = 'Error inesperado';
+        _statusMessage = 'errors.unexpected'.tr();
       });
       return {};
       //debugPrint('Excepción: $e');
@@ -187,7 +187,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
 
       if (response.isEmpty) {
         setState(() {
-          _statusMessage = '¡Error al obtener la url del firmware!';
+          _statusMessage = 'errors.url_firmware'.tr();
         });
         return;
       }
@@ -209,7 +209,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
         onProgress: (progress) => {
           setState(() {
             _downloadProgress = progress;
-            _statusMessage = 'Descargando... ${(progress * 100).toStringAsFixed(2)}%';
+            _statusMessage = '${'ui.label.downloading'.tr()}... ${(progress * 100).toStringAsFixed(2)}%';
           })
         },
         onStatus: (status) => {
@@ -245,7 +245,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
       }
     } catch (e) {
       setState(() {
-        _statusMessage = 'Error inesperado';
+        _statusMessage = 'errors.unexpected'.tr();
       });
       debugPrint('Excepción: $e');
     }
@@ -439,8 +439,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                 _buildRoleIcon(role),
                 Text('$role'),
                 //if (role == 'Admin') ...[
-                const Text(
-                  'CUSTOM NAME',
+                Text(
+                  'ui.label.custom_name'.tr(),
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
                 ),
                 Row(
@@ -487,8 +487,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   color: Colors.grey[300],
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'TEMPERATURE',
+                Text(
+                  'ui.label.temperature'.tr(),
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 3),
                 ),
                 Card.outlined(
@@ -499,7 +499,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        const Text('Device temperature'),
+                        Text('device_temperature'.tr()),
                         ToggleSwitch(
                           activeFgColor: Colors.white,
                           inactiveBgColor: Colors.grey,
@@ -534,13 +534,12 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   child: Column(
                     children: [
                       if (toggleValue == 0) ...[
-                        const Row(
+                        Row(
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'Delete values for this device?',
-                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            Text('device.delete_temperature'.tr(),
+                              style: const TextStyle(color: Colors.red, fontSize: 14),
                             ),
                           ],
                         ),
@@ -565,8 +564,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                                     toggleValue = 1;
                                   }); // Ejecutar la acción al confirmar
                                 },
-                                label: const Text(
-                                  'cancel',
+                                label: Text(
+                                  'ui.btn.cancel'.tr().toLowerCase(),
                                   style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
                                 ),
                                 icon: const Icon(
@@ -593,8 +592,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                                     toggleValue = 1;
                                   });
                                 },
-                                label: const Text(
-                                  'confirm',
+                                label: Text(
+                                  'ui.btn.confirm'.tr().toLowerCase(),
                                   style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                                 ),
                                 icon: const Icon(
@@ -606,13 +605,13 @@ class DeviceSettingsState extends State<DeviceSettings> {
                       ],
                       if (toggleValue == 1) ...[
                         Center(
-                          child: Text('Save values for this device!', style: TextStyle(color: Colors.purple.shade400)),
+                          child: Text('device.save_temperature_this'.tr(), style: TextStyle(color: Colors.purple.shade400)),
                         ),
                       ],
                       if (toggleValue == 2) ...[
                         Center(
                           child:
-                              Text('Save values for all my devices!', style: TextStyle(color: Colors.purple.shade800)),
+                              Text('device.save_temperature_all'.tr(), style: TextStyle(color: Colors.purple.shade800)),
                         ),
                       ],
                     ],
@@ -629,9 +628,9 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           width: 60,
                           child: RichText(
                             textAlign: TextAlign.right,
-                            text: const TextSpan(
-                              text: 'minimal: ',
-                              style: TextStyle(color: Colors.deepPurple),
+                            text: TextSpan(
+                              text: "${'ui.label.minimal'.tr()}: ",
+                              style: const TextStyle(color: Colors.deepPurple),
                             ),
                           ),
                         ),
@@ -681,8 +680,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           width: 60,
                           child: RichText(
                             textAlign: TextAlign.right,
-                            text: const TextSpan(
-                              text: 'target: ',
+                            text: TextSpan(
+                              text: "${'ui.label.target'.tr()}: ",
                               style: TextStyle(color: Colors.deepPurple),
                             ),
                           ),
@@ -734,8 +733,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   color: Colors.grey[300],
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'FIRMWARE',
+                Text(
+                  'ui.label.firmware'.tr(),
                   style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 5),
                 ),
                 const SizedBox(height: 10),
@@ -791,7 +790,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                             onPressed: () async {
                               await updateFirmware();
                             },
-                            label: const Text('Update eAquaSaver device!')),
+                            label: Text('Update eAquaSaver device!')),
                       )
                     ],
                   ),

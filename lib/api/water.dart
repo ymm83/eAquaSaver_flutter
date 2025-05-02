@@ -94,6 +94,9 @@ Future<List<dynamic>> rawApiResults(String codeCommune) async {
         }
       });
 
+
+      debugPrint("-----------water/ filterdata: $filterData");
+      debugPrint("-----------water/ apiUrl: $apiUrl");
       return filterData;
     } else {
       throw Exception('Failed to load raw API results');

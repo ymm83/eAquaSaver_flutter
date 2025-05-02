@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class Disconnected extends StatefulWidget {
@@ -13,7 +14,7 @@ class _DisconnectedState extends State<Disconnected> {
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Center(
           child: Text(
-        'No internet connection',
+        'services.no_internet'.tr(),
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.red.shade500),
       )),
       Center(

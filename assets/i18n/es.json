@@ -1,9 +1,9 @@
 {
     "app_title": "eAquaSaver",
     "lang": {
-        "fr" : "Francés 🇫🇷",
-        "en" : "Inglés 🇬🇧",
-        "es" : "Español 🇪🇸"
+        "fr": "Francés 🇫🇷",
+        "en": "Inglés 🇬🇧",
+        "es": "Español 🇪🇸"
     },
     "login": {
         "email": "Correo electrónico",
@@ -13,61 +13,207 @@
         "repeat": "Repetir",
         "sign_in": "Iniciar sesión",
         "sign_up": "Registrarse",
+        "sign_out": "Cerrar sesión",
         "forgot_password": "¿Olvidaste tu contraseña?",
+        "lost_password": "Tu contraseña perdida es: ",
         "loading": "Cargando",
-        "no_account": "¿No tienes cuenta? Regístrate",
+        "no_account": "¿No tienes cuenta? ¡Regístrate!",
         "no_internet": "Sin conexión a internet",
         "offline": "Sin conexión",
         "step": {
-            "signin": {"btn": "Iniciar sesión", "title": "Inicio de sesión"},
+            "signin": {"btn": "Iniciar sesión", "title": "Formulario de inicio"},
             "signup": {"btn": "Registrarse", "title": "Formulario de registro"},
-            "forgot": {"btn": "Recuperación", "title": "Restablecer contraseña"},
-            "reset": {"btn": "Restablecer contraseña", "title": "Recuperación de cuenta"}
+            "forgot": {"btn": "Recuperación", "title": "Formulario de restablecimiento"},
+            "reset": {"btn": "Restablecer contraseña", "title": "Formulario de recuperación"}
           }
     },
     "validation": {
         "email": {
-          "required": "¡El correo electrónico es requerido!",
-          "pending_deletion": "¡El correo está pendiente de eliminación!",
-          "invalid": "¡El correo electrónico no es válido!"
+          "required": "¡El correo electrónico es obligatorio!",
+          "pending_deletion": "¡Este correo está pendiente de eliminación!",
+          "invalid": "¡Correo electrónico inválido!"
         },
         "password": {
-          "required": "¡Ingresa una contraseña!",
-          "too_short": "La contraseña es muy corta. ({length}/6+)"
+          "required": "¡La contraseña es obligatoria!",
+          "too_short": "La contraseña es muy corta ({length}/6+)"
         },
         "new_password": {
-          "required": "¡Ingresa una nueva contraseña!",
-          "too_short": "La nueva contraseña es muy corta. ({length}/6+)"
+          "required": "¡La nueva contraseña es obligatoria!",
+          "too_short": "La nueva contraseña es muy corta ({length}/6+)"
         },
         "confirm_password": {
-          "required": "Confirma la contraseña.",
-          "too_short": "La confirmación de contraseña es muy corta. ({length}/6+)",
-          "mismatch": "Las contraseñas no coinciden."
+          "required": "Confirma tu contraseña",
+          "too_short": "La confirmación es muy corta ({length}/6+)",
+          "mismatch": "Las contraseñas no coinciden"
         },
         "code": {
-          "required": "Ingresa el código enviado al correo.",
-          "invalid_length": "El código debe tener 6 dígitos. ({length}/6)"
+          "required": "Ingresa el código de verificación enviado a tu correo",
+          "invalid_length": "El código debe tener 6 dígitos (actual: {length}/6)"
         },
         "captcha": {
-          "required": "¡Por favor completa el captcha!"
+          "required": "¡Completa la verificación CAPTCHA!"
         }
     },
     "errors": {
-        "email_required": "¡Se requiere email!",
-        "invalid_email": "¡El email no es válido!",
-        "password_required": "¡Ingresa una contraseña!",
-        "password_short": "La contraseña es muy corta",
-        "unexpected": "Ocurrió un error inesperado",
-        "try_again": "¡Ocurrió un error, inténtalo de nuevo más tarde!"
+      "error": "Error",
+      "email_required": "¡El correo electrónico es obligatorio!",
+      "invalid_email": "¡Correo electrónico inválido!",
+      "password_required": "¡La contraseña es obligatoria!",
+      "password_short": "La contraseña es muy corta",
+      "unexpected": "Ocurrió un error inesperado",
+      "try_again": "¡Ocurrió un error. Inténtalo más tarde!",
+      "env": {
+        "turnstile_missing": "❌ Falta la variable TURNSTILE_SITE_KEY en .env",
+        "supabase_missing": "❌ Faltan variables de Supabase en .env"
+      },
+      "invalid_credentials": "❌ Correo o contraseña incorrectos. Inténtalo de nuevo.",
+      "unconfirmed_email": "❌ Verifica tu correo antes de iniciar sesión.",
+      "authentication": "❌ Error de autenticación",
+      "generic_error": "❌ Error inesperado",
+      "email_registered": "❌ Este correo ya está registrado",
+      "ble": {
+        "on_connect": "Error de conexión",
+        "on_stop": "Error al detener escaneo",
+        "on_scan": "Error al iniciar escaneo",
+        "system_devices": "Error en dispositivos del sistema",
+        "scan_error": "Error de escaneo",
+        "url_firmware": "¡Error al obtener el enlace del firmware!"
+      },
+      "offline": "Sin conexión",
+      "issue_not_deleted": "Error al eliminar el registro"
+    },
+    "success": {
+      "check_email_link": "✔ ¡Revisa tu correo para el enlace de inicio!",
+      "account_created": "✔ ¡Cuenta creada exitosamente!",
+      "check_email_code": "✔ ¡Revisa tu correo para el código de restablecimiento!",
+      "password_reset": "✔ ¡Contraseña restablecida exitosamente!",
+      "profile_updated": "✔ ¡Perfil actualizado exitosamente!",
+      "issue_deleted": "✔ ¡Registro eliminado exitosamente!",
+      "issue_updated": "✔ ¡Registro actualizado exitosamente!"
     },
     "services": {
-      "required": "¡Para que esta aplicación funcione correctamente debe activar los servicios de Bluetooth y Ubicación para comunicarse con los servicios BLE de los dispositivos eAquaSaver!"
+      "required": "Para que esta aplicación funcione correctamente, debes activar Bluetooth y Ubicación para comunicarte con dispositivos eAquaSaver (BLE).",
+      "no_internet": "Sin conexión a internet"
     },
-    "sign_out": "Cerrar sesión",
     "user": {
-      "confirm_deletion": "¿Estás seguro de que quieres eliminar tu cuenta?",
+      "confirm_deletion": "¿Seguro que quieres eliminar tu cuenta?",
       "delete_account": "Eliminar cuenta",
       "confirm": "Confirmar ({count} s)",
-      "confirmed_deletion": "¡Tu solicitud de eliminación se completará en una hora! ¡Tu sesión se cerrará en 5 segundos!"
+      "confirmed_deletion": "Tu cuenta se eliminará en una hora. ¡La sesión terminará en 5 segundos!",
+      "form": {
+        "first_name": "Nombre",
+        "last_name": "Apellido"
+      }
+    },
+    "notify": {
+      "firmware": "¡Nueva actualización de firmware disponible!"
+    },
+    "ui": {
+      "btn": {
+        "saving": "Guardando...",
+        "update": "Actualizar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "confirm": "Confirmar",
+        "accept": "Aceptar",
+        "save_rating": "Guardar calificación",
+        "save_comment": "Guardar comentario"
+      },
+      "label": {
+        "downloading": "Descargando",
+        "custom_name": "Nombre personalizado",
+        "temperature": "Temperatura",
+        "minimal": "Mínimo",
+        "target": "Objetivo",
+        "firmware": "Firmware",
+        "update_eas_device": "Actualizar dispositivo eAquaSaver",
+        "enter_password": "Ingresar contraseña",
+        "comment": "Comentario",
+        "loading": "Cargando...",
+        "profile": "Perfil"
+    },    
+    "tab": {
+      "scan": "Escanear dispositivos",
+      "manager": "Administrador",
+      "settings": "Configuración",
+      "statistics": "Estadísticas",
+      "users": "Usuarios",
+      "dashboard": "Panel",
+      "profile": "Perfil",
+      "reviews": "Reseñas",
+      "issues": "Mis incidencias",
+      "new_issue": "Nueva incidencia",
+      "edit_issue": "Editar incidencia",
+      "water": "Agua",
+      "location": "Ubicación"
     }
-}
+  },
+    "map": {
+      "location_method": "Seleccionar método de ubicación",
+      "last_position": "Usar última posición",
+      "automatic_position": "Usar posición automática",
+      "manual_position": "Posición manual",
+      "fetching_location": "Obteniendo ubicación...",
+      "select_method": "Seleccionar método",
+      "unknown_city": "Ciudad desconocida",
+      "unknown_country": "País desconocido"
+    },
+    "scan": {
+      "devices_found": "Dispositivos encontrados",
+      "no_devices": "No se encontraron dispositivos. ¡Inténtalo de nuevo!",
+      "my_devices": "Mis dispositivos",
+      "searching_devices": "Buscando dispositivos eAquaSaver..."
+    },
+    "device": {
+      "no_data": "Sin datos disponibles",
+      "unauthorized": "Acceso no autorizado",
+      "restricted": "Área restringida",
+      "access_control": "Control de acceso",
+      "enable_admins": "Habilitar administradores",
+      "allow_admins": "Permitir nuevos administradores",
+      "enable_members": "Habilitar miembros",
+      "allow_members": "Permitir nuevos miembros",
+      "enable_credits": "Habilitar sistema de créditos",
+      "allow_credits": "Requiere pago para acceder al servicio",
+      "enable_reserved": "Habilitar usuarios reservados",
+      "allow_reserved": "Permitir usuarios reservados",
+      "loading_settings": "Cargando configuración...",
+      "device_temperature": "Temperatura del dispositivo",
+      "delete_temperature": "¿Eliminar valores de este dispositivo?",
+      "save_temperature_this": "Guardar valores para este dispositivo",
+      "save_temperature_all": "Guardar valores para todos mis dispositivos",
+      "current_version": "Versión actual",
+      "remote_id": "ID remoto",
+      "download_progress": "Progreso de descarga",
+      "firmware_ready": "Firmware listo",
+      "download_update": "Descargar actualización",
+      "water": {
+        "total_recovered": "Total de agua recuperada",
+        "total_hot_used": "Total de agua caliente usada",
+        "total_cold_used": "Total de agua fría usada",
+        "recovered": "Agua recuperada",
+        "hot_used": "Agua caliente usada",
+        "cold_used": "Agua fría usada"
+      }
+    },
+    "water": {
+      "stored_location": "Ubicación almacenada",
+      "loading_address": "Cargando dirección...",
+      "address": "Dirección:",
+      "network": "RED:",
+      "loading_analysis": "Cargando datos de análisis...",
+      "no_data": "Sin datos disponibles"
+    },
+    "issue": {
+      "delete_title": "Eliminar problema",
+      "describe": "Describe la incidencia",
+      "edit": "Editar incidencia",
+      "app": "Aplicación",
+      "device": "Dispositivo",
+      "summary": "Resumen",
+      "description": "Descripción",
+      "target": "Objetivo",
+      "status": "Estado",
+      "delete_question": "¿Eliminar esta incidencia?"
+    }
+  }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Color analizeColor(String elem, double val) {
+Color analysisColor(String elem, double val) {
   const colors = {
     'alert': Color(0xFFFF190C),
     'warning': Color(0xFFFAAD14),
@@ -31,10 +31,10 @@ Color analizeColor(String elem, double val) {
   return colors['warning']!;
 }
 
-class Analize extends StatelessWidget {
+class Analysis extends StatelessWidget {
   final Map<String, dynamic> item;
 
-  const Analize({required this.item, super.key});
+  const Analysis({required this.item, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class Analize extends StatelessWidget {
             children: [
               Icon(Icons.science,
                   size: 16,
-                  color: analizeColor(item['code_parametre_se'], item['resultat_numerique'])),
+                  color: analysisColor(item['code_parametre_se'], item['resultat_numerique'])),
               const SizedBox(width: 5),
               Text(
                 item['libelle_parametre'],
@@ -71,7 +71,7 @@ class Analize extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 decoration: BoxDecoration(
-                  color: analizeColor(item['code_parametre_se'], item['resultat_numerique']),
+                  color: analysisColor(item['code_parametre_se'], item['resultat_numerique']),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

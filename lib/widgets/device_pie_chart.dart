@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -27,7 +28,7 @@ class _DevicePieChartState extends State<DevicePieChart> {
     final totalColdUsed = bData['totalColdUsed'];
 
     if (totalRecovered == 0 && totalHotUsed == 0 && totalColdUsed == 0) {
-      return const Text('No hay datos para mostrar');
+      return Text('device.no_data'.tr());
     }
 
     return SingleChildScrollView(
@@ -83,11 +84,11 @@ class _DevicePieChartState extends State<DevicePieChart> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildLegendItem(Colors.blueAccent.shade200, 'Total of water recovered', ''),
+                _buildLegendItem(Colors.blueAccent.shade200, 'device.water.total_recovered'.tr(), ''),
                 const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-                _buildLegendItem(Colors.redAccent.shade200, 'Total of hot water used', ''),
+                _buildLegendItem(Colors.redAccent.shade200, 'device.water.total_hot_used', ''),
                 const SizedBox(height: 16), // Espacio entre elementos de la leyenda
-                _buildLegendItem(Colors.greenAccent.shade200, 'Total of cold water used', ''),
+                _buildLegendItem(Colors.greenAccent.shade200, 'device.water.total_cold_used', ''),
               ],
             ),
           ),

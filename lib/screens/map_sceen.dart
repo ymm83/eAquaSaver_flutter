@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,7 +10,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../widgets/tile_providers.dart';
 import '../bloc/location/location_bloc.dart';
-
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -154,10 +154,10 @@ class MapScreenState extends State<MapScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Center(
+              title: Center(
                 child: Text(
-                  'Select Location Method',
-                  style: TextStyle(fontSize: 18),
+                  'map.location_method'.tr(),
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
               content: Column(
@@ -179,8 +179,8 @@ class MapScreenState extends State<MapScreen> {
                             : null,
                       ),
                       _isLocationAvailable
-                          ? const Text('Use last position')
-                          : const Text('Use last position', style: TextStyle(decoration: TextDecoration.lineThrough)),
+                          ? Text('map.last_position'.tr())
+                          : Text('map.last_position'.tr(), style: TextStyle(decoration: TextDecoration.lineThrough)),
                     ],
                   ),
                   Row(
@@ -199,8 +199,8 @@ class MapScreenState extends State<MapScreen> {
                             : null,
                       ),
                       _isGpsEnabled
-                          ? const Text('Use automatic position')
-                          : const Text('Use automatic position',
+                          ? Text('map.automatic_position'.tr())
+                          : Text('map.automatic_position'.tr(),
                               style: TextStyle(decoration: TextDecoration.lineThrough)),
                     ],
                   ),
@@ -217,7 +217,7 @@ class MapScreenState extends State<MapScreen> {
                           }
                         },
                       ),
-                      const Text('Manual position'),
+                      Text('map.manual_position'.tr()),
                     ],
                   ),
                 ],
@@ -228,7 +228,7 @@ class MapScreenState extends State<MapScreen> {
                     Navigator.of(context).pop();
                     _dialogShown = false; // Reinicia el estado del diálogo al cerrarlo
                   },
-                  child: const Text('Close'),
+                  child: Text('ui.btn.close'.tr()),
                 ),
               ],
             );
@@ -248,7 +248,7 @@ class MapScreenState extends State<MapScreen> {
           LatLng initialPosition = _paris;
 
           if (state is LocationInitial) {
-            return const Center(child: Text('Fetching Location'));
+            return Center(child: Text('map.fetching_location'.tr()));
           } else if (state is LocationLoadSuccess) {
             _locationData = initialPosition;
           } else if (state is LocationLoadFailure) {
@@ -265,7 +265,7 @@ class MapScreenState extends State<MapScreen> {
                   children: [
                     TextButton.icon(
                       icon: const Icon(Icons.gps_fixed),
-                      label: const Text(' Select method'),
+                      label: Text('map.select_method'.tr()),
                       onPressed: _showLocationDialog,
                     ),
                   ],
@@ -299,7 +299,7 @@ class MapScreenState extends State<MapScreen> {
                           icon: const Icon(Icons.check_circle, color: Colors.green),
                           iconSize: 40,
                           onPressed: () {
-                            debugPrint('Confirmed');
+                            //debugPrint('Confirmed');
                             setState(() {
                               _showButtons = false; // Ocultar botones después de la acción
                             });
@@ -317,7 +317,7 @@ class MapScreenState extends State<MapScreen> {
                           icon: const Icon(Icons.cancel, color: Colors.red),
                           iconSize: 40,
                           onPressed: () {
-                            debugPrint('Canceled');
+                            //debugPrint('Canceled');
                             setState(() {
                               _showButtons = false; // Ocultar botones después de la acción
                             });

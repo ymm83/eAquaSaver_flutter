@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -44,12 +45,12 @@ class DeviceChartsState extends State<DeviceCharts> {
             child: Column(
               children: [
                 if (state.beaconData.isEmpty) ...[
-                  const Text('No hay datos para mostrar'),
+                  Text('device.no_data'.tr()),
                 ],
                 if (state.beaconData['totalRecovered'] == 0 &&
                     state.beaconData['totalHotUsed'] == 0 &&
                     state.beaconData['totalColdUsed'] == 0) ...[
-                  const Text('No hay datos para mostrar'),
+                  Text('device.no_data'.tr()),
                 ],
                 if (state.beaconData['totalRecovered'] != 0 ||
                     state.beaconData['totalHotUsed'] != 0 ||

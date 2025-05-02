@@ -1,11 +1,12 @@
 //import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../api/water.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
 import '../bloc/location/location_bloc.dart';
-import '../widgets/water_analize.dart';
+import '../widgets/water_analysis.dart';
 import 'disconnected_screen.dart';
 
 class WaterScreen extends StatefulWidget {
@@ -73,9 +74,9 @@ class _WaterScreenState extends State<WaterScreen> {
 
   String _getAddressString(Map addressData) {
     if (addressData['address']['country_code'] == 'fr') {
-      return addressData['address']['municipality'] ?? addressData['address']['city'] ?? 'Unknown City';
+      return addressData['address']['municipality'] ?? addressData['address']['city'] ?? 'map.unknown_city'.tr();
     }
-    return addressData['address']['country'] ?? 'Unknown Country';
+    return addressData['address']['country'] ?? 'map.unknown_ountry'.tr();
   }
 
   @override
@@ -105,12 +106,12 @@ class _WaterScreenState extends State<WaterScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(child: Text('Stored Location: \nLat: $latitude, \nLon: $longitude')),
-                  if (_address == null) const Center(child: Text('Address: Loading...')),
-                  if (_address != null) Center(child: Text('Address: $_address')),
-                  if (_nomReseau != '...') Center(child: Text('RESEAU: $_nomReseau')),
+                  Center(child: Text("${'ui.water.stored_location'.tr()}: \nLat: $latitude, \nLon: $longitude")),
+                  if (_address == null) Center(child: Text('ui.water.address_loading'.tr())),
+                  if (_address != null) Center(child: Text('${'ui.water.address'.tr()} $_address')),
+                  if (_nomReseau != '...') Center(child: Text('${'ui.water.reseau'.tr()} $_nomReseau')),
                   if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
-                    const Center(child: Text('Loading analizes data...')),
+                    Center(child: Text('ui.water.loading_analysis'.tr())),
                   if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
                     const Padding(
                         padding: EdgeInsets.all(20),
@@ -124,11 +125,11 @@ class _WaterScreenState extends State<WaterScreen> {
                         itemCount: _potableData!.length,
                         itemBuilder: (context, index) {
                           final item = _potableData![index];
-                          return Analize(item: item);
+                          return Analysis(item: item);
                         },
                       ),
                     ),
-                  if (_potableData != null && _potableData!.isEmpty) const Center(child: Text('No data available')),
+                  if (_potableData != null && _potableData!.isEmpty) Center(child: Text('water.no_data'.tr())),
                 ],
               );
             },

@@ -25,7 +25,7 @@ class _DeviceBarChartState extends State<DeviceBarChart> {
     debugPrint('------ DeviceBarChart > beaconData: ${bData.toString()}');
 
     return BarChart(
-        BarChartData(
+      BarChartData(
           barGroups: [
             BarChartGroupData(
               x: 0,
@@ -68,11 +68,11 @@ class _DeviceBarChartState extends State<DeviceBarChart> {
                 getTitlesWidget: (value, meta) {
                   switch (value.toInt()) {
                     case 0:
-                      return const Text('Recovered');
+                      return Text('device.water.recovered');
                     case 1:
-                      return const Text('Hot used');
+                      return Text('device.water.hot_used');
                     case 2:
-                      return const Text('Cold used');
+                      return Text('device.water.cold_used');
                     default:
                       return const Text('');
                   }
@@ -82,8 +82,7 @@ class _DeviceBarChartState extends State<DeviceBarChart> {
           ),
           borderData: FlBorderData(show: true),
           gridData: const FlGridData(show: true),
-          minY: 100
-        ),
+          minY: 100),
     );
   }
 }

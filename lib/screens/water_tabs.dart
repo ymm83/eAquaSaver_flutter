@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
@@ -14,7 +15,7 @@ class WaterTabs extends StatefulWidget {
 
 class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMixin {
   late PageController _pageController;
-  String pageTitle = 'Water';
+  String pageTitle = 'ui.tab.water'.tr();
   int pageChanged = 0;
   late ConnectivityBloc connectivityBloc;
 
@@ -32,7 +33,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
   }
 
   void connectionOffMessage() {
-    showSnackBar('You are offline!', theme: 'error', icon: Icons.cloud_off_outlined);
+    showSnackBar('errors.offline'.tr(), theme: 'error', icon: Icons.cloud_off_outlined);
   }
 
   void _navigateToPage(int page) {
@@ -72,7 +73,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
                       ),
                       onPressed: () {
                         setState(() {
-                          pageTitle = 'Water';
+                          pageTitle = 'ui.tab.water'.tr();
                           pageChanged = 0;
                         });
                         _navigateToPage(0);
@@ -86,7 +87,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
                       ),
                       onPressed: () {
                         setState(() {
-                          pageTitle = 'Location';
+                          pageTitle = 'ui.tab.location'.tr();
                           pageChanged = 1;
                         });
                         _navigateToPage(1);
@@ -103,7 +104,7 @@ class _WaterTabsState extends State<WaterTabs> with SingleTickerProviderStateMix
                   onPageChanged: (index) {
                     setState(() {
                       pageChanged = index;
-                      pageTitle = index == 0 ? 'Water' : 'Location';
+                      pageTitle = index == 0 ? 'ui.tab.water'.tr() : 'ui.tab.location'.tr();
                     });
                   },
                   children: const [

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -66,7 +67,10 @@ class _DeviceAllowState extends State<DeviceAllow> {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(builder: (context, state) {
       return ScaffoldMessenger(
         child: Scaffold(
-          appBar: AppBarLoadingIndicator(isLoading: role==null, height: 1.5,),
+          appBar: AppBarLoadingIndicator(
+            isLoading: role == null,
+            height: 1.5,
+          ),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(5),
             child: Column(
@@ -76,13 +80,13 @@ class _DeviceAllowState extends State<DeviceAllow> {
                 if (state is ConnectivityOnline) ...[
                   if (role == 'Admin') ...[
                     buildRoleIcon(role),
-                    const Text(
-                      'Access control',
+                    Text(
+                      'device.access_control'.tr(),
                       style: TextStyle(fontSize: 16),
                     ),
                     SwitchListTile(
-                      title: const Text('Enable Admins '),
-                      subtitle: const Text('Allow new admins'),
+                      title: Text('device.enable_admins'.tr()),
+                      subtitle: Text('device.allow_admins'.tr()),
                       value: allowA,
                       onChanged: (bool value) async {
                         setState(() {
@@ -94,8 +98,8 @@ class _DeviceAllowState extends State<DeviceAllow> {
                       secondary: Icon(Icons.manage_accounts),
                     ),
                     SwitchListTile(
-                      title: const Text('Enable Members '),
-                      subtitle: const Text('Allow new members'),
+                      title: Text('device.enable_members'.tr()),
+                      subtitle: Text('device.allow_members'.tr()),
                       value: allowM,
                       onChanged: (bool value) async {
                         setState(() {
@@ -107,8 +111,8 @@ class _DeviceAllowState extends State<DeviceAllow> {
                       secondary: const Icon(Icons.group),
                     ),
                     SwitchListTile(
-                      title: const Text('Enable Credits '),
-                      subtitle: const Text('Users paid to used'),
+                      title: Text('device.enable_credits'.tr()),
+                      subtitle: Text('device.allow_credits'.tr()),
                       value: allowC,
                       onChanged: (bool value) async {
                         setState(() {
@@ -120,8 +124,8 @@ class _DeviceAllowState extends State<DeviceAllow> {
                       secondary: const Icon(Icons.credit_card),
                     ),
                     SwitchListTile(
-                      title: const Text('Enable Recerved '),
-                      subtitle: const Text('Allow recerved users'),
+                      title: Text('device.enable_reserved'.tr()),
+                      subtitle: Text('device.allow_reserved'.tr()),
                       value: allowR,
                       onChanged: (bool value) async {
                         setState(() {
@@ -135,8 +139,10 @@ class _DeviceAllowState extends State<DeviceAllow> {
                   ] else if (['Member', 'Credits', 'Recerved'].contains(role)) ...[
                     const Unauthorized(),
                   ] else ...[
-                    const SizedBox(height: 3,),
-                    const Center(child: Text('Loading settings...')),
+                    const SizedBox(
+                      height: 3,
+                    ),
+                    Center(child: Text('device.loading_settings'.tr())),
                   ],
                 ] else if (state is ConnectivityOffline) ...[
                   const Disconnected(),

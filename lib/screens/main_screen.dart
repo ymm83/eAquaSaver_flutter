@@ -82,7 +82,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           ),*/
           callback: (payload) {
             final String notice = payload.newRecord['version'];
-            debugPrint('New firmware update: $notice');
+           // debugPrint('New firmware update: $notice');
             showSnackBar('New firmware update: $notice', theme: 'notify');
           },
         )
@@ -103,7 +103,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } /*finally {
       setState(() {
@@ -239,7 +239,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Perfil'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                     //scaffoldKey.currentState?.closeDrawer(); 
+                    //scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
 

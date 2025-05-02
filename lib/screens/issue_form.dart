@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -85,7 +86,7 @@ class _IssueFormState extends State<IssueForm> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       setState(() {
@@ -112,7 +113,7 @@ class _IssueFormState extends State<IssueForm> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Error: $error', theme: 'error');
+        showSnackBar('${'errors.error'.tr()}: $error', theme: 'error');
       }
     } finally {
       setState(() {
@@ -143,11 +144,11 @@ class _IssueFormState extends State<IssueForm> {
           .single();
       if (data.isNotEmpty) {
         //debugPrint('Issue actualizado correctamente!');
-        showSnackBar('Issue updated successfully', theme: 'success');
+        showSnackBar('success.issue_updated'.tr(), theme: 'success');
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected', theme: 'error');
       }
     } finally {
       setState(() {
@@ -170,7 +171,7 @@ class _IssueFormState extends State<IssueForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text((widget.typeForm == 'new') ? 'Describe the issue' : 'Edit this issue [id#${state.selectId}]'),
+              Text((widget.typeForm == 'new') ? 'issue.describe'.tr() : '${'issue.edit'.tr()} [id#${state.selectId}]'),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -183,7 +184,7 @@ class _IssueFormState extends State<IssueForm> {
                       });
                     },
                   ),
-                  const Text('App'),
+                  Text('issue.app'.tr()),
                   const SizedBox(width: 20),
                   Radio<int>(
                     value: 2,
@@ -194,15 +195,15 @@ class _IssueFormState extends State<IssueForm> {
                       });
                     },
                   ),
-                  const Text('Device'),
+                  Text('issue.device'.tr()),
                 ],
               ),
               TextFormField(
                 maxLines: 2,
                 controller: issueTitleController,
-                decoration: const InputDecoration(
-                  labelText: 'summary',
-                  border: OutlineInputBorder(
+                decoration:  InputDecoration(
+                 labelText: 'issue.summary'.tr(),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(15.0)),
                   ),
                   counterText: "",
@@ -213,9 +214,9 @@ class _IssueFormState extends State<IssueForm> {
               TextFormField(
                 maxLines: 8,
                 controller: issueBodyController,
-                decoration: const InputDecoration(
-                  labelText: 'description',
-                  border: OutlineInputBorder(
+                decoration:  InputDecoration(
+                   labelText: 'issue.description'.tr(),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(15.0)),
                   ),
                 ),

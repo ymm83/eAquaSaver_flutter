@@ -14,12 +14,6 @@ import '../utils/language.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/show_hide_password_field.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
-//hcaptcha
-//sitekey 001ee992-3a50-4a5a-bf5e-9b66a4a414e4
-//secret ES_c6f0da2654da477ba197f8f9fea93592
-//cloudflare
-//sitekey 0x4AAAAAAAc73oNIZFZ3mrD9
-//secret 0x4AAAAAAAc73mmZlrIslaef9sNXfrm6mis
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
   String authStep = AuthSteps.signIn; // register, recovery, confirm
 
   final TurnstileController _controller = TurnstileController();
-  late final TurnstileOptions _options;
+  //late final TurnstileOptions _options;
 
   Language? selectedLang;
 //selectedLang = languageList.singleWhere((e) => e.locale == context.locale);
@@ -295,9 +289,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         if (res.user!.identities!.isEmpty) {
-          showSnackBar('Your email is already registered.', theme: 'warning');
+          showSnackBar('errors.email_registered'.tr(), theme: 'warning');
         } else {
-          showSnackBar('Check your email for a login link!', theme: 'success');
+          showSnackBar('success.check_email_link'.tr(), theme: 'success');
         }
         setState(() {
           authStep = AuthSteps.signIn;
@@ -310,11 +304,11 @@ class _LoginPageState extends State<LoginPage> {
       String errorMessage;
 
       if (error.message.contains('invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please try again.';
+        errorMessage = 'errors.invalid_credentials'.tr();
       } else if (error.message.contains('email not confirmed')) {
-        errorMessage = 'Please confirm your email before logging in.';
+        errorMessage = 'errors.unconfirmed_email'.tr();
       } else {
-        errorMessage = 'error'; //error.message
+        errorMessage = 'errors.error'.tr(); //error.message
       }
       if (mounted) {
         if (errorMessage != 'error') {
@@ -351,7 +345,7 @@ class _LoginPageState extends State<LoginPage> {
       await supabase.auth.resetPasswordForEmail(_emailController.text.trim(), captchaToken: _captchaToken);
 
       if (mounted) {
-        showSnackBar('Check your email for reset code!', theme: 'success');
+        showSnackBar('success.check_email_code'.tr(), theme: 'success');
         _newpasswordController.clear();
         _codeController.clear();
         setState(() {
@@ -366,7 +360,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -401,7 +395,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        showSnackBar('Reset password successful!', theme: 'success', onHideCallback: () {
+        showSnackBar('success.password_reset'.tr(), theme: 'success', onHideCallback: () {
           //debugPrint('..................entrando......................');
           Navigator.of(context)
               .push(
@@ -422,7 +416,7 @@ class _LoginPageState extends State<LoginPage> {
     } on AuthException catch (error) {
       if (mounted) {
         if (error.message.startsWith('New password should be different')) {
-          showSnackBar('Your lost password is: "${_newpasswordController.text}"', theme: 'warning', onHideCallback: () {
+          showSnackBar("${'login.lost_password'.tr()} ${_newpasswordController.text}", theme: 'warning', onHideCallback: () {
             //debugPrint('..................entrando......................');
             Navigator.of(context)
                 .push(
@@ -448,7 +442,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -502,9 +496,9 @@ class _LoginPageState extends State<LoginPage> {
       //_password2Visible = true;
       //_newpasswordVisible = true;
       final turnstileKey = dotenv.env['TURNSTILE_SITE_KEY'] ?? '';
-      debugPrint('- - - -- - - - -- -  - $turnstileKey');
+      //debugPrint('- - - -- - - - -- -  - $turnstileKey');
       if (turnstileKey.isEmpty) {
-        throw Exception('❌ Falta TURNSTILE_SITE_KEY en .env');
+        throw Exception('errors.env.turnstile_missing'.tr());
       }
       supabase = SupabaseProvider.getClient(context);
       //authStep = AuthSteps.signIn;

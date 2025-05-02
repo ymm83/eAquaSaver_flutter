@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ShowHidePasswordField extends StatefulWidget {
   final TextEditingController controller;
@@ -43,7 +44,7 @@ class ShowHidePasswordFieldState extends State<ShowHidePasswordField> {
         color: widget.textColor ?? Colors.black87,
       ),
       decoration: (widget.decoration ?? const InputDecoration()).copyWith(
-        hintText: widget.hintText ?? 'Enter the Password',
+        hintText: widget.hintText ?? 'ui.label.enter_password'.tr(),
         hintStyle: (widget.fontStyle ?? const TextStyle()).copyWith(
           color: widget.hintColor ?? Colors.black38,
         ),

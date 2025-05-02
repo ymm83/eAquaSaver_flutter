@@ -32,7 +32,7 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
     bool isConnected = !result.contains(ConnectivityResult.none);
 
     // Debug: Mostrar el estado inicial
-    debugPrint('Estado de conectividad inicial: ${isConnected ? "Conectado" : "Desconectado"}');
+    //debugPrint('Estado de conectividad inicial: ${isConnected ? "Conectado" : "Desconectado"}');
 
     add(ConnectivityChanged(isConnected: isConnected));
   }

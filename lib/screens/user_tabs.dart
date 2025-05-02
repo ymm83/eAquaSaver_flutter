@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
@@ -20,7 +21,7 @@ class UserTabs extends StatefulWidget {
 class _UserTabsState extends State<UserTabs> {
   final PageController _userTabController = PageController(keepPage: false);
   int _currentPage = 0;
-  String _pageTitle = 'Profile';
+  String _pageTitle = 'ui.tab.profile'.tr();
   late SupabaseClient supabase;
   late SupabaseQuerySchema supabaseEAS;
   late ConnectivityBloc connectivityBloc;
@@ -35,7 +36,7 @@ class _UserTabsState extends State<UserTabs> {
   }
 
   void connectionOffMessage(BuildContext c) {
-    showSnackBar('You are offline!', context: c, theme: 'error', icon: Icons.cloud_off_outlined);
+    showSnackBar('errors.offline'.tr(), context: c, theme: 'error', icon: Icons.cloud_off_outlined);
   }
 
   void _navigateToPage(int page) {
@@ -121,7 +122,7 @@ class _UserTabsState extends State<UserTabs> {
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;
-                    _pageTitle = ['Dashboard', 'Profile', 'Reviews', 'My issues', 'New issue', 'Edit issue'][index];
+                    _pageTitle = ['ui.tab.dashboard'.tr(), 'ui.tab.profile'.tr(), 'ui.tab.reviews'.tr(), 'ui.tab.issues'.tr(), 'ui.tab.new_issue'.tr(), 'ui.tab.edit_issue'.tr()][index];
                   });
                 },
                 children: [

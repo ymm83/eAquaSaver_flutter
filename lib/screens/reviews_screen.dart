@@ -1,4 +1,6 @@
 import 'package:eaquasaver/provider/supabase_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -70,23 +72,23 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   },
                 ),
                 myCustomButton(
-                    loading: workingRating, label: 'save rating', icon: Icons.save_as_outlined, onTap: saveRating),
+                    loading: workingRating, label: 'ui.btn.save_rating'.tr(), icon: Icons.save_as_outlined, onTap: saveRating),
                 const SizedBox(height: 50),
-                const Text('Comment'),
+                Text('ui.label.comment'.tr().capitalize),
                 const SizedBox(height: 20),
                 TextFormField(
                   maxLines: 8,
                   controller: commentController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     //hintText: 'The email address?',
-                    labelText: 'comment',
-                    border: OutlineInputBorder(
+                    labelText: 'ui.label.comment'.tr(),
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(15.0)),
                     ),
                   ),
                 ),
                 myCustomButton(
-                    loading: workingComment, label: 'save comment', icon: Icons.save_as_outlined, onTap: saveComment),
+                    loading: workingComment, label: 'ui.btn.save_comment'.tr(), icon: Icons.save_as_outlined, onTap: saveComment),
               ],
             )),
       );
@@ -163,7 +165,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
   void saveComment() async {
     FocusScope.of(context).unfocus();
-    debugPrint('saveComment called !!!!!!!!!!!');
+    //debugPrint('saveComment called !!!!!!!!!!!');
     setState(() {
       workingComment = true;
     });

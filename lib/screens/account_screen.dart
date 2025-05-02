@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,7 +46,7 @@ class _AccountScreenState extends State<AccountScreen> {
     } catch (error) {
       if (mounted) {
         SnackBar(
-          content: const Text('Unexpected error occurred'),
+          content: Text('errors.unexpected'.tr()),
           backgroundColor: Theme.of(context).colorScheme.error,
         );
       }
@@ -74,7 +75,7 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
       if (mounted) {
-        showSnackBar('Perfil actualizado con éxito!', theme: 'success');
+        showSnackBar('success.profile_updated'.tr(), theme: 'success');
       }
     } on PostgrestException catch (error) {
       if (mounted) {
@@ -82,7 +83,7 @@ class _AccountScreenState extends State<AccountScreen> {
       }
     } catch (error) {
       if (mounted) {
-        showSnackBar('Ocurrió un error inesperado', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
     } finally {
       if (mounted) {
@@ -125,17 +126,17 @@ class _AccountScreenState extends State<AccountScreen> {
               children: [
                 TextFormField(
                   controller: _firstnameController,
-                  decoration: const InputDecoration(labelText: 'First Name'),
+                  decoration: InputDecoration(labelText: 'user.form.first_name'.tr()),
                 ),
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _lastnameController,
-                  decoration: const InputDecoration(labelText: 'Last Name'),
+                  decoration: InputDecoration(labelText: 'user.form.last_name'.tr()),
                 ),
                 const SizedBox(height: 18),
                 ElevatedButton(
                   onPressed: _loading ? null : _updateProfile,
-                  child: Text(_loading ? 'Saving...' : 'Update'),
+                  child: Text(_loading ? 'ui.btn.saving'.tr() : 'ui.btn.update'.tr()),
                 ),
               ],
             ),

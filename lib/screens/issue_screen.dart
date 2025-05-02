@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moment_dart/moment_dart.dart';
@@ -40,7 +41,7 @@ class _IssueScreenState extends State<IssueScreen> {
       });
     } catch (error) {
       if (mounted) {
-        showSnackBar('Unexpected error occurred', theme: 'error');
+        showSnackBar('errors.unexpected'.tr(), theme: 'error');
       }
       setState(() {
         _isLoading = false;
@@ -49,7 +50,7 @@ class _IssueScreenState extends State<IssueScreen> {
   }
 
   void _deleteIssue(int id) async {
-    debugPrint('Id eliminado: $id');
+    //debugPrint('Id eliminado: $id');
     try {
       final response = await supabaseEAS.from('issue').delete().eq('id', id).eq('status', 'new').select();
       if (response.length == 1) {
@@ -57,11 +58,11 @@ class _IssueScreenState extends State<IssueScreen> {
           _issueData.removeWhere((issue) => issue['id'] == id);
         });
         if (mounted) {
-          showSnackBar('Issue eliminado correctamente', theme: 'success');
+          showSnackBar('success.issue_deleted', theme: 'success');
         }
       } else {
         if (mounted) {
-          showSnackBar('Error: no se pudo eliminar', theme: 'error');
+          showSnackBar('errors.issue_not_deleted', theme: 'error');
         }
       }
     } catch (e) {
@@ -119,17 +120,17 @@ class _IssueScreenState extends State<IssueScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('¡Eliminación!'),
-            content: const Text("¿Desea eliminar este Issue?"),
+            title: Text('issue.delete_title'.tr()),
+            content: Text('issue.delete_question'.tr()),
             actions: [
               TextButton(
-                  child: const Text("Aceptar", style: TextStyle(color: Colors.red)),
+                  child: Text("ui.btn.accept".tr(), style: const TextStyle(color: Colors.red)),
                   onPressed: () {
                     _deleteIssue(id);
                     Navigator.of(context).pop();
                   }),
               TextButton(
-                  child: const Text("Cancelar", style: TextStyle(color: Colors.blue)),
+                  child: Text('ui.btn.cancel'.tr(), style: const TextStyle(color: Colors.blue)),
                   onPressed: () {
                     Navigator.of(context).pop();
                   }),
@@ -159,7 +160,7 @@ class _IssueScreenState extends State<IssueScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        const Text('Describe the issue'),
+                        Text('issue.describe'.tr()),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -172,7 +173,7 @@ class _IssueScreenState extends State<IssueScreen> {
                                 });
                               },
                             ),
-                            const Text('App'),
+                            Text('issue.app'.tr()),
                             const SizedBox(width: 20),
                             Radio<int>(
                               value: 2,
@@ -183,15 +184,15 @@ class _IssueScreenState extends State<IssueScreen> {
                                 });
                               },
                             ),
-                            const Text('Device'),
+                            Text('issue.device'.tr()),
                           ],
                         ),
                         TextFormField(
                           maxLines: 2,
                           controller: issueTitleController,
-                          decoration: const InputDecoration(
-                            labelText: 'summary',
-                            border: OutlineInputBorder(
+                          decoration: InputDecoration(
+                            labelText: 'issue.summary'.tr(),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(15.0)),
                             ),
                             counterText: "",
@@ -202,9 +203,9 @@ class _IssueScreenState extends State<IssueScreen> {
                         TextFormField(
                           maxLines: 8,
                           controller: issueBodyController,
-                          decoration: const InputDecoration(
-                            labelText: 'description',
-                            border: OutlineInputBorder(
+                          decoration: InputDecoration(
+                            labelText: 'issue.description'.tr(),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(15.0)),
                             ),
                           ),
@@ -239,14 +240,14 @@ class _IssueScreenState extends State<IssueScreen> {
                                 children: [
                                   RichText(
                                     text: TextSpan(
-                                      text: 'target: ',
+                                      text: "${'issue.target'.tr()}: ",
                                       style: const TextStyle(fontSize: 10, color: Color.fromARGB(255, 5, 69, 85)),
                                       children: [
                                         TextSpan(
                                           text: '${_issueData[index]['target']} | ',
                                           style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                                         ),
-                                        const TextSpan(text: 'status: '),
+                                        TextSpan(text: "${'issue.status'.tr()}: "),
                                         TextSpan(
                                           text: '${_issueData[index]['status']} | ',
                                           style: const TextStyle(color: Colors.red),

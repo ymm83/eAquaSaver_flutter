@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class NoInternetConnection extends StatelessWidget {
@@ -5,13 +6,13 @@ class NoInternetConnection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('No internet connection'),
-          SizedBox(height: 8),
-          Icon(Icons.cloud_off_outlined, size: 40),
+          Text('services.no_internet'.tr()),
+          const SizedBox(height: 8),
+          const Icon(Icons.cloud_off_outlined, size: 40),
         ],
       ),
     );
