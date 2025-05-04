@@ -106,12 +106,12 @@ class _WaterScreenState extends State<WaterScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(child: Text("${'ui.water.stored_location'.tr()}: \nLat: $latitude, \nLon: $longitude")),
-                  if (_address == null) Center(child: Text('ui.water.address_loading'.tr())),
-                  if (_address != null) Center(child: Text('${'ui.water.address'.tr()} $_address')),
-                  if (_nomReseau != '...') Center(child: Text('${'ui.water.reseau'.tr()} $_nomReseau')),
+                  Center(child: Text("${'water.stored_location'.tr()}: \nLat: $latitude, \nLon: $longitude")),
+                  if (_address == null) Center(child: Text('water.loading_address'.tr())),
+                  if (_address != null) Center(child: Text('${'water.address'.tr()} $_address')),
+                  if (_nomReseau != '...') Center(child: Text('${'water.network'.tr()} $_nomReseau')),
                   if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
-                    Center(child: Text('ui.water.loading_analysis'.tr())),
+                    Center(child: Text('water.loading_analysis'.tr())),
                   if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
                     const Padding(
                         padding: EdgeInsets.all(20),

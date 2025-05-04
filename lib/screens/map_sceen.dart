@@ -36,7 +36,7 @@ class MapScreenState extends State<MapScreen> {
   // Variables para el diálogo
   int _selectedOption = 3;
   bool _isLocationAvailable = false; // Para verificar si hay ubicación almacenada
-  late bool _isGpsEnabled; // Simulación del estado del GPS
+  bool _isGpsEnabled = false; // Simulación del estado del GPS
   bool _dialogShown = false; // Controla si el diálogo ya ha sido mostrado
   Timer? _dialogTimer; // Timer para el diálogo
   bool _showButtons = false;

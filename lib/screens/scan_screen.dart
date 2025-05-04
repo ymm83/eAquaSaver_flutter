@@ -310,7 +310,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ],
 
               if (_isScanning) _buildTitle('scan.searching_devices'.tr(), size: 14.5),
-              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('scan.no_divices'.tr()),
+              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('scan.no_devices'.tr()),
               /*if (!_isScanning && _scanResults.isNotEmpty)
                 Center(
                     child: Text('${_buildScanResultTiles(context).length} dispositivos encontrados:',

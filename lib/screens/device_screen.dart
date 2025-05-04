@@ -198,7 +198,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future<void> _initializeAsync() async {
     setState(() {
-      _isLoading = true; // 👈 **Cambio**: Comienza la carga
+      _isLoading = true; 
     });
 
     deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
@@ -232,7 +232,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     //}
     //debugPrint('------ profile: ${_profile!.targetTemperature}');
     setState(() {
-      _isLoading = false; // 👈 **Cambio**: Finaliza la carga
+      _isLoading = false; 
     });
     /*if (mounted) {
         
