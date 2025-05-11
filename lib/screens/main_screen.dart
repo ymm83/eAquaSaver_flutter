@@ -12,12 +12,13 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:water_drop_nav_bar/water_drop_nav_bar.dart';
 
+import '../provider/supabase_provider.dart';
+import '../utils/language.dart';
 import '../utils/snackbar_helper.dart';
 import 'bluetooth_off_screen.dart';
 import 'water_tabs.dart';
 import 'main_tabs.dart';
 import 'user_tabs.dart';
-import '../provider/supabase_provider.dart';
 
 class BLEMainScreen extends StatefulWidget {
   const BLEMainScreen({super.key});
@@ -33,6 +34,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   late StreamSubscription<ServiceStatus>? _serviceStatusStream;
   int _currentIndex = 0; // Índice para la barra de navegación inferior
   late final SupabaseClient supabase;
+  Language? selectedLang;
 
   @override
   void initState() {
@@ -82,7 +84,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           ),*/
           callback: (payload) {
             final String notice = payload.newRecord['version'];
-           // debugPrint('New firmware update: $notice');
+            // debugPrint('New firmware update: $notice');
             showSnackBar('New firmware update: $notice', theme: 'notify');
           },
         )
@@ -90,6 +92,28 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
 
     super.initState();
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    /* languageList.forEach((lang) {
+      lang.langName = 'lang.${lang.locale.languageCode}'.tr();
+    });*/
+
+    // Ahora podemos acceder al contexto de EasyLocalization
+    final locale = EasyLocalization.of(context)?.locale ?? const Locale('en');
+    selectedLang = languageList.firstWhere(
+      (e) => e.locale.languageCode == locale.languageCode,
+      orElse: () => languageList.first,
+    );
+  }
+
+  final List<Language> languageList = [
+    Language(locale: const Locale('en'), langName: 'lang.en'.tr()),
+    Language(locale: const Locale('fr'), langName: 'lang.fr'.tr()),
+    Language(locale: const Locale('es'), langName: 'lang.es'.tr()),
+  ];
 
   Future<void> _signOut() async {
     /*setState(() {
@@ -213,6 +237,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                           color: Colors.white70,
                         ),
                       ),*/
+                      
                     ],
                   ),
                 ),
@@ -262,6 +287,72 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                     value ? ThemeMode.dark : ThemeMode.light,
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: DropdownButton<Language>(
+                  iconSize: 18,
+                  elevation: 16,
+                  //icon: Icon(Icons.language_outlined),
+                  value: selectedLang,
+                  style: const TextStyle(color: Colors.red),
+                  underline: Container(
+                    padding: const EdgeInsets.only(left: 4, right: 4),
+                    color: Colors.cyan,
+                  ),
+                  onChanged: (newValue) async {
+                    setState(() {
+                      selectedLang = newValue!;
+                    });
+                    context.setLocale(Locale((newValue!.locale.toString())));
+                    //_controller.refreshToken();
+                    //debugPrint('Locale--------- ${newValue!.locale.toString()}');
+                  },
+                  items: languageList.map<DropdownMenuItem<Language>>((Language value) {
+                    return DropdownMenuItem<Language>(
+                      value: value,
+                      child: Text(
+                        value.translatedName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),),
+                /*DropdownButton<Language>(
+                  iconSize: 18,
+                  elevation: 16,
+                  //icon: Icon(Icons.language_outlined),
+                  value: selectedLang,
+                  style: const TextStyle(color: Colors.red),
+                  underline: Container(
+                    padding: const EdgeInsets.only(left: 4, right: 4),
+                    color: Colors.cyan,
+                  ),
+                  onChanged: (newValue) async {
+                    setState(() {
+                      selectedLang = newValue!;
+                    });
+                    context.setLocale(Locale((newValue!.locale.toString())));
+                    //_controller.refreshToken();
+                    //debugPrint('Locale--------- ${newValue!.locale.toString()}');
+                  },
+                  items: languageList.map<DropdownMenuItem<Language>>((Language value) {
+                    return DropdownMenuItem<Language>(
+                      value: value,
+                      child: Text(
+                        value.translatedName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),*/
               ],
             ),
           ),

@@ -1,3 +1,4 @@
+// ble_event.dart
 part of 'ble_bloc.dart';
 
 abstract class BleEvent extends Equatable {
@@ -21,18 +22,40 @@ class ConnectToDevice extends BleEvent {
 }
 
 class DisconnectFromDevice extends BleEvent {
-  const DisconnectFromDevice();
-}
+  final BluetoothDevice device;
 
-class DetailsOpen extends BleEvent {
-  //final String? role;
-  const DetailsOpen();
-  /*const DetailsOpen([this.role]);
+  const DisconnectFromDevice(this.device);
 
   @override
-  List<Object> get props => role != null ? [role!] : [];*/
+  List<Object> get props => [device];
 }
 
-class DetailsClose extends BleEvent {
-  const DetailsClose();
+class DetailsOpen extends BleEvent {}
+
+class DetailsClose extends BleEvent {}
+
+class UpdateConnectionState extends BleEvent {
+  final BluetoothConnectionState state;
+  final BluetoothDevice device;
+
+  const UpdateConnectionState(this.state, this.device);
+
+  @override
+  List<Object> get props => [state, device];
+}
+
+class ClearFoundDevices extends BleEvent {}
+
+class DeviceConnected extends BleEvent {
+  final BluetoothDevice device;
+  const DeviceConnected(this.device);
+  @override
+  List<Object> get props => [device];
+}
+
+class DeviceDisconnected extends BleEvent {
+  final BluetoothDevice device;
+  const DeviceDisconnected(this.device);
+  @override
+  List<Object> get props => [device];
 }

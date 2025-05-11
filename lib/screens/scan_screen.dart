@@ -3,12 +3,151 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/ble/ble_bloc.dart';
+import '../widgets/system_device_tile.dart';
+import '../widgets/scan_device_tile.dart';
+import '../utils/snackbar_helper.dart';
+
+class ScanScreen extends StatefulWidget {
+  final PageController pageController;
+
+  const ScanScreen({super.key, required this.pageController});
+
+  @override
+  State<ScanScreen> createState() => _ScanScreenState();
+}
+
+class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<BleBloc, BleState>(
+      listener: (context, state) {
+        if (state is BleConnected) {
+          widget.pageController.jumpToPage(1);
+        }
+      },
+      builder: (context, state) {
+        final bloc = context.read<BleBloc>();
+
+        // Controlar animación basada en el estado
+        if (state is BleScanning) {
+          _controller.repeat();
+        } else {
+          _controller.stop();
+          _controller.reset();
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('scan.title'.tr()),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () => bloc.add(StartScan()),
+              ),
+            ],
+          ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              bloc.add(StartScan());
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: CustomScrollView(
+              slivers: [
+                // Dispositivos emparejados
+                if (bloc.systemDevices.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('scan.my_devices'.tr()),
+                    ),
+                  ),
+                if (bloc.systemDevices.isNotEmpty)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => SystemDeviceTile(
+                        device: bloc.systemDevices[index],
+                        onTap: () => bloc.add(ConnectToDevice(bloc.systemDevices[index])),
+                      ),
+                      childCount: bloc.systemDevices.length,
+                    ),
+                  ),
+                
+                // Resultados de escaneo
+                if (state is BleScanning)
+                  const SliverToBoxAdapter(
+                    child: ListTile(
+                      leading: CircularProgressIndicator(),
+                      title: Text('scan.searching_devices'),
+                    ),
+                  ),
+                if (state is BleScanResults && state.results.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('scan.devices_found'.tr()),
+                    ),
+                  ),
+                if (state is BleScanResults)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => ScanDeviceTile(
+                        result: state.results[index],
+                        onTap: () => bloc.add(ConnectToDevice(state.results[index].device)),
+                      ),
+                      childCount: state.results.length,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => bloc.add(state is BleScanning ? StopScan() : StartScan()),
+            backgroundColor: Colors.blue.shade300,
+            shape: const CircleBorder(),
+            child: RotationTransition(
+              turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+              child: Icon(
+                state is BleScanning ? Icons.sync : Icons.sync,
+                size: 40,
+                color: Theme.of(context).appBarTheme.backgroundColor,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/*import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../utils/extra.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/app_bar_loading_indicator.dart';
 import '../widgets/system_device_tile.dart';
-import '../widgets/scan_result_tile.dart';
+import '../widgets/scan_device_tile.dart';
 import '../api/ble_characteristics_uuids.dart';
 
 class ScanScreen extends StatefulWidget {
@@ -69,6 +208,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       duration: const Duration(seconds: 1),
       vsync: this,
     );
+
     _performInitialScan();
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       if (mounted) {
@@ -191,7 +331,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       showSnackBar("${'errors.ble.on_connect'.tr()}: $e", theme: 'error');
     });
     context.read<BleBloc>().add(ConnectToDevice(device));
-    context.read<BleBloc>().add(const DetailsOpen());
+    context.read<BleBloc>().add(DetailsOpen());
     widget.pageController.jumpToPage(1);
   }
 
@@ -252,16 +392,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         initialData: BluetoothBondState.none, // Default initial state
         builder: (context, snapshot) {
           final bondState = snapshot.data ?? BluetoothBondState.none;
-          //debugPrint('Device: ${d.advName}, Bond State: $bondState');
+          debugPrint('------------Device: ${d.advName}, Bond State: $bondState');
 
           return SystemDeviceTile(
             device: d,
-            bondState: bondState, // Pass the bond state to the tile
-            onOpen: () {
-              onConnectPressed(d);
-            },
-            onConnect: () {
-              onConnectPressed(d);
+            onTap:() {
+                onConnectPressed(d);
             },
           );
         },
@@ -269,11 +405,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }).toList();
   }
 
-  List<Widget> _buildScanResultTiles(BuildContext context) {
+  List<Widget> _buildScanDeviceTiles(BuildContext context) {
     return _scanResults
         .where((r) => (/*r.device.advName.toString().startsWith('eASb', 0) ||*/
             r.device.platformName.toString().startsWith('eASs', 0)))
-        .map((r) => ScanResultTile(
+        .map((r) => ScanDeviceTile(
               result: r,
               onTap: () => onConnectPressed(r.device),
             ))
@@ -285,6 +421,109 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<BleBloc, BleState>(
+      listener: (context, state) {
+        if (state is BleConnected) {
+          widget.pageController.jumpToPage(1);
+        }
+      },
+      builder: (context, state) {
+        final bloc = context.read<BleBloc>();
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('scan.title'.tr()),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () => bloc.add(StartScan()),
+              ),
+            ],
+          ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              bloc.add(StartScan());
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: CustomScrollView(
+              slivers: [
+                // Dispositivos emparejados
+                if (bloc.systemDevices.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('scan.my_devices'.tr()),
+                    ),
+                  ),
+                if (bloc.systemDevices.isNotEmpty)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => SystemDeviceTile(
+                        device: bloc.systemDevices[index],
+                        onTap: () => bloc.add(ConnectToDevice(bloc.systemDevices[index])),
+                      ),
+                      childCount: bloc.systemDevices.length,
+                    ),
+                  ),
+                
+                // Resultados de escaneo
+                if (state is BleScanning)
+                  const SliverToBoxAdapter(
+                    child: ListTile(
+                      leading: CircularProgressIndicator(),
+                      title: Text('scan.searching_devices'),
+                    ),
+                  ),
+                if (state is BleScanResults && state.results.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('scan.devices_found'.tr()),
+                    ),
+                  ),
+                if (state is BleScanResults)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => ScanDeviceTile(
+                        result: state.results[index],
+                        onTap: () => bloc.add(ConnectToDevice(state.results[index].device)),
+                      ),
+                      childCount: state.results.length,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => bloc.add(state is BleScanning ? StopScan() : StartScan()),
+            backgroundColor: Colors.blue.shade300,
+            shape: const CircleBorder(),
+            child: RotationTransition(
+              turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+              child: Icon(
+                state is BleScanning ? Icons.sync : Icons.search,
+                size: 40,
+                color: Theme.of(context).appBarTheme.backgroundColor,
+              ),
+            ),
+          ),
+          /*floatingActionButton: FloatingActionButton(
+            onPressed: () => bloc.add(
+              state is BleScanning ? StopScan() : StartScan()
+            ),
+            child: Icon(
+              state is BleScanning ? Icons.stop : Icons.search,
+              color: Colors.white,
+            ),
+          ),*/
+        );
+      },
+    );
+  }
+}*/
+
+ /* @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       child: Scaffold(
@@ -310,21 +549,20 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ],
 
               if (_isScanning) _buildTitle('scan.searching_devices'.tr(), size: 14.5),
-              if (!_isScanning && _buildScanResultTiles(context).isEmpty) _buildTitle('scan.no_devices'.tr()),
+              if (!_isScanning && _buildScanDeviceTiles(context).isEmpty) _buildTitle('scan.no_devices'.tr()),
               /*if (!_isScanning && _scanResults.isNotEmpty)
                 Center(
-                    child: Text('${_buildScanResultTiles(context).length} dispositivos encontrados:',
+                    child: Text('${_buildScanDeviceTiles(context).length} dispositivos encontrados:',
                         style: const TextStyle())),*/
               const SizedBox(
                 height: 5,
               ),
-              if (!_isScanning && _buildScanResultTiles(context).isNotEmpty) _buildTitle('scan.devices_found'.tr()),
-              if (!_isScanning) ..._buildScanResultTiles(context),
+              if (!_isScanning && _buildScanDeviceTiles(context).isNotEmpty) _buildTitle('scan.devices_found'.tr()),
+              if (!_isScanning) ..._buildScanDeviceTiles(context),
             ],
           ),
         ),
         floatingActionButton: buildScanButton(context),
       ),
     );
-  }
-}
+  }*/

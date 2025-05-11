@@ -114,6 +114,20 @@ class _IssueScreenState extends State<IssueScreen> {
     super.initState();
   }
 
+
+  void _setMomentLocalizations(BuildContext context) {
+    final locale = EasyLocalization.of(context)?.locale ?? const Locale('en');
+    switch (locale.languageCode) {
+      case 'es':
+        Moment.setGlobalLocalization(MomentLocalizations.es());
+      case 'fr':
+        Moment.setGlobalLocalization(MomentLocalizations.fr());
+      case 'en':
+      default:
+        Moment.setGlobalLocalization(MomentLocalizations.enUS());
+    }
+  }
+
   void _showAlertDialog(BuildContext context, id) {
     showDialog(
         barrierDismissible: false,
@@ -218,7 +232,8 @@ class _IssueScreenState extends State<IssueScreen> {
                     shrinkWrap: true,
                     itemCount: _issueData.length,
                     itemBuilder: (BuildContext context, int index) {
-                      final formattedDate = Moment(DateTime.parse(_issueData[index]['created_at']))
+                      _setMomentLocalizations(context);
+                      final formattedDate = Moment(DateTime.parse(_issueData[index]['created_at']) )
                           .startOf(DurationUnit.second)
                           .fromNow();
                       return Card(

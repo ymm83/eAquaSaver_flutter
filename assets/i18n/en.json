@@ -162,7 +162,11 @@
       "devices_found": "Devices found",
       "no_devices": "No devices found. Please try again!",
       "my_devices": "My devices",
-      "searching_devices": "Searching for eAquaSaver devices..."
+      "searching_devices": "Searching for eAquaSaver devices...",
+      "pairing": "Emparejando...",
+      "not_paired": "No emparejado",
+      "connected": "Conectado",
+      "disconnected": "Desconectado"
    },
    "device": {
       "no_data": "No data available",

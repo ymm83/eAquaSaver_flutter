@@ -23,7 +23,7 @@ import 'bloc/issue/issue_bloc.dart';
 
 //final supabase = Supabase.instance.client;
 //final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
-final FlutterBluePlus flutterBlue = FlutterBluePlus();
+//final FlutterBluePlus flutterBlue = FlutterBluePlus();
 final connectivity = Connectivity();
 
 Future<void> main() async {
@@ -49,7 +49,7 @@ Future<void> main() async {
       saveLocale: true,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => BleBloc(flutterBlue)),
+          BlocProvider(create: (context) => BleBloc()),
           BlocProvider(create: (context) => IssueBloc(supabase)),
           BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
           BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
