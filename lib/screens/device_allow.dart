@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/unauthorized_screen.dart';
 import '../bloc/connectivity/connectivity_bloc.dart';
@@ -12,16 +12,15 @@ import '../widgets/custom_widgets.dart';
 import 'disconnected_screen.dart';
 
 class DeviceAllow extends StatefulWidget {
-  final BluetoothDevice? device;
-  //final String? role;
-  const DeviceAllow({super.key, this.device}); //, this.role
+  final BleDevice? device;
+
+  const DeviceAllow({super.key, this.device});
 
   @override
   State<DeviceAllow> createState() => _DeviceAllowState();
 }
 
 class _DeviceAllowState extends State<DeviceAllow> {
-  //Todo load allow value from supabase
   bool allowA = true;
   bool allowM = true;
   bool allowC = true;
@@ -37,19 +36,12 @@ class _DeviceAllowState extends State<DeviceAllow> {
     super.initState();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
-    deviceService = DeviceService(supabaseEAS, widget.device!.platformName, supabase.auth.currentUser!.id);
+    deviceService = DeviceService(supabaseEAS, widget.device?.name ?? '', supabase.auth.currentUser!.id);
     _initializeAsync();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Future<void> _initializeAsync() async {
     role = await deviceService!.getUserRole();
-    //final allowRole = await deviceService?.getAvailableDeviceRole();
-    debugPrint('-------role=${role.toString()}');
     final allow = await deviceService!.getAllowSettings();
     if (allow.isNotEmpty) {
       allowA = (allow['a'] == 1) ? true : false;
@@ -57,8 +49,6 @@ class _DeviceAllowState extends State<DeviceAllow> {
       allowC = (allow['c'] == 1) ? true : false;
       allowR = (allow['r'] == 1) ? true : false;
     }
-    //await deviceService?.insertDeviceIfNotExists();
-    //await deviceService?.registerUserDevice();
     setState(() {});
   }
 
@@ -76,7 +66,6 @@ class _DeviceAllowState extends State<DeviceAllow> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ignore: unnecessary_type_check
                 if (state is ConnectivityOnline) ...[
                   if (role == 'Admin') ...[
                     buildRoleIcon(role),
@@ -106,7 +95,7 @@ class _DeviceAllowState extends State<DeviceAllow> {
                           allowM = value;
                         });
                         final val = allowM == true ? 1 : 0;
-                        await deviceService?.updateAllowSettings(member: val); //
+                        await deviceService?.updateAllowSettings(member: val);
                       },
                       secondary: const Icon(Icons.group),
                     ),
@@ -146,20 +135,12 @@ class _DeviceAllowState extends State<DeviceAllow> {
                   ],
                 ] else if (state is ConnectivityOffline) ...[
                   const Disconnected(),
-                ], // state condition
+                ],
               ],
             ),
           ),
         ),
       );
-
-      /*if (state is ConnectivityOnline) {
-        return ;
-      } else if (state is ConnectivityOffline) {
-        return const Disconnected();
-      } else {
-        return const Center(child: CircularProgressIndicator());
-      }*/
     });
   }
 }

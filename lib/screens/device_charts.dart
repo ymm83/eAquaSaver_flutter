@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../bloc/beacon/beacon_bloc.dart';
 //import '../widgets/device_bar_chart.dart';
@@ -9,7 +9,7 @@ import '../widgets/device_pie_chart.dart';
 
 class DeviceCharts extends StatefulWidget {
   final bool animate;
-  final BluetoothDevice? device;
+  final BleDevice? device;
   //final String? role;
   const DeviceCharts({super.key, this.animate = false, this.device}); //, this.role
 

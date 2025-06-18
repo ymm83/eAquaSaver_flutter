@@ -7,7 +7,7 @@ import 'package:eaquasaver/screens/unauthorized_screen.dart';
 import 'package:eaquasaver/widgets/top_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
@@ -46,7 +46,7 @@ String getDeviceState(int value) {
 }
 
 class DeviceScreen extends StatefulWidget {
-  final BluetoothDevice device;
+  final BleDevice device;
   final PageController pageController;
   //final String? role;
   const DeviceScreen({super.key, required this.device, required this.pageController}); //, this.role
@@ -58,18 +58,18 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen> {
   int? _rssi;
   int? _mtuSize;
-  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
-  List<BluetoothService> _services = [];
+  BleConnectionState _connectionState = BleConnectionState.disconnected;
+  List<BleService> _services = [];
   bool _isDiscoveringServices = false;
   bool _isConnecting = false;
   bool _isDisconnecting = false;
 
-  late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
+  late StreamSubscription<BleConnectionState> _connectionStateSubscription;
   late StreamSubscription<bool> _isConnectingSubscription;
   late StreamSubscription<bool> _isDisconnectingSubscription;
-  late StreamSubscription<BluetoothBondState> _bsSubscription;
+  late StreamSubscription<BleBondState> _bsSubscription;
   late StreamSubscription<int> _mtuSubscription;
-  late StreamSubscription<List<ScanResult>> _beaconSubscription;
+  late StreamSubscription<List<BleScanResult>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late Timer _beaconTimer;
@@ -124,16 +124,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
     //});
     _connectionStateSubscription = widget.device.connectionState.listen((state) async {
       _connectionState = state;
-      if (state == BluetoothConnectionState.connected) {
+      if (state == BleConnectionState.connected) {
         _services = [];
-      } else if (state == BluetoothConnectionState.disconnected) {
+      } else if (state == BleConnectionState.disconnected) {
         debugPrint('--------------- D I S C O N E C T E D');
         _stopBeaconScanning();
         widget.pageController.jumpToPage(0);
       }
 
-      if (state == BluetoothConnectionState.connected && _rssi == null) {
-        _rssi = await widget.device.readRssi();
+      if (state == BleConnectionState.connected && _rssi == null) {
+        _rssi = widget.device.rssi;
       }
       if (mounted) {
         setState(() {});
@@ -168,18 +168,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
     });
 
     if (Platform.isAndroid) {
-      _bsSubscription = widget.device.bondState.listen((value) {
-        setState(() {
-          bondState = value;
-        });
-        if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
-          _gotoScanScreenAsync();
-        }
-        if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+       _pairingSub = UniversalBle.pairingStateStream(widget.deviceId).listen((isPaired) {
+      setState(() {
+        _bondState = isPaired ? BleConnectionState.connected : BleConnectionState.disconnected;
+      });
+      if (!isPaired && widget.device.prevBondingState == BleConnectionState.bonding) {
+        _gotoScanScreenAsync();
+      }
+      if (isPaired && widget.device.prevBondingState == BleConnectionState.bonding) {
+        setState(() => _isLoading = false);
+      }
+    });
+    // Cancelar al desconectar (similar a cancelWhenDisconnected)
+    UniversalBle.onConnectionChange = (id, connected) {
+      if (!connected && id == widget.deviceId) {
+        _pairingSub.cancel();
+      }
+    };
+    // Iniciar emparejamiento si se necesita
+    UniversalBle.pair(widget.deviceId);
+  } else if (Platform.isIOS) {
+    // En iOS no hay bonding explícito
+    setState(() => _isLoading = false);
+  }
         //debugPrint("--------$value prev:${widget.device.prevBondState}");
         //debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
       });
@@ -285,16 +296,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   bool get isConnected {
-    return _connectionState == BluetoothConnectionState.connected;
+    return _connectionState == BleConnectionState.connected;
   }
 
   Future<void> startBeaconScanning() async {
     //debugPrint('---------- replace: ${widget.device.platformName.replaceRange(3, 4, 'b').length}');
     // String deviceName = widget.device.platformName;
-    String beaconName = widget.device.platformName.replaceRange(3, 4, 'b');
+    String beaconName = widget.device.deviceId.replaceRange(3, 4, 'b');
     //debugPrint('---------- deviceName: ${deviceName.length}');
 
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
+    await UniversalBle.startScan();
     _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
       //debugPrint('---------- results: ${results.length}');
 
@@ -328,7 +339,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<void> _stopBeaconScanning() async {
-    await FlutterBluePlus.stopScan();
+    await UniversalBle.stopScan();
     _beaconSubscription.cancel();
     _beaconData.clear();
   }
@@ -370,9 +381,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future onCancelPressed() async {
     try {
-      await widget.device.disconnect(queue: true);
+      await UniversalBle.disconnect(widget.device.deviceId);
+      //await widget.device.disconnect(queue: true);
       //await widget.device.removeBond();
-      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+      await UniversalBle.startScan();
+      //await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
       showSnackBar("Cancel: Success", theme: 'success');
     } catch (e) {
       showSnackBar("Cancel Error: $e", theme: 'error');
@@ -381,7 +394,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future onDisconnectPressed() async {
     try {
-      await widget.device.disconnect();
+      await UniversalBle.disconnect(widget.device.deviceId);
       showSnackBar("Disconnect: Success", theme: 'success');
     } catch (e) {
       showSnackBar("Disconnect Error: $e", theme: 'error');
@@ -395,7 +408,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       });
     }
     try {
-      _services = await widget.device.discoverServices();
+      _services = await UniversalBle.discoverServices(widget.device.deviceId);
       showSnackBar("Discover Services: Success", theme: 'success');
     } catch (e) {
       showSnackBar("Discover Services Error:", theme: 'error');
@@ -409,7 +422,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future showBondingBox() async {
     try {
-      await widget.device.createBond(timeout: 240);
+      ///await UniversalBle.pair(deviceId);
+      ///await widget.device..createBond(timeout: 240);
       debugPrint("Bonding success");
       //showSnackBar("Request Mtu: Success", theme: 'success');
     } catch (e) {
@@ -420,7 +434,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future onRequestMtuPressed() async {
     try {
-      await widget.device.requestMtu(223, predelay: 0);
+      await UniversalBle.requestMtu(widget.device.deviceId, 223);
       showSnackBar("Request Mtu: Success", theme: 'success');
     } catch (e) {
       showSnackBar("Change Mtu Error: $e", theme: 'error');
@@ -482,7 +496,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   ///  END
 
-  List<Widget> _buildServiceTiles(BuildContext context, BluetoothDevice d) {
+  List<Widget> _buildServiceTiles(BuildContext context, BleDevice d) {
     return _services
         .map(
           (s) => ServiceTile(
@@ -493,10 +507,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
         .toList();
   }
 
-  CharacteristicTile _buildCharacteristicTile(BluetoothCharacteristic c) {
+  CharacteristicTile _buildCharacteristicTile(BleCharacteristic c) {
     return CharacteristicTile(
       characteristic: c,
-      descriptorTiles: c.descriptors.map((d) => DescriptorTile(descriptor: d)).toList(),
+      descriptorTiles: c.properties.map((d) => DescriptorTile(descriptor: d)).toList(),
     );
   }
 
@@ -519,7 +533,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget buildRemoteId(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Text('${widget.device.remoteId}'),
+      child: Text('${widget.device.deviceId}'),
     );
   }
 
@@ -613,12 +627,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future _writeStateDevice(int state) async {
     final stateBytes = BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
-    List<BluetoothService> services = await widget.device.discoverServices();
-    for (BluetoothService service in services) {
+    //UniversalBle.discoverServices(deviceId);
+    //List<BleService> services = await widget.device.discoverServices();
+    List<BleService> services =  await UniversalBle.discoverServices(widget.device.deviceId);
+
+    for (BleService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BleCharacteristic characteristic in service.characteristics) {
           if (characteristic.uuid == charEnabledUuid) {
-            await characteristic.write(stateBytes);
+           await UniversalBle.writeValue(widget.device.deviceId, servEAquaSaverUuid, characteristic.uuid, stateBytes);
+            //characteristic.write(stateBytes);
             debugPrint('charEnabledUuid writed');
           }
         }
@@ -632,13 +650,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
     debugPrint('_writeTargetTemperature param: ${temperature.toInt().toString()}');
     int targetTemperature = temperature.toInt() * 10;
     final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
-    List<BluetoothService> services = await widget.device.discoverServices();
+    List<BleService> services =  await UniversalBle.discoverServices(widget.device.deviceId);
 
-    for (BluetoothService service in services) {
+    for (BleService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BleCharacteristic characteristic in service.characteristics) {
           if (characteristic.uuid == charTargetTemperatureUuid) {
-            await characteristic.write(targetBytes);
+            await UniversalBle.writeValue(widget.device.deviceId, servEAquaSaverUuid, characteristic.uuid, targetBytes);
+            
+            //await characteristic.write(targetBytes);
             debugPrint('chTargetTemperatureUuid characteristic true');
           }
         }
@@ -652,13 +672,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
     debugPrint('_writeMinimalTemperature param: ${temperature.toInt().toString()}');
     int minimalTemperature = temperature.toInt() * 10;
     final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
-    List<BluetoothService> services = await widget.device.discoverServices();
+    List<BleService> services =  await UniversalBle.discoverServices(widget.device.deviceId);
 
-    for (BluetoothService service in services) {
+    for (BleService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BleCharacteristic characteristic in service.characteristics) {
           if (characteristic.uuid == charMinimalTemperatureUuid) {
-            await characteristic.write(minimalBytes);
+            await UniversalBle.writeValue(widget.device.deviceId, servEAquaSaverUuid, characteristic.uuid, minimalBytes);
+            
+            //await characteristic.write(minimalBytes);
             debugPrint('chMinimalTemperatureUuid characteristic true');
           }
         }
@@ -768,7 +790,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       children: [
                         isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
                         //Text(_device?.customName ?? ' eAquaSaver ', //widget.device.platformName,
-                        Text(_device?.customName ?? widget.device.platformName,
+                        Text(_device?.customName ?? widget.device.name.toString(),
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         if (isConnected && _rssi != null) Text('(${_rssi!} dBm)', style: TextStyle(fontSize: 10)),
                       ],

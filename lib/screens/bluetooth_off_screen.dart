@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/snackbar_helper.dart';
@@ -10,7 +10,7 @@ import '../utils/snackbar_helper.dart';
 class BluetoothOffScreen extends StatefulWidget {
   const BluetoothOffScreen({super.key, this.adapterState});
 
-  final BluetoothAdapterState? adapterState;
+  final AvailabilityState ? adapterState;
 
   @override
   State<BluetoothOffScreen> createState() => _BluetoothOffScreenState();
@@ -21,8 +21,8 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
   String _locationStatus = '...';
   String _permissionStatus = '...';
   StreamSubscription<ServiceStatus>? _serviceStatusStream;
-  StreamSubscription<BluetoothAdapterState>? _bluetoothStateSubscription;
-  BluetoothAdapterState _bluetoothAdapterState = BluetoothAdapterState.unknown;
+  StreamSubscription<AvailabilityState>? _bluetoothStateSubscription;
+  AvailabilityState  _bluetoothAdapterState =  AvailabilityState.unknown;
 
   @override
   void initState() {
@@ -95,7 +95,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
   }
 
   void _listenForBluetoothStateChanges() {
-    _bluetoothStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+    _bluetoothStateSubscription = UniversalBle.availabilityStream.listen((state) {
       setState(() {
         _bluetoothAdapterState = state;
       });
@@ -125,7 +125,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
         onPressed: () async {
           try {
             if (Platform.isAndroid) {
-              await FlutterBluePlus.turnOn();
+              await UniversalBle.enableBluetooth();
             }
           } catch (e) {
             showSnackBar("Error Turning On: $e", theme: 'error');
@@ -188,17 +188,17 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
           activeTrackColor: Colors.blue.shade700,
           title: buildTitle('Bluetooth'),
           subtitle: buildSubtitle(context),
-          value: _bluetoothAdapterState == BluetoothAdapterState.on ? true : false, // Usamos la variable de estado
+          value: _bluetoothAdapterState ==  AvailabilityState.poweredOn ? true : false, // Usamos la variable de estado
           onChanged: (bool value) async {
             try {
               if (Platform.isAndroid) {
-                await FlutterBluePlus.turnOn();
+                await UniversalBle.enableBluetooth();
               }
             } catch (e) {
               showSnackBar("Error Turning On: $e", theme: 'error');
             }
           },
-          secondary: _bluetoothAdapterState == BluetoothAdapterState.on
+          secondary: _bluetoothAdapterState == AvailabilityState.poweredOn
               ? Icon(Icons.bluetooth_connected_outlined, size: 50.0, color: Colors.blue.shade700)
               : Icon(Icons.bluetooth_disabled, size: 50.0, color: Colors.grey.shade400),
         );
@@ -236,6 +236,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                           width: MediaQuery.of(context).size.width * 0.8,
                           margin: EdgeInsets.only(top: 0, left: 20, right: 0),
                           padding: EdgeInsets.fromLTRB(50, 10, 10, 10),
+
 
                           // Limita el ancho del contenedor
 
