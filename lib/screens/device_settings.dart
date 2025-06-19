@@ -4,7 +4,7 @@ import 'package:eaquasaver/bloc/connectivity/connectivity_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
@@ -21,7 +21,7 @@ import '../utils/snackbar_helper.dart';
 import 'disconnected_screen.dart';
 
 class DeviceSettings extends StatefulWidget {
-  final BluetoothDevice? device;
+  final BleDevice? device;
   //final String? role;
   const DeviceSettings({super.key, this.device}); //, this.role
 
@@ -71,7 +71,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
     getFirmwareVersion();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
-    deviceService = DeviceService(supabaseEAS, widget.device!.platformName, supabase.auth.currentUser!.id);
+    deviceService = DeviceService(supabaseEAS, widget.device!.deviceId, supabase.auth.currentUser!.id);
     toggleValue = 1;
     _initializeAsync();
   }
@@ -291,13 +291,16 @@ class DeviceSettingsState extends State<DeviceSettings> {
 
     final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
 
-    List<BluetoothService> services = await widget.device!.discoverServices();
+    // List<BleService> services = await widget.device!.discoverServices();
+    List<BleService> services = await UniversalBle.discoverServices(widget.device!.deviceId);
 
-    for (BluetoothService service in services) {
+    for (BleService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BleCharacteristic characteristic in service.characteristics) {
           if (characteristic.uuid == charMinimalTemperatureUuid) {
-            await characteristic.write(minimalBytes);
+            //await characteristic.write(minimalBytes);
+            await UniversalBle.writeValue(widget.device!.deviceId, servEAquaSaverUuid, characteristic.uuid,
+                minimalBytes, BleOutputProperty.withoutResponse);
             debugPrint('Minimal Temperature written to characteristic');
           }
         }
@@ -348,13 +351,15 @@ class DeviceSettingsState extends State<DeviceSettings> {
     late List<int> firmwareVersionBytes;
     late int firmwareVersionInt;
     late String firmwareVersionString;
-    List<BluetoothService> services = await widget.device!.discoverServices();
+    List<BleService> services = await UniversalBle.discoverServices(widget.device!.deviceId);
 
-    for (BluetoothService service in services) {
+    for (BleService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
-        for (BluetoothCharacteristic characteristic in service.characteristics) {
+        for (BleCharacteristic characteristic in service.characteristics) {
           if (characteristic.uuid == charFirmwareVersionUuid) {
-            firmwareVersionBytes = await characteristic.read();
+            firmwareVersionBytes =
+                await UniversalBle.readValue(widget.device!.deviceId, servEAquaSaverUuid, charFirmwareVersionUuid);
+            //firmwareVersionBytes = await characteristic.read();
 
             firmwareVersionInt = bytesToVersion(firmwareVersionBytes);
             firmwareVersionString = versionToString(firmwareVersionInt);
@@ -372,7 +377,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
 
   Future updateFirmware() async {
     await NordicDfu().startDfu(
-      widget.device!.remoteId.toString(),
+      widget.device!.deviceId.toString(),
       firmwareFile,
       fileInAsset: false,
       onProgressChanged: (
@@ -538,7 +543,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('device.delete_temperature'.tr(),
+                            Text(
+                              'device.delete_temperature'.tr(),
                               style: const TextStyle(color: Colors.red, fontSize: 14),
                             ),
                           ],
@@ -605,7 +611,8 @@ class DeviceSettingsState extends State<DeviceSettings> {
                       ],
                       if (toggleValue == 1) ...[
                         Center(
-                          child: Text('device.save_temperature_this'.tr(), style: TextStyle(color: Colors.purple.shade400)),
+                          child: Text('device.save_temperature_this'.tr(),
+                              style: TextStyle(color: Colors.purple.shade400)),
                         ),
                       ],
                       if (toggleValue == 2) ...[
@@ -742,7 +749,7 @@ class DeviceSettingsState extends State<DeviceSettings> {
                   children: [const SizedBox(width: 20), Text('Current version: $firmwareVersion')],
                 ),
                 Row(
-                  children: [const SizedBox(width: 20), Text('RemoteId: ${widget.device!.remoteId}')],
+                  children: [const SizedBox(width: 20), Text('RemoteId: ${widget.device!.deviceId}')],
                 ),
                 /*if (firmwareTask != TaskStatus.running || firmwareTask != TaskStatus.complete) ...[
                   Row(

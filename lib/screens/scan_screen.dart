@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/ble/ble_bloc.dart';
 import '../widgets/system_device_tile.dart';

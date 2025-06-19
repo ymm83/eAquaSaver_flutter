@@ -6,7 +6,7 @@ import 'package:eaquasaver/provider/theme_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,9 +28,9 @@ class BLEMainScreen extends StatefulWidget {
 }
 
 class _BLEMainScreenState extends State<BLEMainScreen> {
-  BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
+  AvailabilityState _adapterState = AvailabilityState.unknown;
   bool _locationStatus = false;
-  late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
+  late StreamSubscription<AvailabilityState> _adapterStateStateSubscription;
   late StreamSubscription<ServiceStatus>? _serviceStatusStream;
   int _currentIndex = 0; // Índice para la barra de navegación inferior
   late final SupabaseClient supabase;
@@ -39,7 +39,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   @override
   void initState() {
     supabase = SupabaseProvider.getClient(context);
-    _adapterStateStateSubscription = FlutterBluePlus.adapterState.listen((state) {
+    _adapterStateStateSubscription = UniversalBle.availabilityStream.listen((state) {
       _adapterState = state;
       if (mounted) {
         setState(() {});
@@ -137,7 +137,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   }
 
   Future<void> _initializeState() async {
-    final initialAdapterState = await FlutterBluePlus.adapterState.first;
+    final initialAdapterState = await UniversalBle.getBluetoothAvailabilityState();
     setState(() {
       _adapterState = initialAdapterState;
     });
@@ -160,7 +160,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     // Determina la pantalla a mostrar en la pestaña Main
-    Widget mainScreen = (_adapterState == BluetoothAdapterState.on && _locationStatus == true)
+    Widget mainScreen = (_adapterState == AvailabilityState.poweredOn && _locationStatus == true)
         ? const MainTabs()
         : BluetoothOffScreen(adapterState: _adapterState);
 
@@ -536,15 +536,15 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
 }
 
 class BluetoothAdapterStateObserver extends NavigatorObserver {
-  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+  StreamSubscription<AvailabilityState>? _adapterStateSubscription;
 
   @override
   void didPush(Route route, Route? previousRoute) {
     super.didPush(route, previousRoute);
     if (route.settings.name == '/DeviceScreen') {
       // Start listening to Bluetooth state changes when a new route is pushed
-      _adapterStateSubscription ??= FlutterBluePlus.adapterState.listen((state) {
-        if (state != BluetoothAdapterState.on) {
+      _adapterStateSubscription ??= UniversalBle.availabilityStream.listen((state) {
+        if (state != AvailabilityState.poweredOn) {
           // Pop the current route if Bluetooth is off
           navigator?.pop();
         }

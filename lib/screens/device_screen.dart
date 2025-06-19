@@ -69,7 +69,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<BleBondState> _bsSubscription;
   late StreamSubscription<int> _mtuSubscription;
-  late StreamSubscription<List<BleScanResult>> _beaconSubscription;
+  late StreamSubscription<List<BleDevice>> _beaconSubscription;
   late final Map<String, dynamic> _beaconData = {};
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late Timer _beaconTimer;
@@ -167,34 +167,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
 
-    if (Platform.isAndroid) {
-       _pairingSub = UniversalBle.pairingStateStream(widget.deviceId).listen((isPaired) {
-      setState(() {
-        _bondState = isPaired ? BleConnectionState.connected : BleConnectionState.disconnected;
-      });
-      if (!isPaired && widget.device.prevBondingState == BleConnectionState.bonding) {
-        _gotoScanScreenAsync();
-      }
-      if (isPaired && widget.device.prevBondingState == BleConnectionState.bonding) {
-        setState(() => _isLoading = false);
-      }
-    });
-    // Cancelar al desconectar (similar a cancelWhenDisconnected)
-    UniversalBle.onConnectionChange = (id, connected) {
-      if (!connected && id == widget.deviceId) {
-        _pairingSub.cancel();
-      }
-    };
-    // Iniciar emparejamiento si se necesita
-    UniversalBle.pair(widget.deviceId);
-  } else if (Platform.isIOS) {
-    // En iOS no hay bonding explícito
-    setState(() => _isLoading = false);
-  }
-        //debugPrint("--------$value prev:${widget.device.prevBondState}");
-        //debugPrint("--------disconnectReason: ${widget.device.disconnectReason}");
-      });
-      widget.device.cancelWhenDisconnected(_bsSubscription);
+    if(Platform.isAndroid){
+
     } else if (Platform.isIOS) {
       setState(() {
         _isLoading = false;
@@ -212,7 +186,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       _isLoading = true; 
     });
 
-    deviceService = DeviceService(supabaseEAS, widget.device.platformName, supabase.auth.currentUser!.id);
+    deviceService = DeviceService(supabaseEAS, widget.device.deviceId, supabase.auth.currentUser!.id);
     await deviceService?.insertDeviceIfNotExists();
     await deviceService?.registerUserDevice();
     role = await deviceService?.getUserRole();
@@ -306,7 +280,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     //debugPrint('---------- deviceName: ${deviceName.length}');
 
     await UniversalBle.startScan();
-    _beaconSubscription = FlutterBluePlus.onScanResults.listen((results) {
+    UniversalBle.onScanResult((results) {
       //debugPrint('---------- results: ${results.length}');
 
       if (results.isNotEmpty) {
