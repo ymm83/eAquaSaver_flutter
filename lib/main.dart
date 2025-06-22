@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+//import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 //import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'screens/bluetooth_off_screen.dart';
-import 'screens/splash_screen.dart';
-import 'screens/account_screen.dart';
-import 'screens/auth_login.dart';
-import 'screens/main_screen.dart';
+//import 'screens/bluetooth_off_screen.dart';
+//import 'screens/splash_screen.dart';
+//import 'screens/account_screen.dart';
+//import 'screens/auth_login.dart';
+//import 'screens/main_screen.dart';
 import 'config/supabase.dart';
 import 'provider/supabase_provider.dart';
 import 'provider/theme_provider.dart';
 import 'bloc/connectivity/connectivity_bloc.dart';
-import 'bloc/beacon/beacon_bloc.dart';
-import 'bloc/ble/ble_bloc.dart';
+//import 'bloc/beacon/beacon_bloc.dart';
+//import 'bloc/ble/ble_bloc.dart';
 import 'bloc/location/location_bloc.dart';
 import 'utils/theme_colors.dart';
-import 'bloc/issue/issue_bloc.dart';
+//import 'bloc/issue/issue_bloc.dart';
+import 'example_uble/home/home.dart';
 
 //final supabase = Supabase.instance.client;
 //final supabaseEAS = Supabase.instance.client.schema('eaquasaver');
@@ -49,11 +50,11 @@ Future<void> main() async {
       saveLocale: true,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => BleBloc()),
-          BlocProvider(create: (context) => IssueBloc(supabase)),
+          //BlocProvider(create: (context) => BleBloc()),
+          //BlocProvider(create: (context) => IssueBloc(supabase)),
           BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
           BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
-          BlocProvider(create: (context) => BeaconBloc()),
+          //BlocProvider(create: (context) => BeaconBloc()),
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ],
         child: SupabaseProvider(
@@ -81,13 +82,14 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      initialRoute: '/splash',
+      initialRoute: '/uble',
       routes: <String, WidgetBuilder>{
-        '/splash': (context) => const SplashPage(),
+        '/uble': (context) => const UBLE(),
+       /* '/splash': (context) => const SplashPage(),
         '/main': (context) => const BLEMainScreen(),
         '/login': (context) => const LoginPage(),
         '/account': (context) => const AccountScreen(),
-        '/required': (context) => const BluetoothOffScreen(),
+        '/required': (context) => const BluetoothOffScreen(),*/
       },
     );
   }

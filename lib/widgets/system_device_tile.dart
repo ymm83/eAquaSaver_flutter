@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 class SystemDeviceTile extends StatefulWidget {
-  final BluetoothDevice device;
+  final BleDevice device;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -19,9 +19,9 @@ class SystemDeviceTile extends StatefulWidget {
 }
 
 class _SystemDeviceTileState extends State<SystemDeviceTile> {
-  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
+  BleConnectionState _connectionState = BleConnectionState.disconnected;
   BluetoothBondState _bondState = BluetoothBondState.none;
-  
+
   late StreamSubscription<BluetoothConnectionState> _connectionSub;
   late StreamSubscription<BluetoothBondState> _bondSub;
 
@@ -60,7 +60,7 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
       }
 
       // Obtener estado de bonding inicial
-      final bondState = await widget.device.bondState.first;
+      final bondState = await UniversalBle.getConnectionState(widget.device.deviceId).;
       if (mounted) {
         setState(() => _bondState = bondState);
       }
@@ -142,7 +142,7 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.device.platformName,
+                        widget.device.name.toString(),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -150,7 +150,7 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        widget.device.remoteId.str,
+                        widget.device.deviceId,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
