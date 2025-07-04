@@ -68,3 +68,7 @@ android/fastlane/report.xml
 fastlane-*
 *.jks
 *.pem
+android/app/.cxx/*
+gradle/wrapper/gradle-wrapper.jar
+pubspec.lock
+pubspec.lock
