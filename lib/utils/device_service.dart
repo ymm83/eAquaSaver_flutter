@@ -373,14 +373,15 @@ class DeviceService {
   Future<dynamic> getUserRole({bool cache = true}) async {
     //final roleKey = '$fixedName-user_device';
     debugPrint('------ getUserRole ------');
-    if (cache == true) {
-      Map<String, dynamic> roleData = await getCache(key: 'user_device');
-      debugPrint('----- role from cache: ${roleData['role'].toString()}');
-
-      return roleData['role'];
-      // }
-    }
+    Map<String, dynamic>? roleData;
     try {
+      if (cache == true) {
+        roleData = await getCache(key: 'user_device');
+        debugPrint('----- role from cache: ${roleData.toString()}');
+        if (roleData != null && roleData.containsKey('role')) {
+          return roleData['role'];
+        }
+      }
       final response =
           await supabase.from('user_device').select('*').eq('device_id', fixedName).eq('user_id', userId).single();
       //debugPrint('----- role from supabase: ${response.toString()}');

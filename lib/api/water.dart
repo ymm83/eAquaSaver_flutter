@@ -109,11 +109,17 @@ Future<Map<String, dynamic>> getReverseLocation(Map<String, dynamic> coord) asyn
   final double lon = coord['longitude']!;
   final String url = '$reverseUrl/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1';
 
+  //debugPrint("-----------url: ${url}");
+  
   final response = await http.get(
     Uri.parse(url),
-    headers: {'Accept-Language': 'en'},
+    headers: {
+      'Accept-Language': 'en',
+      'User-Agent': 'MiAppFlutter/1.0 (contacto@miapp.com)'},
+    
   );
-
+  //debugPrint("-----------response: ${response.request}");
+  //debugPrint("-----------response.statusCode: ${response.statusCode}");
   if (response.statusCode == 200) {
     final Map<String, dynamic> result = jsonDecode(response.body);
 
