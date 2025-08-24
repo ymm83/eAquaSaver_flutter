@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
   final TurnstileOptions _options = TurnstileOptions(
     size: TurnstileSize.normal,
     theme: TurnstileTheme.light,
-    refreshExpired: TurnstileRefreshExpired.auto,
+    refreshExpired: TurnstileRefreshExpired.manual,
     language: 'en',
     retryAutomatically: false,
   );
@@ -69,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
     return false;
   }
 
+  //** LOGIN SUPABASE **// 
   Future<void> _signIn() async {
     var validateError = await validateLoginForm(email: true, password: true);
     if (validateError.isNotEmpty) {
@@ -102,7 +103,75 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      await _controller.refreshToken();
+      //await _controller.refreshToken();
+    }
+  }
+
+  //** REGISTER SUPABASE **// 
+  Future<void> _signUpWithEmail() async {
+    var validateError = await validateLoginForm(email: true, password: true, confirm: true, captcha: true);
+    debugPrint('------------------- ${validateError.toString()}');
+    if (validateError.isNotEmpty) {
+      setState(() {});
+      return;
+    }
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+        debugPrint('----------_captchaToken.toString()--------- ${_captchaToken.toString()}');
+
+      final res = await supabase.auth.signUp(
+            email: _emailController.text.trim(), 
+            password: _passwordController.text, 
+            captchaToken: _captchaToken
+          );
+
+        debugPrint('---------res.user---------- ${res.user.toString()}');
+      if (mounted) {
+        if (res.user!.identities!.isEmpty) {
+          showSnackBar('Your email is already registered.', theme: 'warning');
+        } else {
+          showSnackBar('Check your email for a login link!', theme: 'success');
+        }
+        setState(() {
+          authStep = stepSignIn;
+        });
+        //_emailController.clear();
+        //_passwordController.clear();
+        _confirmController.clear();
+      }
+    } on AuthException catch (error) {
+      String errorMessage;
+
+      if (error.message.contains('invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.message.contains('email not confirmed')) {
+        errorMessage = 'Please confirm your email before logging in.';
+      } else {
+        errorMessage = 'error'; //error.message
+      }
+      if (mounted) {
+        if (errorMessage != 'error') {
+          showSnackBar(errorMessage, theme: 'error');
+        }
+      }
+      debugPrint('----------catch error 1--------- ${error.toString()}');
+
+    } catch (error) {
+      if (mounted) {
+        //_showSnackBar(context, 'Unexpected error occurred', 'error');
+        showSnackBar(error.toString(), theme: 'error');
+      }
+      debugPrint('----------catch error 2--------- ${error.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _captchaToken = null;
+        });
+      }
+      //await _controller.refreshToken();
     }
   }
 
@@ -209,64 +278,8 @@ class _LoginPageState extends State<LoginPage> {
     return regex.hasMatch(email);
   }
 
-  Future<void> _signUpWithEmail() async {
-    var validateError = await validateLoginForm(email: true, password: true, confirm: true);
-    if (validateError.isNotEmpty) {
-      setState(() {});
-      return;
-    }
-    try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final res = await supabase.auth
-          .signUp(email: _emailController.text.trim(), password: _passwordController.text, captchaToken: _captchaToken);
-
-      if (mounted) {
-        if (res.user!.identities!.isEmpty) {
-          showSnackBar('Your email is already registered.', theme: 'warning');
-        } else {
-          showSnackBar('Check your email for a login link!', theme: 'success');
-        }
-        setState(() {
-          authStep = stepSignIn;
-        });
-        //_emailController.clear();
-        //_passwordController.clear();
-        _confirmController.clear();
-      }
-    } on AuthException catch (error) {
-      String errorMessage;
-
-      if (error.message.contains('invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (error.message.contains('email not confirmed')) {
-        errorMessage = 'Please confirm your email before logging in.';
-      } else {
-        errorMessage = 'error'; //error.message
-      }
-      if (mounted) {
-        if (errorMessage != 'error') {
-          showSnackBar(errorMessage, theme: 'error');
-        }
-      }
-    } catch (error) {
-      if (mounted) {
-        //_showSnackBar(context, 'Unexpected error occurred', 'error');
-        showSnackBar(error.toString(), theme: 'error');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _captchaToken = null;
-        });
-      }
-      await _controller.refreshToken();
-    }
-  }
-
+  
+  //** RECOVERY ACCOUNT BY EMAIL IN SUPABASE **// 
   Future<void> _signInRecoveryByEmail() async {
     var validateError = await validateLoginForm(email: true);
     if (validateError.isNotEmpty) {
@@ -305,10 +318,11 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      await _controller.refreshToken();
+      //await _controller.refreshToken();
     }
   }
 
+  //** RESET PASSWORD IN SUPABASE **// 
   Future<void> _resetPassword() async {
     var validateError = await validateLoginForm(email: true, code: true, newpass: true);
     if (validateError.isNotEmpty) {
@@ -387,7 +401,7 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      await _controller.refreshToken();
+      //await _controller.refreshToken();
     }
   }
 
@@ -561,7 +575,7 @@ class _LoginPageState extends State<LoginPage> {
                   error.remove('password_empty');
                   setState(() {});
                 }
-                if (value.length == 6) {
+                if (value.length >= 6) {
                   error.remove('password_wrong');
                   setState(() {});
                 }
@@ -613,7 +627,7 @@ class _LoginPageState extends State<LoginPage> {
                   error.remove('confirm_empty');
                   setState(() {});
                 }
-                if (value.length == 6) {
+                if (value.length >= 6) {
                   error.remove('confirm_wrong');
                   setState(() {});
                 }
@@ -626,23 +640,23 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: 20.0),
           Center(
-            child: CloudFlareTurnstile(
-              //mode: TurnstileMode.managed,
+            child: CloudflareTurnstile(
               siteKey: '0x4AAAAAAAc8EpaDnPZMolAQ',
               options: _options,
               controller: _controller,
-              onTokenRecived: (token) {
+              onTokenReceived: (token) {
                 error.remove('captcha');
                 setState(() {
                   _captchaToken = token;
                 });
+                debugPrint('-------- token: ${token}');
               },
               onTokenExpired: () async {
-                await _controller.refreshToken();
+                //await _controller.refreshToken();
               },
-              /* onError: (error) async {
-                await _controller.refreshToken();
-              },*/
+              onError: (error) async {
+                //await _controller.refreshToken();
+              },
             ),
           ),
           Row(
