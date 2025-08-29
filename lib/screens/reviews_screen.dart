@@ -4,9 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ReviewsScreen extends StatefulWidget {
-  final PageController pageController;
+  final void Function(int page) onNavigate;
 
-  const ReviewsScreen({super.key, required this.pageController});
+  const ReviewsScreen({super.key, required this.onNavigate});
 
   @override
   State<ReviewsScreen> createState() => _ReviewsScreenState();

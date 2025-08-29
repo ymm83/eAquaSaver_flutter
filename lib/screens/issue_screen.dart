@@ -14,7 +14,13 @@ class IssueColor {
 
 class IssueScreen extends StatefulWidget {
   final PageController pageController;
-  const IssueScreen({super.key, required this.pageController});
+  final void Function(int page) onNavigate; // <-- guardar el callback
+
+  const IssueScreen({
+    super.key,
+    required this.pageController,
+    required this.onNavigate,
+  });
 
   @override
   State<IssueScreen> createState() => _IssueScreenState();
@@ -263,7 +269,7 @@ class _IssueScreenState extends State<IssueScreen> {
                                       InkWell(
                                         onTap: () {
                                           context.read<IssueBloc>().add(EditIssue(_issueData[index]['id']));
-                                          widget.pageController.jumpToPage(5);
+                                          widget.onNavigate(5);
                                         },
                                         splashColor: const Color.fromARGB(255, 122, 191, 245),
                                         borderRadius: BorderRadius.circular(50),
@@ -307,14 +313,11 @@ class _IssueScreenState extends State<IssueScreen> {
                   setState(() {
                     _newIssue = true;
                   });
-                  widget.pageController.jumpToPage(4);
+                  widget.onNavigate(4); // <-- mejor con callback
                 },
                 backgroundColor: Colors.blue,
                 shape: const CircleBorder(),
-                child: const Icon(
-                  Icons.add,
-                  size: 40,
-                ),
+                child: const Icon(Icons.add, size: 40),
               ),
             );
           },

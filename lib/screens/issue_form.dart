@@ -8,9 +8,13 @@ import '../utils/snackbar_helper.dart';
 
 class IssueForm extends StatefulWidget {
   final String typeForm;
-  final PageController pageController;
+  final void Function(int page) onNavigate;
 
-  const IssueForm({super.key, required this.typeForm, required this.pageController});
+  const IssueForm({
+    super.key,
+    required this.typeForm,
+    required this.onNavigate,
+  });
 
   @override
   State<IssueForm> createState() => _IssueFormState();
@@ -119,7 +123,7 @@ class _IssueFormState extends State<IssueForm> {
         isLoading = false;
       });
       Future.delayed(const Duration(seconds: 1), () {
-        widget.pageController.jumpToPage(3);
+        widget.onNavigate(3);
         //super.dispose();
       });
     }
@@ -155,8 +159,7 @@ class _IssueFormState extends State<IssueForm> {
       });
 
       Future.delayed(const Duration(seconds: 1), () {
-        widget.pageController.jumpToPage(3);
-        //super.dispose();
+        widget.onNavigate(3);
       });
     }
   }

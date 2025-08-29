@@ -24,7 +24,11 @@ class _MainTabsState extends State<MainTabs> {
       IconButton(
         icon: const Icon(Icons.bluetooth),
         onPressed: () {
-          _pageController.jumpToPage(0);
+          _pageController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
       ),
     ];
@@ -37,7 +41,11 @@ class _MainTabsState extends State<MainTabs> {
             ? Icon(Icons.settings_sharp, color: Colors.blue.shade900)
             : const Icon(Icons.settings_outlined),
         onPressed: () {
-          _pageController.jumpToPage(2); //Settings
+          _pageController.animateToPage(
+            2,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
       ),
       IconButton(
@@ -52,7 +60,11 @@ class _MainTabsState extends State<MainTabs> {
                 size: 28,
               ),
         onPressed: () {
-          _pageController.jumpToPage(3); //Statics
+          _pageController.animateToPage(
+            3,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
       ),
       IconButton(
@@ -67,7 +79,11 @@ class _MainTabsState extends State<MainTabs> {
                 size: 28,
               ),
         onPressed: () {
-          _pageController.jumpToPage(4); //Users
+          _pageController.animateToPage(
+            4,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
       )
     ];

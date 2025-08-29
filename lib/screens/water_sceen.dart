@@ -33,9 +33,11 @@ class _WaterScreenState extends State<WaterScreen> {
     final data = await _storage.read(key: 'storageLocation');
     final locationData = testCoord['b']; // for test
     if (data != null) {
-      setState(() {
-        _locationData = locationData;
-      });
+      if (mounted) {
+        setState(() {
+          _locationData = locationData;
+        });
+      }
       // final locationData = jsonDecode(data); // origen
       final latitude = locationData['latitude'] ?? '0';
       final longitude = locationData['longitude'] ?? '0';
@@ -48,28 +50,32 @@ class _WaterScreenState extends State<WaterScreen> {
         });
       }
       debugPrint('------ addressData: $addressData');
-
       debugPrint('------ address: $_address');
       if (addressData['address']['country_code'] == 'fr') {
         final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
         final euaComune = await franceEuaCommune(nomCommune);
-        //setState(() {
-        _nomReseau = euaComune['nom_reseau'];
-        //});
-
+        if (mounted) {
+          setState(() {
+            _nomReseau = euaComune['nom_reseau'];
+          });
+        }
         if (euaComune.containsKey('code_commune')) {
           final result = await rawApiResults(euaComune['code_commune']);
-          setState(() {
-            _potableData = result;
-          });
+          if (mounted) {
+            setState(() {
+              _potableData = result;
+            });
+          }
         }
       }
     } else {
-      setState(() {
-        _locationData = locationData;
-      });
+      if (mounted) {
+        setState(() {
+          _locationData = locationData;
+        });
+      }
     }
-  }
+  } // <-- CIERRA AQUÍ LA FUNCIÓN
 
   String _getAddressString(Map addressData) {
     if (addressData['address']['country_code'] == 'fr') {
@@ -80,61 +86,55 @@ class _WaterScreenState extends State<WaterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-      body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
-        builder: (context, connectivityState) {
-          if (connectivityState is ConnectivityOffline) {
-            return const Disconnected();
-          }
+    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
+      builder: (context, connectivityState) {
+        if (connectivityState is ConnectivityOffline) {
+          return const Disconnected();
+        }
 
-          return BlocBuilder<LocationBloc, LocationState>(
-            builder: (context, locationState) {
-              /*if (locationState is LocationLoadSuccess) {
-                return Center(child: Text('Water Screen ${locationState.position}'));
-              }*/
+        return BlocBuilder<LocationBloc, LocationState>(
+          builder: (context, locationState) {
+            if (_locationData == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              if (_locationData == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
+            final latitude = _locationData!['latitude'] ?? '0';
+            final longitude = _locationData!['longitude'] ?? '0';
 
-              final latitude = _locationData!['latitude'] ?? '0';
-              final longitude = _locationData!['longitude'] ?? '0';
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(child: Text('Stored Location: \nLat: $latitude, \nLon: $longitude')),
-                  if (_address == null) const Center(child: Text('Address: Loading...')),
-                  if (_address != null) Center(child: Text('Address: $_address')),
-                  if (_nomReseau != '...') Center(child: Text('RESEAU: $_nomReseau')),
-                  if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
-                    const Center(child: Text('Loading analizes data...')),
-                  if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
-                    const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: LinearProgressIndicator(
-                          color: Colors.blue,
-                          backgroundColor: Colors.redAccent,
-                        )),
-                  if (_potableData != null && _potableData!.isNotEmpty)
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _potableData!.length,
-                        itemBuilder: (context, index) {
-                          final item = _potableData![index];
-                          return Analize(item: item);
-                        },
-                      ),
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(child: Text('Stored Location: \nLat: $latitude, \nLon: $longitude')),
+                if (_address == null) const Center(child: Text('Address: Loading...')),
+                if (_address != null) Center(child: Text('Address: $_address')),
+                if (_nomReseau != '...') Center(child: Text('RESEAU: $_nomReseau')),
+                if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
+                  const Center(child: Text('Loading analizes data...')),
+                if (_potableData == null && _addressData['address']?['country_code'] == 'fr')
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: LinearProgressIndicator(
+                      color: Colors.blue,
+                      backgroundColor: Colors.redAccent,
                     ),
-                  if (_potableData != null && _potableData!.isEmpty) const Center(child: Text('No data available')),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                  ),
+                if (_potableData != null && _potableData!.isNotEmpty)
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _potableData!.length,
+                      itemBuilder: (context, index) {
+                        final item = _potableData![index];
+                        return Analize(item: item);
+                      },
+                    ),
+                  ),
+                if (_potableData != null && _potableData!.isEmpty) const Center(child: Text('No data available')),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

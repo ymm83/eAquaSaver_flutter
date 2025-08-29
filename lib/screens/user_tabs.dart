@@ -18,7 +18,7 @@ class UserTabs extends StatefulWidget {
 }
 
 class _UserTabsState extends State<UserTabs> {
-  final PageController _userTabController = PageController(keepPage: false);
+  final PageController _userTabController = PageController(keepPage: true);
   int _currentPage = 0;
   String _pageTitle = 'Profile';
   late SupabaseClient supabase;
@@ -40,7 +40,11 @@ class _UserTabsState extends State<UserTabs> {
 
   void _navigateToPage(int page) {
     if (connectivityBloc.state is ConnectivityOnline) {
-      _userTabController.jumpToPage(page);
+      _userTabController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
       connectionOffMessage(context);
     }
@@ -49,15 +53,27 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsDefault(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.manage_accounts_outlined, color: Colors.blue[900], size: 30,),
+        icon: Icon(
+          Icons.manage_accounts_outlined,
+          color: Colors.blue[900],
+          size: 30,
+        ),
         onPressed: () => _navigateToPage(1),
       ),
       IconButton(
-        icon: Icon(Icons.reviews_outlined, color: Colors.blue[900], size: 30,),
+        icon: Icon(
+          Icons.reviews_outlined,
+          color: Colors.blue[900],
+          size: 30,
+        ),
         onPressed: () => _navigateToPage(2),
       ),
       IconButton(
-        icon: Icon(Icons.bug_report_outlined, color: Colors.blue[900], size: 30,),
+        icon: Icon(
+          Icons.bug_report_outlined,
+          color: Colors.blue[900],
+          size: 30,
+        ),
         onPressed: () => _navigateToPage(3),
       ),
     ];
@@ -66,11 +82,19 @@ class _UserTabsState extends State<UserTabs> {
   List<Widget> _actionsIssue(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.checklist_outlined, color: Colors.blue[900], size: 30,),
+        icon: Icon(
+          Icons.checklist_outlined,
+          color: Colors.blue[900],
+          size: 30,
+        ),
         onPressed: () => _navigateToPage(3),
       ),
       IconButton(
-        icon: Icon(Icons.add_box_outlined, color: Colors.blue[900], size: 30,),
+        icon: Icon(
+          Icons.add_box_outlined,
+          color: Colors.blue[900],
+          size: 30,
+        ),
         onPressed: () => _navigateToPage(4),
       ),
     ];
@@ -92,19 +116,22 @@ class _UserTabsState extends State<UserTabs> {
                   // Botón de retroceso (back)
                   if (_currentPage > 0)
                     IconButton(
-                      icon: Icon(Icons.arrow_back_outlined, color: Colors.blue[900], size: 30,),
+                      icon: Icon(
+                        Icons.arrow_back_outlined,
+                        color: Colors.blue[900],
+                        size: 30,
+                      ),
                       onPressed: () => _navigateToPage(0),
                     ),
                   // Título de la página
                   Expanded(
-                    child:  Padding(
-                        padding: const EdgeInsets.only(left: 20, top: 0), // Ajusta el padding si es necesario
-                        child: Text(
-                          _pageTitle,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400, color: Colors.blue.shade900),
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, top: 0), // Ajusta el padding si es necesario
+                      child: Text(
+                        _pageTitle,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400, color: Colors.blue.shade900),
                       ),
-                    
+                    ),
                   ),
                   // Acciones del AppBar
                   if (_currentPage == 0) ..._actionsDefault(context),
@@ -116,7 +143,7 @@ class _UserTabsState extends State<UserTabs> {
             Expanded(
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
-                pageSnapping: false,
+                //pageSnapping: false,
                 controller: _userTabController,
                 onPageChanged: (index) {
                   setState(() {
@@ -127,10 +154,13 @@ class _UserTabsState extends State<UserTabs> {
                 children: [
                   const UserDashboard(),
                   const AccountScreen(),
-                  ReviewsScreen(pageController: _userTabController),
-                  IssueScreen(pageController: _userTabController),
-                  IssueForm(typeForm: 'new', pageController: _userTabController),
-                  IssueForm(typeForm: 'edit', pageController: _userTabController),
+                  ReviewsScreen(onNavigate: _navigateToPage),
+                  IssueScreen(
+                    pageController: _userTabController,
+                    onNavigate: _navigateToPage,
+                  ),
+                  IssueForm(typeForm: 'new', onNavigate: _navigateToPage),
+                  IssueForm(typeForm: 'edit', onNavigate: _navigateToPage),
                 ],
               ),
             ),
