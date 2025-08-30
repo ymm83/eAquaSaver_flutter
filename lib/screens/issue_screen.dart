@@ -13,12 +13,10 @@ class IssueColor {
 }
 
 class IssueScreen extends StatefulWidget {
-  final PageController pageController;
   final void Function(int page) onNavigate; // <-- guardar el callback
 
   const IssueScreen({
     super.key,
-    required this.pageController,
     required this.onNavigate,
   });
 
@@ -310,9 +308,6 @@ class _IssueScreenState extends State<IssueScreen> {
               visible: connectivityState is! ConnectivityOffline,
               child: FloatingActionButton(
                 onPressed: () {
-                  setState(() {
-                    _newIssue = true;
-                  });
                   widget.onNavigate(4); // <-- mejor con callback
                 },
                 backgroundColor: Colors.blue,

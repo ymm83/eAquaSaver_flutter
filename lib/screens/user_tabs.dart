@@ -39,6 +39,7 @@ class _UserTabsState extends State<UserTabs> {
   }
 
   void _navigateToPage(int page) {
+    debugPrint('Navegando a la página: $page');
     if (connectivityBloc.state is ConnectivityOnline) {
       _userTabController.animateToPage(
         page,
@@ -155,10 +156,7 @@ class _UserTabsState extends State<UserTabs> {
                   const UserDashboard(),
                   const AccountScreen(),
                   ReviewsScreen(onNavigate: _navigateToPage),
-                  IssueScreen(
-                    pageController: _userTabController,
-                    onNavigate: _navigateToPage,
-                  ),
+                  IssueScreen(onNavigate: _navigateToPage),
                   IssueForm(typeForm: 'new', onNavigate: _navigateToPage),
                   IssueForm(typeForm: 'edit', onNavigate: _navigateToPage),
                 ],
