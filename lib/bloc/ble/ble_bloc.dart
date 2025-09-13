@@ -53,9 +53,8 @@ class BleBloc extends Bloc<BleEvent, BleState> {
   }
 }
 
-
 void _onDetailsOpen(DetailsOpen event, Emitter<BleState> emit) async {
-  emit(BleDetailsOpen());//event.role
+  emit(BleDetailsOpen()); //event.role
 }
 
 void _onDetailsClose(DetailsClose event, Emitter<BleState> emit) async {
