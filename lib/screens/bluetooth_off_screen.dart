@@ -101,18 +101,19 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
     });
   }
 
-  Widget buildTitle(String title) {
+  Widget buildTitle(String title, {Color? color}) {
+    color = color ?? Colors.grey.shade600;
     return Text(
       title,
-      style: TextStyle(fontSize: 30, color: Colors.grey.shade600),
+      style: TextStyle(fontSize: 22, color: color),
     );
   }
 
-  Widget buildSubtitle(BuildContext context) {
+  Widget buildSubtitle(BuildContext context, Color? color) {
     String state = _bluetoothAdapterState.toString().split('.').last;
     return Text(
       'State: $state',
-      style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
     );
   }
 
@@ -138,30 +139,32 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
     return StatefulBuilder(
       builder: (context, setState) {
         return SwitchListTile(
-          activeTrackColor: Colors.grey.shade700,
-          title: buildTitle('Location'),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'State: ${_locationStatus == 'On' ? 'On' : 'Off'}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Text(
-                    'Permission: $_permissionStatus',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                  ),
-                ],
-              )
-            ],
+          activeColor: Colors.blue.shade700,
+          activeTrackColor: Colors.blue.shade100,
+          trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                return Colors.orange.withOpacity(0.48); // Naranja semitransparente para deshabilitado:cite[2]
+              }
+              if (states.contains(WidgetState.hovered)) {
+                return Colors.deepPurple; // Púrpura cuando el cursor está encima
+              }
+              if (states.contains(WidgetState.focused)) {
+                return Colors.green; // Verde cuando tiene foco
+              }
+              if (states.contains(WidgetState.selected)) {
+                return Colors.transparent; // Sin borde cuando está activado:cite[3]
+              }
+              return Colors.blue; // Color por defecto para el estado inactivo
+            },
           ),
-
+          title: _locationStatus == 'On' 
+                    ? buildTitle('Location', color: Colors.blue.shade700)
+                    : buildTitle('Location'),
+          /*subtitle: Text(
+            'State: ${_locationStatus == 'On' ? 'On' : 'Off'}\n'
+            'Permission: $_permissionStatus',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+          ),*/
           value: _locationStatus == 'On' ? true : false, // Usamos la variable de estado
           onChanged: (bool value) async {
             if (!_locationEnabled) {
@@ -186,7 +189,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
         return SwitchListTile(
           activeTrackColor: Colors.blue.shade700,
           title: buildTitle('Bluetooth'),
-          subtitle: buildSubtitle(context),
+          //subtitle: buildSubtitle(context),
           value: _bluetoothAdapterState == BluetoothAdapterState.on ? true : false, // Usamos la variable de estado
           onChanged: (bool value) async {
             try {

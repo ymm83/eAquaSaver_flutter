@@ -103,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      //await _controller.refreshToken();
+      await _controller.refreshToken();
     }
   }
 
@@ -171,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      //await _controller.refreshToken();
+      await _controller.refreshToken();
     }
   }
 
@@ -318,7 +318,7 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      //await _controller.refreshToken();
+      await _controller.refreshToken();
     }
   }
 
@@ -401,7 +401,7 @@ class _LoginPageState extends State<LoginPage> {
           _captchaToken = null;
         });
       }
-      //await _controller.refreshToken();
+      await _controller.refreshToken();
     }
   }
 

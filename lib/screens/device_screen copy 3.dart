@@ -62,13 +62,15 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen> {
   int? _rssi;
   int? _mtuSize;
-  BluetoothConnectionState _connectionState =
-      BluetoothConnectionState.disconnected;
+  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
   List<BluetoothService> _services = [];
   bool _isDiscoveringServices = false;
+  bool _isConnecting = false;
   bool _isDisconnecting = false;
 
   late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
+  late StreamSubscription<bool> _isConnectingSubscription;
+  late StreamSubscription<bool> _isDisconnectingSubscription;
   late StreamSubscription<BluetoothBondState> _bsSubscription;
   late StreamSubscription<int> _mtuSubscription;
   late StreamSubscription<List<ScanResult>> _beaconSubscription;
@@ -85,10 +87,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   // Variables para el selector de dispositivos
   String? selectedDeviceId;
-  // Mapa para gestionar el estado de conexión de múltiples dispositivos
-  Map<String, BluetoothDevice> _connectedDevices = {};
+  BluetoothDevice? _currentDevice;
+  bool _isConnectingDevice = false;
   List<BluetoothDevice> _availableDevices = [];
-  final List<Guid> withServices = [charEnabledUuid];
 
   // end selector
   late SupabaseClient supabase;
@@ -108,6 +109,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   bool _isLoading = true;
   BluetoothBondState bondState = BluetoothBondState.none;
 
+
   double celsiusToFahrenheit(double celsius) {
     return (celsius * 9 / 5) + 32;
   }
@@ -121,20 +123,45 @@ class _DeviceScreenState extends State<DeviceScreen> {
     super.initState();
     supabase = SupabaseProvider.getClient(context);
     supabaseEAS = SupabaseProvider.getEASClient(context);
+    
+    _connectionStateSubscription = widget.device.connectionState.listen((state) async {
+      _connectionState = state;
+      if (state == BluetoothConnectionState.connected) {
+        _services = [];
+      } else if (state == BluetoothConnectionState.disconnected) {
+        debugPrint('--------------- D I S C O N E C T E D');
+        _stopBeaconScanning();
+        widget.pageController.jumpToPage(0);
+      }
 
-    // No nos suscribimos al estado de conexión de un solo dispositivo.
-    // En su lugar, el UI reaccionará a los cambios de estado del Bloc.
-
-    _beaconTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_connectedDevices.isNotEmpty) {
-        startBeaconScanning();
+      if (state == BluetoothConnectionState.connected && _rssi == null) {
+        _rssi = await widget.device.readRssi();
+      }
+      if (mounted) {
+        setState(() {});
       }
     });
 
-    // La suscripción a la MTU sigue siendo relevante para el dispositivo actual
-    // por lo que la mantenemos.
+    _beaconTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      startBeaconScanning();
+    });
+
     _mtuSubscription = widget.device.mtu.listen((value) {
       _mtuSize = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    _isConnectingSubscription = widget.device.isConnecting.listen((value) {
+      _isConnecting = value;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    _isDisconnectingSubscription = widget.device.isDisconnecting.listen((value) {
+      _isDisconnecting = value;
       if (mounted) {
         setState(() {});
       }
@@ -145,12 +172,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
         setState(() {
           bondState = value;
         });
-        if (value == BluetoothBondState.none &&
-            widget.device.prevBondState == BluetoothBondState.bonding) {
+        if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
           _gotoScanScreenAsync();
         }
-        if (value == BluetoothBondState.bonded &&
-            widget.device.prevBondState == BluetoothBondState.bonding) {
+        if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
           setState(() {
             _isLoading = false;
           });
@@ -167,8 +192,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<List<BluetoothDevice>> getSystemDevices() async {
-    List<BluetoothDevice> _systemDevices =
-        await FlutterBluePlus.systemDevices(withServices);
+    List<Guid> withServices = [charEnabledUuid];
+    List<BluetoothDevice> _systemDevices = await FlutterBluePlus.systemDevices(withServices);
     return _systemDevices;
   }
 
@@ -212,22 +237,24 @@ class _DeviceScreenState extends State<DeviceScreen> {
       _systemDevices = await getSystemDevices();
       debugPrint(">>>>>> systemDevices: ${_systemDevices.toString()}");
     } catch (e) {
-      showSnackBar("System Devices Error: $e", theme: "error");
+      showSnackBar("System Devices Error: $e", theme: 'error');
     }
   }
-  //🆕 FUNCIONES PARA EL SELECTOR DE DISPOSITIVOS
+
+  // 🆕 FUNCIONES PARA EL SELECTOR DE DISPOSITIVOS
   Future<void> _initializeDeviceConnection() async {
     await _loadDevices();
-
-    // Ahora, el estado de conexión se maneja por el Bloc.
+    
     final bleState = context.read<BleBloc>().state;
     if (bleState is BleConnected) {
       final currentDevice = bleState.device;
-      final isAvailable = _availableDevices.any((d) => d.remoteId == currentDevice.remoteId);
-
+      final isAvailable = _availableDevices.any(
+        (d) => d.remoteId == currentDevice.remoteId
+      );
+      
       if (isAvailable) {
         setState(() {
-          _connectedDevices[currentDevice.remoteId.toString()] = currentDevice;
+          _currentDevice = currentDevice;
           selectedDeviceId = currentDevice.remoteId.toString();
         });
       }
@@ -236,33 +263,98 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future<void> _loadDevices() async {
     try {
-      List<BluetoothDevice> devices =
-          await FlutterBluePlus.systemDevices(withServices);
+      List<BluetoothDevice> devices = await getSystemDevices();
       setState(() {
         _availableDevices = devices;
       });
     } catch (e) {
-      showSnackBar("Error al cargar dispositivos: $e", theme: "error");
+      showSnackBar("Error al cargar dispositivos: $e", theme: 'error');
     }
   }
 
   Future<void> _connectToDevice(BluetoothDevice device) async {
-    context.read<BleBloc>().add(ConnectToDevice(device));
+      // Si ya está conectado a este dispositivo, no hacer nada
+    if (_currentDevice?.remoteId == device.remoteId) {
+      return;
+    }
+    setState(() {
+      _isConnectingDevice = true;
+    });
+
+    try {
+      if (_currentDevice != null) {
+        await _currentDevice!.disconnect();
+      }
+
+      await device.connect();
+      
+      context.read<BleBloc>().add(ConnectToDevice(device));
+      
+      setState(() {
+        _currentDevice = device;
+        selectedDeviceId = device.remoteId.toString();
+        _isConnectingDevice = false;
+      });
+
+      showSnackBar("Conectado a ${device.platformName}", theme: 'success');
+      
+    } catch (e) {
+      setState(() {
+        _isConnectingDevice = false;
+      });
+      showSnackBar("Error al conectar: $e", theme: 'error');
+    }
   }
 
-  Future<void> _disconnectDevice(BluetoothDevice device) async {
-    context.read<BleBloc>().add(DisconnectFromDevice(device));
+  Future<void> _connectToDeviceById(String deviceId) async {
+    try {
+      final device = _availableDevices.firstWhere(
+        (d) => d.remoteId.toString() == deviceId,
+      );
+      await _connectToDevice(device);
+    } catch (e) {
+      showSnackBar("Dispositivo no encontrado", theme: 'error');
+    }
+  }
+
+  Future<void> _disconnectCurrentDevice() async {
+    if (_currentDevice != null) {
+      try {
+        await _currentDevice!.disconnect();
+        context.read<BleBloc>().add(const DisconnectFromDevice());
+        setState(() {
+          _currentDevice = null;
+          selectedDeviceId = null;
+        });
+        showSnackBar("Dispositivo desconectado", theme: 'success');
+      } catch (e) {
+        showSnackBar("Error al desconectar: $e", theme: 'error');
+      }
+    }
+  }
+
+    // 🆕 Función separada para desconectar y ir a scan
+  Future<void> _disconnectAndGoToScan() async {
+    if (_currentDevice != null) {
+      try {
+        await _currentDevice!.disconnect();
+        context.read<BleBloc>().add(const DisconnectFromDevice());
+        setState(() {
+          _currentDevice = null;
+          selectedDeviceId = null;
+        });
+        widget.pageController.jumpToPage(0); // Ir a ScanScreen
+        showSnackBar("Dispositivo desconectado", theme: 'success');
+      } catch (e) {
+        showSnackBar("Error al desconectar: $e", theme: 'error');
+      }
+    }
   }
 
   Widget _buildDeviceSelector() {
-    final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
-    final isConnected = _connectedDevices.containsKey(selectedDeviceId);
-
     return ChoiceChip(
       selected: true,
-      label: isConnecting
+      label: _isConnectingDevice
           ? const SizedBox(
               width: 20,
               height: 20,
@@ -272,26 +364,27 @@ class _DeviceScreenState extends State<DeviceScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
-                  color: isConnected ? Colors.green : Colors.grey,
+                  _currentDevice != null 
+                    ? Icons.bluetooth_connected 
+                    : Icons.bluetooth,
+                  color: _currentDevice != null ? Colors.green : Colors.grey,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isConnected
-                      ? _connectedDevices[selectedDeviceId]!.platformName
+                  _currentDevice != null
+                      ? _currentDevice!.platformName
                       : 'Seleccionar dispositivo',
                   style: TextStyle(
-                    color: isConnected ? Colors.green : null,
+                    color: _currentDevice != null ? Colors.green : null,
                   ),
                 ),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),
-      onSelected: isConnecting ? null : (_) => _showDeviceSelectionDialog(),
+      onSelected: _isConnectingDevice ? null : (_) => _showDeviceSelectionDialog(),
     );
   }
 
-  /*
   void _showDeviceSelectionDialog() {
     showDialog(
       context: context,
@@ -305,7 +398,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
             itemBuilder: (context, index) {
               if (index < _availableDevices.length) {
                 final device = _availableDevices[index];
-                final isConnected = _connectedDevices.containsKey(device.remoteId.toString());
+                final isConnected = _currentDevice?.remoteId == device.remoteId;
 
                 return ListTile(
                   leading: Icon(
@@ -320,28 +413,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     ),
                   ),
                   subtitle: Text(device.remoteId.toString()),
-                  trailing: isConnected 
-                    ? const Icon(Icons.check, color: Colors.green) 
-                    : null,
+                  trailing: isConnected
+                      ? const Icon(Icons.check, color: Colors.green)
+                      : null,
                   onTap: () {
                     Navigator.pop(context);
-                    if (isConnected) {
-                      _disconnectDevice(device);
-                    } else {
-                      _connectToDevice(device);
-                      setState(() {
-                        selectedDeviceId = device.remoteId.toString();
-                      });
-                    }
+                    _connectToDevice(device);
                   },
                 );
               } else {
                 return ListTile(
                   leading: const Icon(Icons.add, color: Colors.blue),
-                  title: const Text(
-                    'Añadir otro',
-                    style: TextStyle(color: Colors.blue),
-                  ),
+                  title: const Text('Añadir otro', style: TextStyle(color: Colors.blue),),
                   onTap: () {
                     Navigator.pop(context);
                     widget.pageController.jumpToPage(0);
@@ -352,20 +435,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
           ),
         ),
         actions: [
-          if (_connectedDevices.isNotEmpty)
+          if (_currentDevice != null)
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                _connectedDevices.forEach((key, device) {
-                  _disconnectDevice(device);
-                });
-                setState(() {
-                  _connectedDevices.clear();
-                  selectedDeviceId = null;
-                });
+                _disconnectCurrentDevice();
               },
-              child: const Text('Desconectar todos',
-                  style: TextStyle(color: Colors.red)),
+              child: const Text('Desconectar', style: TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -375,141 +451,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ),
     );
   }
-  */
-  void _showDeviceSelectionDialog() {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: '',
-    transitionDuration: Duration(milliseconds: 300), // Duración de la animación
-    pageBuilder: (context, animation, secondaryAnimation) {
-      // Este builder no se usa directamente para el contenido, pero es necesario
-      return Container();
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      // Definimos la animación de deslizamiento
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic, // Curva de animación
-      );
-
-      final tween = Tween(begin: Offset(0, 1), end: Offset.zero);
-
-      return SlideTransition(
-        position: tween.animate(curvedAnimation),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Material(
-            elevation: 10,
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.7, // 70% de la altura
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                    child: Text(
-                      'Seleccionar dispositivo',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _availableDevices.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index < _availableDevices.length) {
-                          final device = _availableDevices[index];
-                          final isConnected = _connectedDevices.containsKey(device.remoteId.toString());
-
-                          return ListTile(
-                            leading: Icon(
-                              Icons.bluetooth,
-                              color: isConnected ? Colors.green : null,
-                            ),
-                            title: Text(
-                              device.platformName,
-                              style: TextStyle(
-                                fontWeight: isConnected ? FontWeight.bold : FontWeight.normal,
-                                color: isConnected ? Colors.green : null,
-                              ),
-                            ),
-                            subtitle: Text(device.remoteId.toString()),
-                            trailing: isConnected
-                                ? const Icon(Icons.check, color: Colors.green)
-                                : null,
-                            onTap: () {
-                              Navigator.pop(context);
-                              if (isConnected) {
-                                _disconnectDevice(device);
-                              } else {
-                                _connectToDevice(device);
-                                setState(() {
-                                  selectedDeviceId = device.remoteId.toString();
-                                });
-                              }
-                            },
-                          );
-                        } else {
-                          return ListTile(
-                            leading: const Icon(Icons.add, color: Colors.blue),
-                            title: const Text(
-                              'Añadir otro',
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                            onTap: () {
-                              Navigator.pop(context);
-                              widget.pageController.jumpToPage(0);
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (_connectedDevices.isNotEmpty)
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _connectedDevices.forEach((key, device) {
-                                _disconnectDevice(device);
-                              });
-                              setState(() {
-                                _connectedDevices.clear();
-                                selectedDeviceId = null;
-                              });
-                            },
-                            child: const Text('Desconectar todos', style: TextStyle(color: Colors.red)),
-                          ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancelar'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
   // 🏁 FIN DE FUNCIONES PARA SELECTOR DE DISPOSITIVOS
+
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
     try {
       int size = data[0];
@@ -541,17 +484,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
     if (Platform.isAndroid) {
       _bsSubscription.cancel();
     }
+    _connectionStateSubscription.cancel();
     _mtuSubscription.cancel();
+    _isConnectingSubscription.cancel();
+    _isDisconnectingSubscription.cancel();
     _beaconTimer.cancel();
     _stopBeaconScanning();
-    // No necesitamos cancelar _connectionStateSubscription porque ya no está presente
+
     context.read<BeaconBloc>().add(ClearBeacon());
     super.dispose();
   }
 
   bool get isConnected {
-    // La lógica de conexión ahora se basa en el mapa
-    return _connectedDevices.containsKey(selectedDeviceId);
+    return _connectionState == BluetoothConnectionState.connected;
   }
 
   Future<void> startBeaconScanning() async {
@@ -566,9 +511,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
-                  context
-                      .read<BeaconBloc>()
-                      .add(ListenBeacon(beaconData: decodedData));
+                  context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
             }
@@ -582,22 +525,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future<void> _stopBeaconScanning() async {
     await FlutterBluePlus.stopScan();
-    if (_beaconSubscription != null) {
-      _beaconSubscription.cancel();
-    }
+    _beaconSubscription.cancel();
     _beaconData.clear();
   }
 
   Future onConnectPressed() async {
-    // Ya no necesitamos esta lógica aquí, el Bloc la maneja
-    // Solo necesitamos llamar al evento del Bloc
-    if (selectedDeviceId != null) {
-      try {
-        final deviceToConnect = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
-        _connectToDevice(deviceToConnect);
-      } catch (e) {
-        showSnackBar("Dispositivo no encontrado", theme: "error");
+    try {
+      await widget.device.connectAndUpdateStream();
+      showSnackBar("Connect: Success", theme: 'success');
+    } catch (e) {
+      if (e is FlutterBluePlusException && e.code == FbpErrorCode.connectionCanceled.index) {
+        // Ignorar conexiones canceladas
+      } else {
+        showSnackBar("Connect Error: $e", theme: 'error');
       }
     }
   }
@@ -622,28 +562,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future onCancelPressed() async {
-    if (selectedDeviceId != null) {
-      try {
-        final deviceToCancel = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
-        await deviceToCancel.disconnect(queue: true);
-        await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
-        showSnackBar("Cancel: Success", theme: "success");
-      } catch (e) {
-        showSnackBar("Cancel Error: $e", theme: "error");
-      }
+    try {
+      await widget.device.disconnect(queue: true);
+      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+      showSnackBar("Cancel: Success", theme: 'success');
+    } catch (e) {
+      showSnackBar("Cancel Error: $e", theme: 'error');
     }
   }
 
   Future onDisconnectPressed() async {
-    if (selectedDeviceId != null) {
-      try {
-        final deviceToDisconnect = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
-        _disconnectDevice(deviceToDisconnect);
-      } catch (e) {
-        showSnackBar("Dispositivo no encontrado", theme: "error");
-      }
+    try {
+      await widget.device.disconnect();
+      showSnackBar("Disconnect: Success", theme: 'success');
+    } catch (e) {
+      showSnackBar("Disconnect Error: $e", theme: 'error');
     }
   }
 
@@ -655,9 +588,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
     try {
       _services = await widget.device.discoverServices();
-      showSnackBar("Discover Services: Success", theme: "success");
+      showSnackBar("Discover Services: Success", theme: 'success');
     } catch (e) {
-      showSnackBar("Discover Services Error:", theme: "error");
+      showSnackBar("Discover Services Error:", theme: 'error');
     }
     if (mounted) {
       setState(() {
@@ -678,9 +611,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Future onRequestMtuPressed() async {
     try {
       await widget.device.requestMtu(223, predelay: 0);
-      showSnackBar("Request Mtu: Success", theme: "success");
+      showSnackBar("Request Mtu: Success", theme: 'success');
     } catch (e) {
-      showSnackBar("Change Mtu Error: $e", theme: "error");
+      showSnackBar("Change Mtu Error: $e", theme: 'error');
     }
   }
 
@@ -728,9 +661,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         .map(
           (s) => ServiceTile(
             service: s,
-            characteristicTiles: s.characteristics
-                .map((c) => _buildCharacteristicTile(c))
-                .toList(),
+            characteristicTiles: s.characteristics.map((c) => _buildCharacteristicTile(c)).toList(),
           ),
         )
         .toList();
@@ -739,8 +670,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   CharacteristicTile _buildCharacteristicTile(BluetoothCharacteristic c) {
     return CharacteristicTile(
       characteristic: c,
-      descriptorTiles:
-          c.descriptors.map((d) => DescriptorTile(descriptor: d)).toList(),
+      descriptorTiles: c.descriptors.map((d) => DescriptorTile(descriptor: d)).toList(),
     );
   }
 
@@ -771,11 +701,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        isConnected
-            ? const Icon(Icons.bluetooth_connected)
-            : const Icon(Icons.bluetooth_disabled),
-        if (isConnected && _rssi != null)
-          Text('${_rssi!} dBm', style: Theme.of(context).textTheme.bodySmall)
+        isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
+        if (isConnected && _rssi != null) Text('${_rssi!} dBm', style: Theme.of(context).textTheme.bodySmall)
       ],
     );
   }
@@ -815,46 +742,28 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Widget buildConnectButton(BuildContext context) {
-    final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
-
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      if (isConnecting) buildSpinner(context),
+      if (_isConnecting || _isDisconnecting) buildSpinner(context),
       OutlinedButton.icon(
-        onPressed: isConnecting
-            ? onCancelPressed
-            : (isConnected ? onDisconnectPressed : onConnectPressed),
-        icon: Icon(isConnecting
+        onPressed: _isConnecting ? onCancelPressed : (isConnected ? onDisconnectPressed : onConnectPressed),
+        icon: Icon(_isConnecting
             ? Icons.cancel_outlined
-            : (isConnected
-                ? Icons.bluetooth_disabled
-                : Icons.bluetooth_connected_outlined)),
-        label: Text(isConnecting
-            ? 'Cancel'
-            : (isConnected ? 'Disconnect' : 'Connect')),
+            : (isConnected ? Icons.bluetooth_disabled : Icons.bluetooth_connected_outlined)),
+        label: Text(_isConnecting ? 'Cancel' : (isConnected ? 'Disconnect' : 'Connect')),
       )
     ]);
   }
 
   Widget buildConnectIcon(BuildContext context) {
-    final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
-
     return CircleAvatar(
       backgroundColor: Colors.blue.shade400,
       child: IconButton(
         splashColor: Colors.greenAccent,
         highlightColor: Colors.blue.shade600,
-        onPressed: isConnecting
-            ? onCancelPressed
-            : (isConnected ? onDisconnectPressed : onConnectPressed),
-        icon: Icon(isConnecting
+        onPressed: _isConnecting ? onCancelPressed : (isConnected ? onDisconnectPressed : onConnectPressed),
+        icon: Icon(_isConnecting
             ? Icons.cancel_outlined
-            : (isConnected
-                ? Icons.bluetooth_disabled
-                : Icons.bluetooth_connected_outlined)),
+            : (isConnected ? Icons.bluetooth_disabled : Icons.bluetooth_connected_outlined)),
       ),
     );
   }
@@ -873,15 +782,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future _writeStateDevice(int state) async {
-    if (selectedDeviceId == null) {
-      showSnackBar("No hay dispositivo seleccionado", theme: "error");
-      return;
-    }
-    final connectedDevice = _connectedDevices[selectedDeviceId]!;
-
-    final stateBytes =
-        BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
-    List<BluetoothService> services = await connectedDevice.discoverServices();
+    final stateBytes = BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
+    List<BluetoothService> services = await widget.device.discoverServices();
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
         for (BluetoothCharacteristic characteristic in service.characteristics) {
@@ -895,18 +797,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future _writeTargetTemperature(double temperature) async {
-    if (selectedDeviceId == null) {
-      showSnackBar("No hay dispositivo seleccionado", theme: "error");
-      return;
-    }
-    final connectedDevice = _connectedDevices[selectedDeviceId]!;
-
-    debugPrint(
-        '_writeTargetTemperature param: ${temperature.toInt().toString()}');
+    debugPrint('_writeTargetTemperature param: ${temperature.toInt().toString()}');
     int targetTemperature = temperature.toInt() * 10;
-    final targetBytes =
-        BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
-    List<BluetoothService> services = await connectedDevice.discoverServices();
+    final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
+    List<BluetoothService> services = await widget.device.discoverServices();
 
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
@@ -921,17 +815,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future _writeMinimalTemperature(double temperature) async {
-    if (selectedDeviceId == null) {
-      showSnackBar("No hay dispositivo seleccionado", theme: "error");
-      return;
-    }
-    final connectedDevice = _connectedDevices[selectedDeviceId]!;
-    debugPrint(
-        '_writeMinimalTemperature param: ${temperature.toInt().toString()}');
+    debugPrint('_writeMinimalTemperature param: ${temperature.toInt().toString()}');
     int minimalTemperature = temperature.toInt() * 10;
-    final minimalBytes =
-        BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
-    List<BluetoothService> services = await connectedDevice.discoverServices();
+    final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
+    List<BluetoothService> services = await widget.device.discoverServices();
 
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
@@ -999,65 +886,98 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BleBloc, BleState>(
-      listener: (context, state) {
-        if (state is BleConnected) {
-          _connectedDevices[state.device.remoteId.toString()] = state.device;
-          showSnackBar("Conectado a ${state.device.platformName}",
-              theme: "success");
-          setState(() {});
-        } else if (state is BleDisconnected) {
-          _connectedDevices.remove(state.device.remoteId.toString());
-          showSnackBar(
-              "Dispositivo ${state.device.platformName} desconectado",
-              theme: "success");
-          setState(() {});
-        } else if (state is BleConnectionFailed) {
-          showSnackBar("Error de conexión: ${state.error}", theme: "error");
-        }
-      },
-      child: BlocBuilder<BeaconBloc, BeaconState>(
-        builder: (context, state) {
-          final isConnected = _connectedDevices.containsKey(selectedDeviceId);
-          debugPrint('.......... ${state.runtimeType} \n------- end -----');
-          
-          Widget mainContent;
+    return BlocBuilder<BeaconBloc, BeaconState>(builder: (context, state) {
+      if (state is BeaconLoaded) {
+        deviceState = getDeviceState(state.beaconData['state']);
+      } else {
+        deviceState = 'unknow';
+      }
 
-          if (!isConnected) {
-            mainContent = const Center(
-              child: Text("Connecting ...",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic
-                )
-              )
-            );
-          } else if (state is BeaconLoading) {
-            mainContent = const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-              child: Column(
-                children: [
-                  Text('Loading data ...',
-                      style: TextStyle()),
-                  SizedBox(height: 5),
-                  LinearProgressIndicator(
-                    color: Colors.blue,
-                    backgroundColor: Colors.redAccent,
+      return ScaffoldMessenger(
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                TopLoadingIndicator(isLoading: _isLoading),
+                
+                // 🆕 SELECTOR DE DISPOSITIVOS EN EL APP BAR
+                Card(
+                  shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
+                  color: Colors.blue.shade100,
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        // Selector de dispositivos
+                        _buildDeviceSelector(),
+                        
+                        const SizedBox(width: 10),
+                        
+                        // Indicador de estado de conexión
+                        if (_isConnectingDevice) 
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else if (_currentDevice != null)
+                          const Icon(Icons.bluetooth_connected, color: Colors.green, size: 20),
+                        
+                        const SizedBox(width: 10),
+                        
+                        /*Text(_device?.customName ?? widget.device.platformName,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),*/
+                        
+                        /*if (isConnected && _rssi != null) 
+                          Text('(${_rssi!} dBm)', style: TextStyle(fontSize: 10)),*/
+                      ],
+                    ),
+                    subtitle: (state is BeaconLoaded)
+                        ? RichText(
+                            text: TextSpan(
+                              text: 'status: ',
+                              style: const TextStyle(
+                                  fontSize: 11, color: Color.fromARGB(255, 5, 69, 85), fontWeight: FontWeight.bold),
+                              children: [
+                                TextSpan(
+                                  text: deviceState,
+                                  style: TextStyle(
+                                      color: Colors.blue.shade900,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      letterSpacing: 1),
+                                ),
+                                TextSpan(
+                                  text: '(${_rssi!} dBm)',
+                                  style: TextStyle(
+                                      color: Colors.green.shade900,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                      letterSpacing: 1),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Text(widget.device.remoteId.toString()),
                   ),
-                ],
-              ),
-            );
-          } else if (state is BeaconLoaded) {
-            final beaconData = state.beaconData;
-            deviceState = getDeviceState(beaconData['state']);
-            _rssi = beaconData['rssi'];
+                ),
 
-            mainContent = Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (role == 'Admin' || role == 'Member')
-                  Center(
+                if (state is BeaconLoading) ...[
+                  const Center(child: Text('Loading Beacon Data...', style: TextStyle())),
+                  const Padding(
+                      padding: EdgeInsets.only(left: 50, right: 50, top: 5),
+                      child: LinearProgressIndicator(
+                        color: Colors.blue,
+                        backgroundColor: Colors.redAccent,
+                      )),
+                ],
+
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
                         child: Stack(children: [
                           SizedBox(
                             width: 300,
@@ -1275,159 +1195,77 @@ class _DeviceScreenState extends State<DeviceScreen> {
                           //if (state is BeaconLoading || state is BeaconInitial) ...[CircularProgressIndicator()],
                         ]),
                       ),
-                const Divider(
-                  height: 10,
-                  thickness: 1,
-                  color: Colors.blue,
-                ),
-                ListTile(
-                  leading: _buildIcon(beaconData['state']),
-                  title: Text(
-                    'Device State: $deviceState',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                    ],
                   ),
                 ),
-                ListTile(
-                  leading: _buildIconRole(role),
-                  title: Text(
-                    'Your Role: ${role ?? 'Guest'}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.thermostat,
-                      color: Color.fromARGB(255, 5, 69, 85), size: 40),
-                  title: const Text('Current Temperature',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  trailing: Text(
-                      '${beaconData['temperature']} °C',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.thermostat_outlined,
-                    color: Color.fromARGB(255, 5, 69, 85),
-                    size: 40,
-                  ),
-                  title: const Text('Target Temperature',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  trailing: Text(
-                      '${beaconData['targetTemperature']} °C',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                if (role == 'Admin' || role == 'Member')
-                  ListTile(
-                    title: const Text('Minimal Temperature',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    trailing: Text(
-                        '${beaconData['minimalTemperature']} °C',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                if (role == 'Admin')
-                  ListTile(
-                    title: const Text('Minimal Temperature',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    trailing: Text(
-                        '${beaconData['minimalTemperature']} °C',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-              ],
-            );
-          } else {
-            mainContent = const Center(
-              child: Text("Connecting ...",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic
-                )
-              )
-            );
-          }
+                if (_isLoading) ...[
+                  Text(
+                      bondState == BluetoothBondState.none || bondState == BluetoothBondState.bonded
+                          ? 'Starting...'
+                          : 'Bonding...',
+                      style: TextStyle()), // 👈 **Cambio**: Mensaje de carga
+                ] else if (role == null) ...[
+                  const Center(child: Text('Unauthorized...', style: TextStyle())),
+                ] else if (['Admin', 'Member'].contains(role)) ...[
+                  // Mostrar datos de beacon
 
-          return ScaffoldMessenger(
-            child: Scaffold(
-              body: SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    TopLoadingIndicator(isLoading: _isLoading),
-                    Card(
-                      shape: RoundedRectangleBorder(
-                          side:
-                              const BorderSide(color: Colors.blue, width: 1.5),
-                          borderRadius: BorderRadius.circular(10)),
-                      color: Colors.blue.shade100,
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            _buildDeviceSelector(),
-                            const SizedBox(width: 10),
-                            if (context.watch<BleBloc>().state is BleConnecting &&
-                                (context.watch<BleBloc>().state as BleConnecting)
-                                        .device
-                                        .remoteId
-                                        .toString() ==
-                                    selectedDeviceId)
-                              const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            else if (isConnected)
-                              const Icon(Icons.bluetooth_connected,
-                                  color: Colors.green, size: 20),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                        subtitle: (state is BeaconLoaded)
-                            ? RichText(
-                                text: TextSpan(
-                                  text: 'status: ',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color.fromARGB(255, 5, 69, 85),
-                                      fontWeight: FontWeight.bold),
-                                  children: [
-                                    TextSpan(
-                                      text: deviceState,
-                                      style: TextStyle(
-                                          color: Colors.blue.shade900,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          letterSpacing: 1),
-                                    ),
-                                    TextSpan(
-                                      text: _rssi != null ? '(${_rssi!} dBm)' : '',
-                                      style: TextStyle(
-                                          color: Colors.green.shade900,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                          letterSpacing: 1),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : Text(selectedDeviceId ?? 'No device selected'),
-                      ),
-                    ),
-                    mainContent,
-                  ],
-                ),
-              ),
+                  if (state is BeaconLoaded) ...[
+                    OutlinedButton.icon(
+                        onPressed: () async {
+                          debugPrint('---- >> state.beaconData[state]: ${state.beaconData['state']}');
+                          if (_isLoading || state.beaconData['state'] == 2) {
+                            return;
+                          }
+                          try {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            if (state.beaconData['state'] < 2) {
+                              // Power On
+                              await _writeStateDevice(5);
+                            }
+                            if (state.beaconData['state'] > 2) {
+                              // Power Off
+                              await _writeStateDevice(1);
+                            }
+                          } catch (e) {
+                            debugPrint('---- Change device state error: $e');
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        },
+                        label: Text(state.beaconData['state'] < 2
+                            ? 'Power On'
+                            : state.beaconData['state'] == 2
+                                ? 'Working'
+                                : 'Power Off'),
+                        icon: _buildIcon(state.beaconData['state'])),
+                  ]
+                  /*IconButton(
+                      onPressed: () async {
+                        final t = await existsDeviceAdmin(supabase.auth.currentUser!.id, widget.device.platformName);
+                        debugPrint('----- $t');
+                      },
+                      icon: Icon(Icons.get_app)),
+
+                  //buildMtuTile(context),*/
+                ] else if (role == null) ...[
+                  //Center(child: CircularProgressIndicator())
+                ] else if (role == 'Credits') ...[
+                  Text('Buy credits to use this device!'),
+                ] else if (role == 'Recerved') ...[
+                  Text('Recerved mode!')
+                ] else ...[
+                  Unauthorized(),
+                ],
+              ],
             ),
-          );
-        },
-      ),
-    );
+          ),
+        ),
+      );
+    });
+    //});
   }
 }

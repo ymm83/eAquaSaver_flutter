@@ -33,7 +33,7 @@ Future<void> main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => BleBloc(flutterBlue)),
+        BlocProvider(create: (context) => BleBloc()),
         BlocProvider(create: (context) => IssueBloc(supabase)),
         BlocProvider(create: (context) => LocationBloc()..add(LocationStarted())),
         BlocProvider(create: (context) => ConnectivityBloc(connectivity)),
