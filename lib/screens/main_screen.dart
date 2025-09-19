@@ -31,6 +31,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
   late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
   late StreamSubscription<ServiceStatus>? _serviceStatusStream;
   int _currentIndex = 0; // Índice para la barra de navegación inferior
+  int _previousIndex = 0;
   late final SupabaseClient supabase;
 
   @override
@@ -122,8 +123,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
 
     // Lista de widgets para cada pestaña
     final List<Widget> screens = [
-      const WaterTabs(),
       mainScreen,
+      const WaterTabs(),
       const UserTabs(
         key: Key('userTabs'),
       ),
@@ -336,18 +337,21 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
               waterDropColor: Colors.blue,
               onItemSelected: (index) {
                 setState(() {
+                  _previousIndex = _currentIndex;
                   _currentIndex = index;
                 });
+                
               },
               selectedIndex: _currentIndex,
+              previousIndex: _previousIndex,
               barItems: [
-                BarItem(
-                  filledIcon: Icons.water_drop_rounded,
-                  outlinedIcon: Icons.water_drop_outlined,
-                ),
                 BarItem(
                   filledIcon: Icons.home_rounded,
                   outlinedIcon: Icons.home_outlined,
+                ),
+                BarItem(
+                  filledIcon: Icons.water_drop_rounded,
+                  outlinedIcon: Icons.water_drop_outlined,
                 ),
                 BarItem(
                   filledIcon: Icons.person_2_rounded,
