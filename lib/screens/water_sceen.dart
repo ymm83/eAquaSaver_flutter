@@ -32,39 +32,53 @@ class _WaterScreenState extends State<WaterScreen> {
   Future<void> _fetchLocationAndAddress() async {
     final data = await _storage.read(key: 'storageLocation');
     final locationData = testCoord['b']; // for test
+
     if (data != null) {
+      if (!mounted) return;
       setState(() {
         _locationData = locationData;
       });
+
       // final locationData = jsonDecode(data); // origen
       final latitude = locationData['latitude'] ?? '0';
       final longitude = locationData['longitude'] ?? '0';
 
-      final addressData = await getReverseLocation({'latitude': latitude, 'longitude': longitude});
-      if (mounted) {
-        setState(() {
-          _addressData = addressData;
-          _address = _getAddressString(addressData);
-        });
-      }
-      debugPrint('------ addressData: $addressData');
+      final addressData = await getReverseLocation({
+        'latitude': latitude,
+        'longitude': longitude,
+      });
 
-      debugPrint('------ address: $_address');
-      if (addressData['address']['country_code'] == 'fr') {
-        final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
-        final euaComune = await franceEuaCommune(nomCommune);
-        //setState(() {
-        _nomReseau = euaComune['nom_reseau'];
-        //});
+      if (!mounted) return;
+      setState(() {
+        _addressData = addressData;
+        _address = _getAddressString(addressData);
+      });
 
-        if (euaComune.containsKey('code_commune')) {
-          final result = await rawApiResults(euaComune['code_commune']);
+      try {
+        if (addressData['address']['country_code'] == 'fr') {
+          final nomCommune = addressData['address']['municipality'] ?? addressData['address']['city'];
+
+          final euaComune = await franceEuaCommune(nomCommune);
+
+          if (!mounted) return;
           setState(() {
-            _potableData = result;
+            _nomReseau = euaComune['nom_reseau'] ?? 'Inconnu';
           });
+
+          if (euaComune.containsKey('code_commune')) {
+            final result = await rawApiResults(euaComune['code_commune']);
+            if (!mounted) return;
+            setState(() {
+              _potableData = result;
+            });
+          }
         }
+      } catch (e) {
+        debugPrint("❌ Error fetching water data: $e");
       }
     } else {
+      // Caso en que no haya datos en storage
+      if (!mounted) return;
       setState(() {
         _locationData = locationData;
       });

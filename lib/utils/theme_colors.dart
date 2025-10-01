@@ -3,123 +3,44 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-final ThemeData darkAppTheme = ThemeData.dark().copyWith(
-  brightness: Brightness.dark,
-  primaryColor: Colors.amber.shade100,
-  scaffoldBackgroundColor: const Color(0xFF0D0B02),
-  drawerTheme: const DrawerThemeData(scrimColor: Colors.white),
-  appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF0D0B02),
-      foregroundColor: Colors.white,
-      iconTheme: IconThemeData(color: Colors.white),
-      actionsIconTheme: IconThemeData(color: Colors.white)),
-  colorScheme: const ColorScheme.dark(
-    surface: Colors.black,
-    secondary: Colors.red,
+/// Tema claro basado en ColorScheme personalizado
+final ThemeData lightAppTheme = ThemeData(
+  colorScheme: lightColorScheme,
+  useMaterial3: true,
+  appBarTheme: AppBarTheme(
+    backgroundColor: lightColorScheme.primary,
+    foregroundColor: lightColorScheme.onPrimary,
+    elevation: 0,
   ),
-  buttonTheme: const ButtonThemeData(
-    buttonColor: Colors.amber,
-    disabledColor: Colors.grey,
+  floatingActionButtonTheme: FloatingActionButtonThemeData(
+    backgroundColor: lightColorScheme.secondary,
+    foregroundColor: lightColorScheme.onSecondary,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.green,
+      backgroundColor: lightColorScheme.primary,
+      foregroundColor: lightColorScheme.onPrimary,
     ),
   ),
 );
 
-final ThemeData lightAppTheme = ThemeData.light().copyWith(
-  brightness: Brightness.light,
-  primaryColor: Colors.white,
-  scaffoldBackgroundColor: Colors.blue[200],
-  drawerTheme: const DrawerThemeData(scrimColor: Colors.black),
-  appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.blue,
-      foregroundColor: Color(0xFF0D0B02),
-      iconTheme: IconThemeData(color: Color(0xFF0D0B02)),
-      actionsIconTheme: IconThemeData(color: Color(0xFF0D0B02))),
-  colorScheme: const ColorScheme.light(
-    surface: Colors.black,
-    secondary: Colors.black,
+/// Tema oscuro basado en ColorScheme personalizado
+final ThemeData darkAppTheme = ThemeData(
+  colorScheme: darkColorScheme,
+  useMaterial3: true,
+  appBarTheme: AppBarTheme(
+    backgroundColor: darkColorScheme.surfaceContainer,
+    foregroundColor: darkColorScheme.onSurface,
+    elevation: 0,
   ),
-  buttonTheme: const ButtonThemeData(
-    buttonColor: Colors.blue,
-    disabledColor: Colors.grey,
+  floatingActionButtonTheme: FloatingActionButtonThemeData(
+    backgroundColor: darkColorScheme.secondary,
+    foregroundColor: darkColorScheme.onSecondary,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.green,
-    ),
-  ),
-);
-final ThemeData darkAppTheme2 = ThemeData.dark().copyWith(
-  primaryColor: Colors.amber.shade100,
-  // Define the default brightness and colors.
-  colorScheme: const ColorScheme(
-    brightness: Brightness.dark,
-    primary: Color(0xFF5E7691),
-    onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFF375778),
-    onPrimaryContainer: Color(0xFFFFFFFF),
-    primaryFixed: Color(0xFFD1DBE5),
-    primaryFixedDim: Color(0xFFAABACB),
-    onPrimaryFixed: Color(0xFF111B26),
-    onPrimaryFixedVariant: Color(0xFF172432),
-    secondary: Color(0xFFEBA1A6),
-    onSecondary: Color(0xFF000000),
-    secondaryContainer: Color(0xFFAE424F),
-    onSecondaryContainer: Color(0xFFFFFFFF),
-    secondaryFixed: Color(0xFFF2D1D4),
-    secondaryFixedDim: Color(0xFFEBB5B9),
-    onSecondaryFixed: Color(0xFF400307),
-    onSecondaryFixedVariant: Color(0xFF73060E),
-    tertiary: Color(0xFFF4CFD1),
-    onTertiary: Color(0xFF000000),
-    tertiaryContainer: Color(0xFF96434F),
-    onTertiaryContainer: Color(0xFFFFFFFF),
-    tertiaryFixed: Color(0xFFF3E8E8),
-    tertiaryFixedDim: Color(0xFFEAD5D7),
-    onTertiaryFixed: Color(0xFF561317),
-    onTertiaryFixedVariant: Color(0xFF871E25),
-    error: Color(0xFFCF6679),
-    onError: Color(0xFF000000),
-    errorContainer: Color(0xFFB1384E),
-    onErrorContainer: Color(0xFFFFFFFF),
-    surface: Color(0xFF080808),
-    onSurface: Color(0xFFF1F1F1),
-    surfaceDim: Color(0xFF060606),
-    surfaceBright: Color(0xFF2C2C2C),
-    surfaceContainerLowest: Color(0xFF010101),
-    surfaceContainerLow: Color(0xFF0E0E0E),
-    surfaceContainer: Color(0xFF151515),
-    surfaceContainerHigh: Color(0xFF1D1D1D),
-    surfaceContainerHighest: Color(0xFF282828),
-    onSurfaceVariant: Color(0xFFCACACA),
-    outline: Color(0xFF777777),
-    outlineVariant: Color(0xFF414141),
-    shadow: Color(0xFF000000),
-    scrim: Color(0xFF000000),
-    inverseSurface: Color(0xFFE8E8E8),
-    onInverseSurface: Color(0xFF2A2A2A),
-    inversePrimary: Color(0xFF303944),
-    surfaceTint: Color(0xFF5E7691),
-  ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFF0D0B02),
-    foregroundColor: Colors.white,
-    iconTheme: IconThemeData(color: Colors.white),
-    actionsIconTheme: IconThemeData(color: Colors.white),
-  ),
-  buttonTheme: const ButtonThemeData(
-    buttonColor: Colors.amber,
-    disabledColor: Colors.grey,
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.green,
+      backgroundColor: darkColorScheme.primary,
+      foregroundColor: darkColorScheme.onPrimary,
     ),
   ),
 );

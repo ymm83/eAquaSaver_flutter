@@ -12,11 +12,17 @@ class ThemeProvider with ChangeNotifier {
 
   void _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
-    _themeMode = ThemeMode.values.firstWhere(
-      (e) => e.toString() == prefs.getString('themeMode'),
-      orElse: () => ThemeMode.system,
-    );
-    notifyListeners();
+    final saved = prefs.getString('themeMode');
+    if (saved != null) {
+      final mode = ThemeMode.values.firstWhere(
+        (e) => e.toString() == saved,
+        orElse: () => ThemeMode.system,
+      );
+      if (mode != _themeMode) {
+        _themeMode = mode;
+        notifyListeners();
+      }
+    }
   }
 
   void setThemeMode(ThemeMode mode) async {
