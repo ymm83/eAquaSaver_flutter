@@ -62,8 +62,7 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen> {
   int? _rssi;
   int? _mtuSize;
-  BluetoothConnectionState _connectionState =
-      BluetoothConnectionState.disconnected;
+  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
   List<BluetoothService> _services = [];
   bool _isDiscoveringServices = false;
   bool _isDisconnecting = false;
@@ -145,12 +144,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
         setState(() {
           bondState = value;
         });
-        if (value == BluetoothBondState.none &&
-            widget.device.prevBondState == BluetoothBondState.bonding) {
+        if (value == BluetoothBondState.none && widget.device.prevBondState == BluetoothBondState.bonding) {
           _gotoScanScreenAsync();
         }
-        if (value == BluetoothBondState.bonded &&
-            widget.device.prevBondState == BluetoothBondState.bonding) {
+        if (value == BluetoothBondState.bonded && widget.device.prevBondState == BluetoothBondState.bonding) {
           setState(() {
             _isLoading = false;
           });
@@ -167,8 +164,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Future<List<BluetoothDevice>> getSystemDevices() async {
-    List<BluetoothDevice> _systemDevices =
-        await FlutterBluePlus.systemDevices(withServices);
+    List<BluetoothDevice> _systemDevices = await FlutterBluePlus.systemDevices(withServices);
     return _systemDevices;
   }
 
@@ -215,6 +211,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       showSnackBar("System Devices Error: $e", theme: "error");
     }
   }
+
   //🆕 FUNCIONES PARA EL SELECTOR DE DISPOSITIVOS
   Future<void> _initializeDeviceConnection() async {
     await _loadDevices();
@@ -236,8 +233,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Future<void> _loadDevices() async {
     try {
-      List<BluetoothDevice> devices =
-          await FlutterBluePlus.systemDevices(withServices);
+      List<BluetoothDevice> devices = await FlutterBluePlus.systemDevices(withServices);
       setState(() {
         _availableDevices = devices;
       });
@@ -256,8 +252,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Widget _buildDeviceSelector() {
     final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
+    final isConnecting = bleState is BleConnecting && bleState.device.remoteId.toString() == selectedDeviceId;
     final isConnected = _connectedDevices.containsKey(selectedDeviceId);
 
     return ChoiceChip(
@@ -277,9 +272,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isConnected
-                      ? _connectedDevices[selectedDeviceId]!.platformName
-                      : 'Seleccionar dispositivo',
+                  isConnected ? _connectedDevices[selectedDeviceId]!.platformName : 'Seleccionar dispositivo',
                   style: TextStyle(
                     color: isConnected ? Colors.green : null,
                   ),
@@ -377,138 +370,137 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
   */
   void _showDeviceSelectionDialog() {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: '',
-    transitionDuration: Duration(milliseconds: 300), // Duración de la animación
-    pageBuilder: (context, animation, secondaryAnimation) {
-      // Este builder no se usa directamente para el contenido, pero es necesario
-      return Container();
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      // Definimos la animación de deslizamiento
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic, // Curva de animación
-      );
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      transitionDuration: Duration(milliseconds: 300), // Duración de la animación
+      pageBuilder: (context, animation, secondaryAnimation) {
+        // Este builder no se usa directamente para el contenido, pero es necesario
+        return Container();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        // Definimos la animación de deslizamiento
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic, // Curva de animación
+        );
 
-      final tween = Tween(begin: Offset(0, 1), end: Offset.zero);
+        final tween = Tween(begin: Offset(0, 1), end: Offset.zero);
 
-      return SlideTransition(
-        position: tween.animate(curvedAnimation),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Material(
-            elevation: 10,
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.7, // 70% de la altura
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                    child: Text(
-                      'Seleccionar dispositivo',
-                      style: Theme.of(context).textTheme.labelMedium,
+        return SlideTransition(
+          position: tween.animate(curvedAnimation),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              elevation: 10,
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.7, // 70% de la altura
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      child: Text(
+                        'Seleccionar dispositivo',
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _availableDevices.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index < _availableDevices.length) {
-                          final device = _availableDevices[index];
-                          final isConnected = _connectedDevices.containsKey(device.remoteId.toString());
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _availableDevices.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index < _availableDevices.length) {
+                            final device = _availableDevices[index];
+                            final isConnected = _connectedDevices.containsKey(device.remoteId.toString());
 
-                          return ListTile(
-                            leading: Icon(
-                              Icons.bluetooth,
-                              color: isConnected ? Colors.green : null,
-                            ),
-                            title: Text(
-                              device.platformName,
-                              style: TextStyle(
-                                fontWeight: isConnected ? FontWeight.bold : FontWeight.normal,
+                            return ListTile(
+                              leading: Icon(
+                                Icons.bluetooth,
                                 color: isConnected ? Colors.green : null,
                               ),
-                            ),
-                            subtitle: Text(device.remoteId.toString()),
-                            trailing: isConnected
-                                ? const Icon(Icons.check, color: Colors.green)
-                                : null,
-                            onTap: () {
-                              Navigator.pop(context);
-                              if (isConnected) {
-                                _disconnectDevice(device);
-                              } else {
-                                _connectToDevice(device);
-                                setState(() {
-                                  selectedDeviceId = device.remoteId.toString();
+                              title: Text(
+                                device.platformName,
+                                style: TextStyle(
+                                  fontWeight: isConnected ? FontWeight.bold : FontWeight.normal,
+                                  color: isConnected ? Colors.green : null,
+                                ),
+                              ),
+                              subtitle: Text(device.remoteId.toString()),
+                              trailing: isConnected ? const Icon(Icons.check, color: Colors.green) : null,
+                              onTap: () {
+                                Navigator.pop(context);
+                                if (isConnected) {
+                                  _disconnectDevice(device);
+                                } else {
+                                  _connectToDevice(device);
+                                  setState(() {
+                                    selectedDeviceId = device.remoteId.toString();
+                                  });
+                                }
+                              },
+                            );
+                          } else {
+                            return ListTile(
+                              leading: const Icon(Icons.add, color: Colors.blue),
+                              title: const Text(
+                                'Añadir otro',
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                widget.pageController.jumpToPage(0);
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (_connectedDevices.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _connectedDevices.forEach((key, device) {
+                                  _disconnectDevice(device);
                                 });
-                              }
-                            },
-                          );
-                        } else {
-                          return ListTile(
-                            leading: const Icon(Icons.add, color: Colors.blue),
-                            title: const Text(
-                              'Añadir otro',
-                              style: TextStyle(color: Colors.blue),
+                                setState(() {
+                                  _connectedDevices.clear();
+                                  selectedDeviceId = null;
+                                });
+                              },
+                              child: const Text('Desconectar todos', style: TextStyle(color: Colors.red)),
                             ),
-                            onTap: () {
-                              Navigator.pop(context);
-                              widget.pageController.jumpToPage(0);
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (_connectedDevices.isNotEmpty)
                           TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _connectedDevices.forEach((key, device) {
-                                _disconnectDevice(device);
-                              });
-                              setState(() {
-                                _connectedDevices.clear();
-                                selectedDeviceId = null;
-                              });
-                            },
-                            child: const Text('Desconectar todos', style: TextStyle(color: Colors.red)),
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancelar'),
                           ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancelar'),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 16),
-                ],
+                    SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
+
   // 🏁 FIN DE FUNCIONES PARA SELECTOR DE DISPOSITIVOS
   Map<String, dynamic> _decodeManufacturerData(List<int> data) {
     try {
@@ -566,9 +558,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               if (adv.advertisementData.manufacturerData.isNotEmpty) {
                 adv.advertisementData.manufacturerData.forEach((key, value) {
                   var decodedData = _decodeManufacturerData(value);
-                  context
-                      .read<BeaconBloc>()
-                      .add(ListenBeacon(beaconData: decodedData));
+                  context.read<BeaconBloc>().add(ListenBeacon(beaconData: decodedData));
                 });
               }
             }
@@ -593,8 +583,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     // Solo necesitamos llamar al evento del Bloc
     if (selectedDeviceId != null) {
       try {
-        final deviceToConnect = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
+        final deviceToConnect = _availableDevices.firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
         _connectToDevice(deviceToConnect);
       } catch (e) {
         showSnackBar("Dispositivo no encontrado", theme: "error");
@@ -624,8 +613,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Future onCancelPressed() async {
     if (selectedDeviceId != null) {
       try {
-        final deviceToCancel = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
+        final deviceToCancel = _availableDevices.firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
         await deviceToCancel.disconnect(queue: true);
         await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
         showSnackBar("Cancel: Success", theme: "success");
@@ -638,8 +626,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Future onDisconnectPressed() async {
     if (selectedDeviceId != null) {
       try {
-        final deviceToDisconnect = _availableDevices
-            .firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
+        final deviceToDisconnect = _availableDevices.firstWhere((d) => d.remoteId.toString() == selectedDeviceId);
         _disconnectDevice(deviceToDisconnect);
       } catch (e) {
         showSnackBar("Dispositivo no encontrado", theme: "error");
@@ -728,9 +715,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         .map(
           (s) => ServiceTile(
             service: s,
-            characteristicTiles: s.characteristics
-                .map((c) => _buildCharacteristicTile(c))
-                .toList(),
+            characteristicTiles: s.characteristics.map((c) => _buildCharacteristicTile(c)).toList(),
           ),
         )
         .toList();
@@ -739,8 +724,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   CharacteristicTile _buildCharacteristicTile(BluetoothCharacteristic c) {
     return CharacteristicTile(
       characteristic: c,
-      descriptorTiles:
-          c.descriptors.map((d) => DescriptorTile(descriptor: d)).toList(),
+      descriptorTiles: c.descriptors.map((d) => DescriptorTile(descriptor: d)).toList(),
     );
   }
 
@@ -771,11 +755,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        isConnected
-            ? const Icon(Icons.bluetooth_connected)
-            : const Icon(Icons.bluetooth_disabled),
-        if (isConnected && _rssi != null)
-          Text('${_rssi!} dBm', style: Theme.of(context).textTheme.bodySmall)
+        isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
+        if (isConnected && _rssi != null) Text('${_rssi!} dBm', style: Theme.of(context).textTheme.bodySmall)
       ],
     );
   }
@@ -816,45 +797,33 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Widget buildConnectButton(BuildContext context) {
     final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
+    final isConnecting = bleState is BleConnecting && bleState.device.remoteId.toString() == selectedDeviceId;
 
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       if (isConnecting) buildSpinner(context),
       OutlinedButton.icon(
-        onPressed: isConnecting
-            ? onCancelPressed
-            : (isConnected ? onDisconnectPressed : onConnectPressed),
+        onPressed: isConnecting ? onCancelPressed : (isConnected ? onDisconnectPressed : onConnectPressed),
         icon: Icon(isConnecting
             ? Icons.cancel_outlined
-            : (isConnected
-                ? Icons.bluetooth_disabled
-                : Icons.bluetooth_connected_outlined)),
-        label: Text(isConnecting
-            ? 'Cancel'
-            : (isConnected ? 'Disconnect' : 'Connect')),
+            : (isConnected ? Icons.bluetooth_disabled : Icons.bluetooth_connected_outlined)),
+        label: Text(isConnecting ? 'Cancel' : (isConnected ? 'Disconnect' : 'Connect')),
       )
     ]);
   }
 
   Widget buildConnectIcon(BuildContext context) {
     final bleState = context.watch<BleBloc>().state;
-    final isConnecting = bleState is BleConnecting &&
-        bleState.device.remoteId.toString() == selectedDeviceId;
+    final isConnecting = bleState is BleConnecting && bleState.device.remoteId.toString() == selectedDeviceId;
 
     return CircleAvatar(
       backgroundColor: Colors.blue.shade400,
       child: IconButton(
         splashColor: Colors.greenAccent,
         highlightColor: Colors.blue.shade600,
-        onPressed: isConnecting
-            ? onCancelPressed
-            : (isConnected ? onDisconnectPressed : onConnectPressed),
+        onPressed: isConnecting ? onCancelPressed : (isConnected ? onDisconnectPressed : onConnectPressed),
         icon: Icon(isConnecting
             ? Icons.cancel_outlined
-            : (isConnected
-                ? Icons.bluetooth_disabled
-                : Icons.bluetooth_connected_outlined)),
+            : (isConnected ? Icons.bluetooth_disabled : Icons.bluetooth_connected_outlined)),
       ),
     );
   }
@@ -879,8 +848,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
     final connectedDevice = _connectedDevices[selectedDeviceId]!;
 
-    final stateBytes =
-        BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
+    final stateBytes = BLEDataConverter.u8.intToBytes(state * 10, endian: Endian.little);
     List<BluetoothService> services = await connectedDevice.discoverServices();
     for (BluetoothService service in services) {
       if (service.uuid == servEAquaSaverUuid) {
@@ -901,11 +869,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
     final connectedDevice = _connectedDevices[selectedDeviceId]!;
 
-    debugPrint(
-        '_writeTargetTemperature param: ${temperature.toInt().toString()}');
+    debugPrint('_writeTargetTemperature param: ${temperature.toInt().toString()}');
     int targetTemperature = temperature.toInt() * 10;
-    final targetBytes =
-        BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
+    final targetBytes = BLEDataConverter.u16.intToBytes(targetTemperature, endian: Endian.big);
     List<BluetoothService> services = await connectedDevice.discoverServices();
 
     for (BluetoothService service in services) {
@@ -926,11 +892,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
       return;
     }
     final connectedDevice = _connectedDevices[selectedDeviceId]!;
-    debugPrint(
-        '_writeMinimalTemperature param: ${temperature.toInt().toString()}');
+    debugPrint('_writeMinimalTemperature param: ${temperature.toInt().toString()}');
     int minimalTemperature = temperature.toInt() * 10;
-    final minimalBytes =
-        BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
+    final minimalBytes = BLEDataConverter.u16.intToBytes(minimalTemperature, endian: Endian.big);
     List<BluetoothService> services = await connectedDevice.discoverServices();
 
     for (BluetoothService service in services) {
@@ -1003,14 +967,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
       listener: (context, state) {
         if (state is BleConnected) {
           _connectedDevices[state.device.remoteId.toString()] = state.device;
-          showSnackBar("Conectado a ${state.device.platformName}",
-              theme: "success");
+          showSnackBar("Conectado a ${state.device.platformName}", theme: "success");
           setState(() {});
         } else if (state is BleDisconnected) {
           _connectedDevices.remove(state.device.remoteId.toString());
-          showSnackBar(
-              "Dispositivo ${state.device.platformName} desconectado",
-              theme: "success");
+          showSnackBar("Dispositivo ${state.device.platformName} desconectado", theme: "success");
           setState(() {});
         } else if (state is BleConnectionFailed) {
           showSnackBar("Error de conexión: ${state.error}", theme: "error");
@@ -1020,26 +981,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
         builder: (context, state) {
           final isConnected = _connectedDevices.containsKey(selectedDeviceId);
           debugPrint('.......... ${state.runtimeType} \n------- end -----');
-          
+
           Widget mainContent;
 
           if (!isConnected) {
             mainContent = const Center(
-              child: Text("Connecting ...",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic
-                )
-              )
-            );
+                child: Text("Connecting ...",
+                    style: TextStyle(fontSize: 16, color: Colors.grey, fontStyle: FontStyle.italic)));
           } else if (state is BeaconLoading) {
             mainContent = const Padding(
               padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
               child: Column(
                 children: [
-                  Text('Loading data ...',
-                      style: TextStyle()),
+                  Text('Loading data ...', style: TextStyle()),
                   SizedBox(height: 5),
                   LinearProgressIndicator(
                     color: Colors.blue,
@@ -1056,303 +1010,308 @@ class _DeviceScreenState extends State<DeviceScreen> {
             mainContent = Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (role == 'Admin' || role == 'Member')
+                if (role == 'Admin' || role == 'Member') ...[
                   Center(
-                        child: Stack(children: [
-                          SizedBox(
-                            width: 300,
-                            height: 300,
-                            child: SfRadialGauge(
-                              axes: <RadialAxis>[
-                                RadialAxis(
-                                  backgroundImage: const AssetImage('./assets/light_frame.png'),
-                                  minimum: 0,
-                                  maximum: 50,
-                                  interval: 5,
-                                  radiusFactor: 0.5,
-                                  showAxisLine: false,
-                                  labelOffset: 5,
-                                  useRangeColorForAxis: true,
-                                  showLastLabel: true,
-                                  axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold),
-                                  ranges: <GaugeRange>[
-                                    GaugeRange(
-                                        startValue: 0,
-                                        endValue: 20,
-                                        sizeUnit: GaugeSizeUnit.factor,
-                                        color: Colors.blue,
-                                        endWidth: 0.03,
-                                        startWidth: 0.03),
-                                    GaugeRange(
-                                        startValue: 20,
-                                        endValue: 30,
-                                        sizeUnit: GaugeSizeUnit.factor,
-                                        color: Colors.yellow,
-                                        endWidth: 0.03,
-                                        startWidth: 0.03),
-                                    GaugeRange(
-                                        startValue: 30,
-                                        endValue: 50,
-                                        sizeUnit: GaugeSizeUnit.factor,
-                                        color: Colors.red,
-                                        endWidth: 0.03,
-                                        startWidth: 0.03),
-                                  ],
-                                  annotations: <GaugeAnnotation>[
-                                    GaugeAnnotation(
-                                        widget: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: <Widget>[
-                                            Text(
-                                              '${tempGradoCelsius.toInt()}',
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontFamily: 'Times',
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            ),
-                                            Text(
-                                              '°C',
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontFamily: 'Times',
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            )
-                                          ],
+                    child: Stack(children: [
+                      SizedBox(
+                        width: 300,
+                        height: 300,
+                        child: SfRadialGauge(
+                          axes: <RadialAxis>[
+                            RadialAxis(
+                              backgroundImage: const AssetImage('./assets/light_frame.png'),
+                              minimum: 0,
+                              maximum: 50,
+                              interval: 5,
+                              radiusFactor: 0.5,
+                              showAxisLine: false,
+                              labelOffset: 5,
+                              useRangeColorForAxis: true,
+                              showLastLabel: true,
+                              axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold),
+                              ranges: <GaugeRange>[
+                                GaugeRange(
+                                    startValue: 0,
+                                    endValue: 20,
+                                    sizeUnit: GaugeSizeUnit.factor,
+                                    color: Colors.blue,
+                                    endWidth: 0.03,
+                                    startWidth: 0.03),
+                                GaugeRange(
+                                    startValue: 20,
+                                    endValue: 30,
+                                    sizeUnit: GaugeSizeUnit.factor,
+                                    color: Colors.yellow,
+                                    endWidth: 0.03,
+                                    startWidth: 0.03),
+                                GaugeRange(
+                                    startValue: 30,
+                                    endValue: 50,
+                                    sizeUnit: GaugeSizeUnit.factor,
+                                    color: Colors.red,
+                                    endWidth: 0.03,
+                                    startWidth: 0.03),
+                              ],
+                              annotations: <GaugeAnnotation>[
+                                GaugeAnnotation(
+                                    widget: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Text(
+                                          '${tempGradoCelsius.toInt()}',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontFamily: 'Times',
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black),
                                         ),
-                                        positionFactor: 0.8,
-                                        angle: 90)
-                                  ],
-                                ),
-                                RadialAxis(
-                                  showLastLabel: true,
-                                  ticksPosition: ElementsPosition.inside,
-                                  labelsPosition: ElementsPosition.outside,
-                                  minorTicksPerInterval: 5,
-                                  axisLineStyle: AxisLineStyle(
-                                    thicknessUnit: GaugeSizeUnit.factor,
-                                    thickness: 0.1,
-                                  ),
-                                  axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                  radiusFactor: 0.97,
-                                  majorTickStyle:
-                                      MajorTickStyle(length: 0.1, thickness: 2, lengthUnit: GaugeSizeUnit.factor),
-                                  minorTickStyle:
-                                      MinorTickStyle(length: 0.05, thickness: 1.5, lengthUnit: GaugeSizeUnit.factor),
-                                  minimum: minValue,
-                                  maximum: maxValue,
-                                  interval: 5,
-                                  startAngle: 130,
-                                  endAngle: 50,
-                                  ranges: <GaugeRange>[
-                                    GaugeRange(
-                                        startValue: 32,
-                                        endValue: 122,
-                                        startWidth: 0.1,
-                                        sizeUnit: GaugeSizeUnit.factor,
-                                        endWidth: 0.1,
-                                        gradient: SweepGradient(stops: gradientStops, colors: gradientColors))
-                                  ],
-                                  pointers: <GaugePointer>[
-                                    MarkerPointer(
-                                        value: _cardCurrentValue,
-                                        onValueChanged: handleCardPointerValueChanged,
-                                        onValueChangeEnd: handleCardPointerValueChanged,
-                                        onValueChanging: handleCardPointerValueChanging,
-                                        enableDragging: bondState == BluetoothBondState.bonded ? true : false,
-                                        enableAnimation: false,
-                                        markerHeight: 30,
-                                        markerWidth: 30,
-                                        markerType: MarkerType.invertedTriangle,
-                                        color: getCurrentPointerColor(
-                                            _cardCurrentValue, minValue, maxValue),
-                                        overlayRadius: 0,
-                                        borderWidth: 2,
-                                        markerOffset: 10,
-                                        borderColor: Colors.yellow.shade800)
-                                  ],
-                                  annotations: <GaugeAnnotation>[
-                                    GaugeAnnotation(
-                                        widget: Text(
-                                          '${_cardCurrentValue.toInt()} °F',
-                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                                        ),
-                                        positionFactor: 0.55,
-                                        angle: 90),
-                                    if (state is BeaconLoaded) ...[
-                                      GaugeAnnotation(
-                                          widget: Text(
-                                            '${state.beaconData['coldTemperature'].toString()} °C',
-                                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                                          ),
-                                          positionFactor: 0.8,
-                                          angle: 90)
-                                    ],
-                                  ],
-                                ),
+                                        Text(
+                                          '°C',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontFamily: 'Times',
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black),
+                                        )
+                                      ],
+                                    ),
+                                    positionFactor: 0.8,
+                                    angle: 90)
                               ],
                             ),
-                          ),
-                          if (state is BeaconLoaded) ...[
-                            Positioned(
-                              top: 122,
-                              left: 125,
-                              child: FloatingActionButton.small(
-                                shape: const CircleBorder(),
-                                backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
-                                elevation: 10,
-                                highlightElevation: 10,
-                                onPressed: bondState == BluetoothBondState.bonded
-                                    ? () async {
-                                        final updates = {'target_temperature': tempGradoCelsius};
-                                        final userId = supabase.auth.currentUser!.id;
-                                        await _writeTargetTemperature(tempGradoCelsius);
-                                        //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
-                                        //todo add minimal check to update
-                                        await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
-                                      }
-                                    : null,
-                                child: const Icon(
-                                  Atlas.medium_thermometer_bold,
-                                  size: 30,
-                                ),
+                            RadialAxis(
+                              showLastLabel: true,
+                              ticksPosition: ElementsPosition.inside,
+                              labelsPosition: ElementsPosition.outside,
+                              minorTicksPerInterval: 5,
+                              axisLineStyle: AxisLineStyle(
+                                thicknessUnit: GaugeSizeUnit.factor,
+                                thickness: 0.1,
                               ),
+                              axisLabelStyle: GaugeTextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              radiusFactor: 0.97,
+                              majorTickStyle:
+                                  MajorTickStyle(length: 0.1, thickness: 2, lengthUnit: GaugeSizeUnit.factor),
+                              minorTickStyle:
+                                  MinorTickStyle(length: 0.05, thickness: 1.5, lengthUnit: GaugeSizeUnit.factor),
+                              minimum: minValue,
+                              maximum: maxValue,
+                              interval: 5,
+                              startAngle: 130,
+                              endAngle: 50,
+                              ranges: <GaugeRange>[
+                                GaugeRange(
+                                    startValue: 32,
+                                    endValue: 122,
+                                    startWidth: 0.1,
+                                    sizeUnit: GaugeSizeUnit.factor,
+                                    endWidth: 0.1,
+                                    gradient: SweepGradient(stops: gradientStops, colors: gradientColors))
+                              ],
+                              pointers: <GaugePointer>[
+                                MarkerPointer(
+                                    value: _cardCurrentValue,
+                                    onValueChanged: handleCardPointerValueChanged,
+                                    onValueChangeEnd: handleCardPointerValueChanged,
+                                    onValueChanging: handleCardPointerValueChanging,
+                                    enableDragging: bondState == BluetoothBondState.bonded ? true : false,
+                                    enableAnimation: false,
+                                    markerHeight: 30,
+                                    markerWidth: 30,
+                                    markerType: MarkerType.invertedTriangle,
+                                    color: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
+                                    overlayRadius: 0,
+                                    borderWidth: 2,
+                                    markerOffset: 10,
+                                    borderColor: Colors.yellow.shade800)
+                              ],
+                              annotations: <GaugeAnnotation>[
+                                GaugeAnnotation(
+                                    widget: Text(
+                                      '${_cardCurrentValue.toInt()} °F',
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                                    ),
+                                    positionFactor: 0.55,
+                                    angle: 90),
+                                if (state is BeaconLoaded) ...[
+                                  GaugeAnnotation(
+                                      widget: Text(
+                                        '${state.beaconData['coldTemperature'].toString()} °C',
+                                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                                      ),
+                                      positionFactor: 0.8,
+                                      angle: 90)
+                                ],
+                              ],
                             ),
-                            Positioned(
-                              bottom: -30,
-                              left: 0,
-                              child: SizedBox(
-                                height: 80,
-                                width: 40,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Atlas.cold_temperature_thermometer_bold,
-                                      color: Colors.blue,
-                                    ),
-                                    Text(
-                                      state.beaconData['coldTemperature'].toString(),
-                                      style: TextStyle(color: Colors.blue),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: -30,
-                              right: 0,
-                              child: SizedBox(
-                                height: 80,
-                                width: 40,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Atlas.hot_temperature_bold,
-                                      color: Colors.red,
-                                    ),
-                                    Text(
-                                      state.beaconData['hotTemperature'].toString(),
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ] else ...[
-                            Positioned(
-                                top: 125,
-                                left: 130,
-                                child: CircularProgressIndicator(
-                                  color: Colors.green.shade700,
-                                  backgroundColor: Colors.lightGreen.shade200,
-                                )),
                           ],
-                          //if (state is BeaconLoading || state is BeaconInitial) ...[CircularProgressIndicator()],
-                        ]),
+                        ),
                       ),
-                const Divider(
-                  height: 10,
-                  thickness: 1,
-                  color: Colors.blue,
-                ),
-                ListTile(
-                  leading: _buildIcon(beaconData['state']),
-                  title: Text(
-                    'Device State: $deviceState',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                      //if (state is BeaconLoaded) ...[
+                      Positioned(
+                        top: 122,
+                        left: 125,
+                        child: FloatingActionButton.small(
+                          shape: const CircleBorder(),
+                          backgroundColor: getCurrentPointerColor(_cardCurrentValue, minValue, maxValue),
+                          elevation: 10,
+                          highlightElevation: 10,
+                          onPressed: bondState == BluetoothBondState.bonded
+                              ? () async {
+                                  final updates = {'target_temperature': tempGradoCelsius};
+                                  final userId = supabase.auth.currentUser!.id;
+                                  await _writeTargetTemperature(tempGradoCelsius);
+                                  //await _storage.write(key: userId, value: json.encode({'target_temperature': tempGradoCelsius}));
+                                  //todo add minimal check to update
+                                  await supabaseEAS.from('user_profile').update(updates).eq('id', userId);
+                                }
+                              : null,
+                          child: const Icon(
+                            Atlas.medium_thermometer_bold,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -30,
+                        left: 0,
+                        child: SizedBox(
+                          height: 80,
+                          width: 40,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Atlas.cold_temperature_thermometer_bold,
+                                color: Colors.blue,
+                              ),
+                              Text(
+                                state.beaconData['coldTemperature'].toString(),
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -30,
+                        right: 0,
+                        child: SizedBox(
+                          height: 80,
+                          width: 40,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Atlas.hot_temperature_bold,
+                                color: Colors.red,
+                              ),
+                              Text(
+                                state.beaconData['hotTemperature'].toString(),
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      /*] else ...[
+                        Positioned(
+                            top: 125,
+                            left: 130,
+                            child: CircularProgressIndicator(
+                              color: Colors.green.shade700,
+                              backgroundColor: Colors.lightGreen.shade200,
+                            )),
+                      ],*/
+                      //if (state is BeaconLoading || state is BeaconInitial) ...[CircularProgressIndicator()],
+                    ]),
                   ),
-                ),
-                ListTile(
-                  leading: _buildIconRole(role),
-                  title: Text(
-                    'Your Role: ${role ?? 'Guest'}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                  SizedBox(height: 30,),
+                  
+
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      OutlinedButton.icon(
+                      onPressed: () async {
+                        debugPrint('---- >> state.beaconData[state]: ${state.beaconData['state']}');
+                        if (_isLoading || state.beaconData['state'] == 2) {
+                          return;
+                        }
+                        try {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          if (state.beaconData['state'] < 2) {
+                            // Power On
+                            await _writeStateDevice(5);
+                          }
+                          if (state.beaconData['state'] > 2) {
+                            // Power Off
+                            await _writeStateDevice(1);
+                          }
+                        } catch (e) {
+                          debugPrint('---- Change device state error: $e');
+                        } finally {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      },
+                      label: Text(state.beaconData['state'] < 2
+                          ? 'Power On'
+                          : state.beaconData['state'] == 2
+                              ? 'Working'
+                              : 'Power Off'),
+                      icon: _buildIcon(state.beaconData['state']),
+                       style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    ]),
+                
+                  const Divider(
+                    height: 10,
+                    thickness: 1,
+                    color: Colors.blue,
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.thermostat,
-                      color: Color.fromARGB(255, 5, 69, 85), size: 40),
-                  title: const Text('Current Temperature',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  trailing: Text(
-                      '${beaconData['temperature']} °C',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.thermostat_outlined,
-                    color: Color.fromARGB(255, 5, 69, 85),
-                    size: 40,
-                  ),
-                  title: const Text('Target Temperature',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  trailing: Text(
-                      '${beaconData['targetTemperature']} °C',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                if (role == 'Admin' || role == 'Member')
+                  /*
                   ListTile(
-                    title: const Text('Minimal Temperature',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    trailing: Text(
-                        '${beaconData['minimalTemperature']} °C',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    leading: _buildIcon(beaconData['state']),
+                    title: Text(
+                      'Device State: $deviceState',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                if (role == 'Admin')
+                  */
                   ListTile(
-                    title: const Text('Minimal Temperature',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    trailing: Text(
-                        '${beaconData['minimalTemperature']} °C',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    leading: _buildIconRole(role),
+                    title: Text(
+                      'Your Role: ${role ?? 'Guest'}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
+                  
+                ] else if (role == null) ...[
+                  //Center(child: CircularProgressIndicator())
+                ] else if (role == 'Credits') ...[
+                  Text('Buy credits to use this device!'),
+                ] else if (role == 'Recerved') ...[
+                  Text('Recerved mode!')
+                ] else ...[
+                  Unauthorized(),
+                ],
               ],
             );
           } else {
             mainContent = const Center(
-              child: Text("Connecting ...",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic
-                )
-              )
-            );
+                child: Text("Connecting ...",
+                    style: TextStyle(fontSize: 16, color: Colors.grey, fontStyle: FontStyle.italic)));
+            //Center(child: CircularProgressIndicator())
           }
 
           return ScaffoldMessenger(
@@ -1363,8 +1322,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     TopLoadingIndicator(isLoading: _isLoading),
                     Card(
                       shape: RoundedRectangleBorder(
-                          side:
-                              const BorderSide(color: Colors.blue, width: 1.5),
+                          side: const BorderSide(color: Colors.blue, width: 1.5),
                           borderRadius: BorderRadius.circular(10)),
                       color: Colors.blue.shade100,
                       child: ListTile(
@@ -1373,10 +1331,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                             _buildDeviceSelector(),
                             const SizedBox(width: 10),
                             if (context.watch<BleBloc>().state is BleConnecting &&
-                                (context.watch<BleBloc>().state as BleConnecting)
-                                        .device
-                                        .remoteId
-                                        .toString() ==
+                                (context.watch<BleBloc>().state as BleConnecting).device.remoteId.toString() ==
                                     selectedDeviceId)
                               const SizedBox(
                                 width: 16,
@@ -1384,8 +1339,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             else if (isConnected)
-                              const Icon(Icons.bluetooth_connected,
-                                  color: Colors.green, size: 20),
+                              const Icon(Icons.bluetooth_connected, color: Colors.green, size: 20),
                             const SizedBox(width: 10),
                           ],
                         ),
@@ -1393,15 +1347,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
                             ? RichText(
                                 text: TextSpan(
                                   text: 'status: ',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color.fromARGB(255, 5, 69, 85),
-                                      fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.blueAccent.shade700, fontWeight: FontWeight.bold),
                                   children: [
                                     TextSpan(
                                       text: deviceState,
                                       style: TextStyle(
-                                          color: Colors.blue.shade900,
+                                          color: Colors.green.shade900,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                           letterSpacing: 1),
@@ -1412,6 +1364,22 @@ class _DeviceScreenState extends State<DeviceScreen> {
                                           color: Colors.green.shade900,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 10,
+                                          letterSpacing: 1),
+                                    ),
+                                    TextSpan(
+                                      text: role != null ? '  Role:': '',
+                                      style: TextStyle(
+                                          color: Colors.blueAccent.shade700,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          letterSpacing: 1),
+                                    ),
+                                    TextSpan(
+                                      text: role != null ? ' $role' : '',
+                                      style: TextStyle(
+                                          color: Colors.green.shade900,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
                                           letterSpacing: 1),
                                     ),
                                   ],

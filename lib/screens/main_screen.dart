@@ -202,7 +202,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Inicio'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                    //Navigator.pop(context); // Cierra el Drawer
+                    scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 ListTile(
@@ -210,7 +211,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Agua'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                    //Navigator.pop(context); // Cierra el Drawer
+                    scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 ListTile(
@@ -218,7 +220,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Perfil'),
                   onTap: () {
                     // Acción al seleccionar esta opción
-                    Navigator.pop(context); // Cierra el Drawer
+                    //Navigator.pop(context); // Cierra el Drawer
+                    scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
 
@@ -231,7 +234,8 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   title: Text('Cerrar sesión'),
                   onTap: () {
                     // Acción para cerrar sesión
-                    Navigator.pop(context); // Cierra el Drawer
+                    //Navigator.pop(context); // Cierra el Drawer
+                    scaffoldKey.currentState?.closeDrawer();
                   },
                 ),
                 SwitchListTile(
