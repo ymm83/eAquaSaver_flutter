@@ -117,7 +117,7 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -133,9 +133,20 @@ class _AccountScreenState extends State<AccountScreen> {
                   decoration: const InputDecoration(labelText: 'Last Name'),
                 ),
                 const SizedBox(height: 18),
-                ElevatedButton(
+                UnconstrainedBox(
+                child: ElevatedButton.icon(
                   onPressed: _loading ? null : _updateProfile,
-                  child: Text(_loading ? 'Saving...' : 'Update'),
+                  icon: Icon(Icons.save_rounded),
+                  label: Text(_loading ? 'Saving...' : 'Update'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
                 ),
               ],
             ),

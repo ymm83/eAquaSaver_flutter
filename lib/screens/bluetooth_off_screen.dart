@@ -4,6 +4,198 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:app_settings/app_settings.dart';
+
+import '../utils/snackbar_helper.dart';
+
+class BluetoothOffScreen extends StatefulWidget {
+  const BluetoothOffScreen({
+    super.key,
+    this.adapterState,
+  });
+
+  final BluetoothAdapterState? adapterState;
+
+  @override
+  State<BluetoothOffScreen> createState() => _BluetoothOffScreenState();
+}
+
+class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
+  bool _locationEnabled = false;
+  BluetoothAdapterState _bluetoothState = BluetoothAdapterState.unknown;
+
+  StreamSubscription<ServiceStatus>? _locationStream;
+  StreamSubscription<BluetoothAdapterState>? _bluetoothStream;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bluetoothState =
+        widget.adapterState ?? BluetoothAdapterState.unknown;
+
+    _initLocation();
+    _listenLocationChanges();
+    _listenBluetoothChanges();
+  }
+
+  @override
+  void dispose() {
+    _locationStream?.cancel();
+    _bluetoothStream?.cancel();
+    super.dispose();
+  }
+
+  /* ---------------- LOCATION ---------------- */
+
+  Future<void> _initLocation() async {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    setState(() => _locationEnabled = enabled);
+  }
+
+  void _listenLocationChanges() {
+    _locationStream =
+        Geolocator.getServiceStatusStream().listen((status) {
+      setState(() {
+        _locationEnabled = status == ServiceStatus.enabled;
+      });
+    });
+  }
+
+  Future<void> _handleLocationToggle(bool _) async {
+    await Geolocator.openLocationSettings();
+  }
+
+  /* ---------------- BLUETOOTH ---------------- */
+
+  void _listenBluetoothChanges() {
+    _bluetoothStream =
+        FlutterBluePlus.adapterState.listen((state) {
+      setState(() => _bluetoothState = state);
+    });
+  }
+
+  Future<void> _handleBluetoothToggle(bool value) async {
+    try {
+      /*if (value) {
+        if (Platform.isAndroid) {
+          await FlutterBluePlus.turnOn();
+        }
+      } else {*/
+        await AppSettings.openAppSettings(
+          type: AppSettingsType.bluetooth,
+        );
+     // }
+    } catch (e) {
+      showSnackBar(
+        "Bluetooth error: $e",
+        theme: 'error',
+      );
+    }
+  }
+
+  /* ---------------- UI ---------------- */
+
+  Widget _buildTitle(String text, bool enabled) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 22,
+        color: enabled
+            ? Colors.blue.shade700
+            : Colors.grey.shade600,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 40,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 12),
+                      //'Bluetooth and Location must be enabled to continue.',
+                  const Expanded(
+                    child: Text(
+                      'For this App to work properly, you must enable Bluetooth and Location services to communicate with the BLE services of eAquaSaver devices!',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+
+            /* -------- BLUETOOTH -------- */
+            SwitchListTile(
+              title: _buildTitle(
+                'Bluetooth',
+                _bluetoothState == BluetoothAdapterState.on,
+              ),
+              value: _bluetoothState == BluetoothAdapterState.on,
+              onChanged: _handleBluetoothToggle,
+              secondary: Icon(
+                _bluetoothState == BluetoothAdapterState.on
+                    ? Icons.bluetooth_connected
+                    : Icons.bluetooth_disabled,
+                size: 40,
+                color: _bluetoothState ==
+                        BluetoothAdapterState.on
+                    ? Colors.blue.shade700
+                    : Colors.grey.shade400,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            /* -------- LOCATION -------- */
+            SwitchListTile(
+              title: _buildTitle('Location', _locationEnabled),
+              value: _locationEnabled,
+              onChanged: _handleLocationToggle,
+              secondary: Icon(
+                _locationEnabled
+                    ? Icons.location_on_outlined
+                    : Icons.location_off_outlined,
+                size: 40,
+                color: _locationEnabled
+                    ? Colors.blue.shade700
+                    : Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/*
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:geolocator/geolocator.dart';
 import '../utils/snackbar_helper.dart';
 
 class BluetoothOffScreen extends StatefulWidget {
@@ -139,24 +331,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
     return StatefulBuilder(
       builder: (context, setState) {
         return SwitchListTile(
-          activeColor: Colors.blue.shade700,
-          activeTrackColor: Colors.blue.shade100,
-          trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
-                return Colors.orange.withOpacity(0.48); // Naranja semitransparente para deshabilitado:cite[2]
-              }
-              if (states.contains(WidgetState.hovered)) {
-                return Colors.deepPurple; // Púrpura cuando el cursor está encima
-              }
-              if (states.contains(WidgetState.focused)) {
-                return Colors.green; // Verde cuando tiene foco
-              }
-              if (states.contains(WidgetState.selected)) {
-                return Colors.transparent; // Sin borde cuando está activado:cite[3]
-              }
-              return Colors.blue; // Color por defecto para el estado inactivo
-            },
-          ),
+          activeTrackColor: Colors.blue.shade700,
           title: _locationStatus == 'On' 
                     ? buildTitle('Location', color: Colors.blue.shade700)
                     : buildTitle('Location'),
@@ -232,7 +407,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                         // Contenedor con el texto
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade100, // Color de fondo
+                            color: Theme.of(context).colorScheme.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(20), // Bordes redondeados
                           ),
                           width: MediaQuery.of(context).size.width * 0.8,
@@ -246,7 +421,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w400,
-                              color: Theme.of(context).appBarTheme.backgroundColor,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             softWrap: true, // Permite que el texto se divida en varias líneas
                           ),
@@ -256,7 +431,7 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
                           top: 50,
                           child: Icon(
                             Icons.report_problem_rounded,
-                            color: Colors.red,
+                            color: Theme.of(context).colorScheme.error,
                             size: 50,
                           ),
                         ),
@@ -297,3 +472,5 @@ class _BluetoothOffScreenState extends State<BluetoothOffScreen> {
     );
   }
 }
+
+*/

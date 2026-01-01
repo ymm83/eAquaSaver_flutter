@@ -142,7 +142,7 @@ class _IssueScreenState extends State<IssueScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
       return Scaffold(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: BlocBuilder<ConnectivityBloc, ConnectivityState>(
           builder: (context, connectivityState) {
             if (connectivityState is ConnectivityOffline) {
@@ -221,18 +221,18 @@ class _IssueScreenState extends State<IssueScreen> {
                           .startOf(DurationUnit.second)
                           .fromNow();
                       return Card(
-                        color: Colors.amber.shade50,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest ,
                         child: ListTile(
                           key: UniqueKey(),
                           title: Text(
                             '${_issueData[index]['id']}-${_issueData[index]['summary']}',
-                            style: const TextStyle(fontWeight: FontWeight.w400, color: Color.fromARGB(255, 1, 24, 43)),
+                            style: TextStyle(fontWeight: FontWeight.w400, color: Theme.of(context).colorScheme.onSurface),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 6),
-                              Text(_issueData[index]['description']),
+                              Text(_issueData[index]['description'], style:TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
                               const SizedBox(height: 6),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -240,20 +240,20 @@ class _IssueScreenState extends State<IssueScreen> {
                                   RichText(
                                     text: TextSpan(
                                       text: 'target: ',
-                                      style: const TextStyle(fontSize: 10, color: Color.fromARGB(255, 5, 69, 85)),
+                                      style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface),
                                       children: [
                                         TextSpan(
                                           text: '${_issueData[index]['target']} | ',
-                                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                                         ),
-                                        const TextSpan(text: 'status: '),
+                                        TextSpan(text: 'status: ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                                         TextSpan(
                                           text: '${_issueData[index]['status']} | ',
-                                          style: const TextStyle(color: Colors.red),
+                                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                                         ),
                                         TextSpan(
                                           text: formattedDate,
-                                          style: const TextStyle(color: Color.fromARGB(255, 2, 116, 17)),
+                                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontStyle: FontStyle.italic),
                                         ),
                                       ],
                                     ),
@@ -267,10 +267,10 @@ class _IssueScreenState extends State<IssueScreen> {
                                         },
                                         splashColor: const Color.fromARGB(255, 122, 191, 245),
                                         borderRadius: BorderRadius.circular(50),
-                                        child: const Icon(
+                                        child:  Icon(
                                           Icons.edit,
                                           size: 20,
-                                          color: Color.fromARGB(255, 12, 73, 120),
+                                          color: Theme.of(context).colorScheme.surfaceTint,
                                         ),
                                       ),
                                       const SizedBox(width: 15),
@@ -280,10 +280,11 @@ class _IssueScreenState extends State<IssueScreen> {
                                         },
                                         splashColor: const Color.fromARGB(255, 122, 191, 245),
                                         borderRadius: BorderRadius.circular(50),
-                                        child: const Icon(
+                                        radius: 10,
+                                        child: Icon(
                                           Icons.delete,
                                           size: 20,
-                                          color: Color.fromARGB(255, 12, 73, 120),
+                                          color: Theme.of(context).colorScheme.surfaceTint,
                                         ),
                                       ),
                                     ],
@@ -309,7 +310,7 @@ class _IssueScreenState extends State<IssueScreen> {
                   });
                   widget.pageController.jumpToPage(4);
                 },
-                backgroundColor: Colors.blue,
+                backgroundColor: Theme.of(context).colorScheme.surfaceTint,
                 shape: const CircleBorder(),
                 child: const Icon(
                   Icons.add,

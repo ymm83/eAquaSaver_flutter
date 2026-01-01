@@ -33,7 +33,7 @@ Future<String?> getPlaceByZipCode(String code) async {
 }
 
 Future<dynamic> franceEuaCommune(String commune) async {
-  final String apiUrl = '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2023';
+  final String apiUrl = '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2025';
 
   try {
     final response = await http.get(Uri.parse(apiUrl));
@@ -60,7 +60,7 @@ Future<dynamic> franceEuaCommune(String commune) async {
 
 Future<List<dynamic>> rawApiResults(String codeCommune) async {
   final String apiUrl =
-      'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=$codeCommune&code_parametre=1302,1338,1337,1367,1345&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,resultat_alphanumerique&date_min_prelevement=2021-01-01&sort=desc';
+      'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=$codeCommune&code_parametre=1302,1338,1337,1367,1345&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,resultat_alphanumerique&date_min_prelevement=2025-05-01&sort=desc';
 
   try {
     final response = await http.get(Uri.parse(apiUrl), headers: {'Accept-Language': 'fr'});

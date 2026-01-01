@@ -164,7 +164,7 @@ class _IssueFormState extends State<IssueForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: BlocBuilder<IssueBloc, IssueState>(builder: (context, state) {
         return SingleChildScrollView(
           child: Column(

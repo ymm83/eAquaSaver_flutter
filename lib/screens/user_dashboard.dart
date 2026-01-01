@@ -321,28 +321,43 @@ class _UserDashboardState extends State<UserDashboard> {
               children: [
                 Card(
                   shape: RoundedRectangleBorder(
-                      side: const BorderSide(color: Colors.blue, width: 1.5), borderRadius: BorderRadius.circular(10)),
-                  color: Colors.blue.shade100,
+                      side: BorderSide(color: Theme.of(context).colorScheme.primaryContainer, width: 1.5),
+                      borderRadius: BorderRadius.circular(10)),
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.blueGrey.shade100,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                         child: ((userData['firstname'] == null && userData['lastname'] == null) ||
                                 avatarLetter(userData['firstname'], userData['lastname']) == 'icon')
                             ? const Icon(Icons.person)
-                            : Text(avatarLetter(userData['firstname'], userData['lastname'])),
+                            : Text(
+                                avatarLetter(userData['firstname'], userData['lastname']),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                              ),
                       ),
                       subtitle: /*userData.isEmpty
                           ? */
                           Text(
                         '${supabase.auth.currentUser!.email}',
-                        style: const TextStyle(fontSize: 11),
+                        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       //: null,
                       title: titleWidget),
                 ),
                 const SizedBox(height: 30),
-                TextButton.icon(
-                    onPressed: _signOut, label: const Text('Sign Out'), icon: const Icon(Icons.exit_to_app_outlined)),
+                UnconstrainedBox(
+                child:ElevatedButton.icon(
+                    onPressed: _signOut, label: const Text('Sign Out'), icon: const Icon(Icons.exit_to_app_outlined),
+                    style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                ),
                 const SizedBox(
                   height: 200,
                 ),
@@ -363,16 +378,27 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
                 Offstage(
                   offstage: _isDeleting,
-                  child: TextButton.icon(
+                  child: UnconstrainedBox(
+                    child:ElevatedButton.icon(
                       onPressed: _startCountdown,
-                      label: const Text(
+                      label: Text(
                         'Delete account',
                         style: TextStyle(color: Colors.red),
                       ),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete,
                         color: Colors.red,
-                      )),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondaryFixed,
+                    foregroundColor: Theme.of(context).colorScheme.onSecondaryFixedVariant,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      )
+                    ),
+                    ),
+                      ),
                 ),
                 Column(
                   children: [

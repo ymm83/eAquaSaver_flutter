@@ -40,7 +40,7 @@ class Analize extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Colors.grey[400],
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         child: Text(item['code_parametre_se']),
       ),
       title: Column(
@@ -76,7 +76,7 @@ class Analize extends StatelessWidget {
                 ),
                 child: Text(
                   item['resultat_alphanumerique'],
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
               const SizedBox(width: 5),
@@ -86,7 +86,7 @@ class Analize extends StatelessWidget {
           const SizedBox(height: 5),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 14, color: Colors.black),
+              Icon(Icons.calendar_today, size: 14, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 5),
               Text(item['date_prelevement'].substring(0, 10)),
             ],

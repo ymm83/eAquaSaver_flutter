@@ -47,9 +47,9 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color.fromARGB(255, 237, 243, 250),
-      body: Column(
+    return  Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image(

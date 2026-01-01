@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -62,6 +64,7 @@ class MyApp extends StatelessWidget {
       darkTheme: darkAppTheme,
       themeMode: themeProvider.themeMode,
       initialRoute: '/splash',
+      navigatorObservers: [BluetoothAdapterStateObserver()],
       routes: <String, WidgetBuilder>{
         '/splash': (context) => const SplashPage(),
         '/main': (context) => const BLEMainScreen(),
@@ -70,6 +73,33 @@ class MyApp extends StatelessWidget {
         '/required': (context) => const BluetoothOffScreen(),
       },
     );
+  }
+}
+
+
+class BluetoothAdapterStateObserver extends NavigatorObserver {
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    if (route.settings.name == '/DeviceScreen') {
+      // Start listening to Bluetooth state changes when a new route is pushed
+      _adapterStateSubscription ??= FlutterBluePlus.adapterState.listen((state) {
+        if (state != BluetoothAdapterState.on) {
+          // Pop the current route if Bluetooth is off
+          navigator?.pop();
+        }
+      });
+    }
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    // Cancel the subscription when the route is popped
+    _adapterStateSubscription?.cancel();
+    _adapterStateSubscription = null;
   }
 }
 

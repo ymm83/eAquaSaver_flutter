@@ -78,11 +78,11 @@ class _MainTabsState extends State<MainTabs> {
     return BlocBuilder<BleBloc, BleState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           body: Column(
             children: [
               Container(
-                color: Theme.of(context).appBarTheme.backgroundColor,
+                color: Theme.of(context).colorScheme.surface,
                 child: Row(
                   children: [
                     if (state is BleConnected && state.showDetails && [2, 3, 4].contains(pageIndex))
@@ -117,6 +117,7 @@ class _MainTabsState extends State<MainTabs> {
               ),
               Expanded(
                 child: PageView(
+                  
                   physics: const NeverScrollableScrollPhysics(),
                   pageSnapping: true,
                   controller: _pageController,

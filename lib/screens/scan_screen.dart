@@ -207,7 +207,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Widget buildScanButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: !_isScanning ? onScanPressed : onStopPressed,
-      backgroundColor: Colors.blue.shade300,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       shape: const CircleBorder(),
       child: AnimatedBuilder(
         animation: _controller,
@@ -217,7 +217,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             child: Icon(
               Icons.sync,
               size: 40,
-              color: Theme.of(context).appBarTheme.backgroundColor,
+              color: Theme.of(context).colorScheme.primary,
             ),
           );
         },
@@ -287,12 +287,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       child: Scaffold(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBarLoadingIndicator(
           isLoading: _isScanning,
           backgroundColor: Colors.blue.shade200,
           progressColor: Colors.red.shade300,
-          boxColor: Theme.of(context).appBarTheme.backgroundColor,
+          boxColor: Theme.of(context).colorScheme.surface,
           height: 1.5,
         ),
         body: RefreshIndicator(

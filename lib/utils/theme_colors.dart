@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-final ThemeData darkAppTheme = ThemeData.dark().copyWith(
+/*final ThemeData darkAppTheme = ThemeData.dark().copyWith(
   brightness: Brightness.dark,
   primaryColor: Colors.amber.shade100,
   scaffoldBackgroundColor: const Color(0xFF0D0B02),
@@ -27,9 +27,26 @@ final ThemeData darkAppTheme = ThemeData.dark().copyWith(
       backgroundColor: Colors.green,
     ),
   ),
+);*/
+
+final ThemeData lightAppTheme = ThemeData(
+  useMaterial3: true,
+  colorScheme: lightColorScheme,
+  appBarTheme: const AppBarTheme(
+    centerTitle: true,
+  ),
 );
 
-final ThemeData lightAppTheme = ThemeData.light().copyWith(
+
+final ThemeData darkAppTheme = ThemeData(
+  useMaterial3: true,
+  colorScheme: darkColorScheme,
+  appBarTheme: const AppBarTheme(
+    centerTitle: true,
+  ),
+);
+
+/*final ThemeData lightAppTheme = ThemeData.light().copyWith(
   brightness: Brightness.light,
   primaryColor: Colors.white,
   scaffoldBackgroundColor: Colors.blue[200],
@@ -53,8 +70,8 @@ final ThemeData lightAppTheme = ThemeData.light().copyWith(
       backgroundColor: Colors.green,
     ),
   ),
-);
-final ThemeData darkAppTheme2 = ThemeData.dark().copyWith(
+);*/
+/*final ThemeData darkAppTheme2 = ThemeData.dark().copyWith(
   primaryColor: Colors.amber.shade100,
   // Define the default brightness and colors.
   colorScheme: const ColorScheme(
@@ -122,7 +139,7 @@ final ThemeData darkAppTheme2 = ThemeData.dark().copyWith(
       backgroundColor: Colors.green,
     ),
   ),
-);
+);*/
 
 /// Light [ColorScheme] made with FlexColorScheme v8.2.0.
 /// Requires Flutter 3.22.0 or later.
@@ -173,7 +190,8 @@ const ColorScheme lightColorScheme = ColorScheme(
   inverseSurface: Color(0xFF2A2A2A),
   onInverseSurface: Color(0xFFF1F1F1),
   inversePrimary: Color(0xFFC3D7EB),
-  surfaceTint: Color(0xFF375778),
+  //surfaceTint: Color(0xFF375778),
+  surfaceTint: Color(0xFF2196F3),
 );
 
 /// Dark [ColorScheme] made with FlexColorScheme v8.2.0.
@@ -225,7 +243,8 @@ const ColorScheme darkColorScheme = ColorScheme(
   inverseSurface: Color(0xFFE8E8E8),
   onInverseSurface: Color(0xFF2A2A2A),
   inversePrimary: Color(0xFF303944),
-  surfaceTint: Color(0xFF5E7691),
+  surfaceTint: Color(0xFF2196F3),
+  //surfaceTint: Color(0xFF5E7691),
 );
 
 /// The [AppTheme] defines light and dark themes for the app.

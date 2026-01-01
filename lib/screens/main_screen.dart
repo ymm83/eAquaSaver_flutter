@@ -130,15 +130,13 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
       ),
     ];
 
-    return MaterialApp(
-      scaffoldMessengerKey: scaffoldMessengerKey,
-      color: Colors.greenAccent,
-      home: AnnotatedRegion<SystemUiOverlayStyle>(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(
-          systemNavigationBarColor: Theme.of(context).scaffoldBackgroundColor,
+          systemNavigationBarColor: Theme.of(context).colorScheme.surface,
           //systemNavigationBarIconBrightness: Theme.of(context).brightness,
         ),
         child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           key: scaffoldKey,
           drawer: Drawer(
             elevation: 5,
@@ -149,52 +147,59 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                 // Header del Drawer
                 DrawerHeader(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
                     children: [
+                      // Botón cerrar
                       Positioned(
                         top: 0,
                         right: 0,
                         child: IconButton(
-                          icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).appBarTheme.foregroundColor),
+                          icon: Icon(
+                            Icons.arrow_back_rounded,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                           onPressed: () => scaffoldKey.currentState?.closeDrawer(),
                         ),
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+
+                      // Contenido principal
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset(
-                            'assets/company_logo.png',
-                            fit: BoxFit.cover,
-                            height: 80,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'eAquaSaver',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Theme.of(context).appBarTheme.foregroundColor,
-                              fontFamily: 'ZenDots',
-                              fontWeight: FontWeight.w400,
-                            ),
+                          Row(
+                            children: [
+                              Image.asset(
+                                'assets/company_logo.png',
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'eAquaSaver',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      fontFamily: 'ZenDots',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      /* Text(
-                        'Usuario: John Doe',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),*/
                     ],
                   ),
                 ),
+
 
                 // Opciones del Drawer
                 ListTile(
@@ -249,7 +254,7 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             ),
           ),
           extendBodyBehindAppBar: true,
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          //backgroundColor: Theme.of(context).colorScheme.surface,
           body: Stack(
             children: [
               // AppBar personalizado
@@ -263,7 +268,6 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                   ),
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(
                         'assets/company_logo.png',
@@ -271,26 +275,32 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
                         height: 40,
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        'eAquaSaver',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Theme.of(context).appBarTheme.foregroundColor,
-                          fontFamily: 'ZenDots',
-                          fontWeight: FontWeight.w400,
+                      Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'eAquaSaver',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontFamily: 'ZenDots',
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ),
+                    ),
                     ],
                   ),
-                  centerTitle: true,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  centerTitle: false,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
                   actions: [
                     Padding(
                       padding: EdgeInsets.only(right: 10),
                       child: InkWell(
                         child: Icon(
                           Icons.notifications_active,
-                          color: Theme.of(context).appBarTheme.foregroundColor,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         onTap: () => null,
                       ), // Ensure Scaffold is in context
@@ -336,9 +346,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
             child: WaterDropNavBar(
               bottomPadding: 0.0,
               iconSize: 33,
-              inactiveIconColor: Theme.of(context).primaryColor,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              waterDropColor: Colors.blue,
+              inactiveIconColor: Theme.of(context).colorScheme.surfaceTint,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              waterDropColor: const Color(0xFF2196F3),
               onItemSelected: (index) {
                 setState(() {
                   _previousIndex = _currentIndex;
@@ -424,34 +434,9 @@ class _BLEMainScreenState extends State<BLEMainScreen> {
           ],
         ),*/
         ),
-      ),
-      navigatorObservers: [BluetoothAdapterStateObserver()],
-    );
+      );
+      
   }
 }
 
-class BluetoothAdapterStateObserver extends NavigatorObserver {
-  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
 
-  @override
-  void didPush(Route route, Route? previousRoute) {
-    super.didPush(route, previousRoute);
-    if (route.settings.name == '/DeviceScreen') {
-      // Start listening to Bluetooth state changes when a new route is pushed
-      _adapterStateSubscription ??= FlutterBluePlus.adapterState.listen((state) {
-        if (state != BluetoothAdapterState.on) {
-          // Pop the current route if Bluetooth is off
-          navigator?.pop();
-        }
-      });
-    }
-  }
-
-  @override
-  void didPop(Route route, Route? previousRoute) {
-    super.didPop(route, previousRoute);
-    // Cancel the subscription when the route is popped
-    _adapterStateSubscription?.cancel();
-    _adapterStateSubscription = null;
-  }
-}

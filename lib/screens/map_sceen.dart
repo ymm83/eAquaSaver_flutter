@@ -242,7 +242,7 @@ class MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: BlocBuilder<LocationBloc, LocationState>(
         builder: (context, state) {
           LatLng initialPosition = _paris;
