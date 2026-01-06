@@ -3,6 +3,371 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
+import '../widgets/tile_providers.dart';
+import '../bloc/location/location_bloc.dart';
+
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
+
+  @override
+  State<MapScreen> createState() => MapScreenState();
+}
+
+class MapScreenState extends State<MapScreen> {
+  static final MapController _mapController = MapController();
+  static const LatLng _paris = LatLng(48.8566, 2.3522);
+
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  late StreamSubscription<ServiceStatus> _serviceStatusStream;
+
+  LatLng _locationData = _paris;
+  List<DragMarker> _markers = [];
+
+  bool _isGpsEnabled = false;
+  bool _isLocationAvailable = false;
+  bool _dialogShown = false;
+  bool _showButtons = false;
+
+  int _selectedOption = 3;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initMarkers();
+    _loadStorageLocation();
+
+    _serviceStatusStream =
+        Geolocator.getServiceStatusStream().listen(_updateGPSStatus);
+
+    _checkGps();
+
+    BlocProvider.of<LocationBloc>(context).add(LocationStarted());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_dialogShown) {
+        _showLocationDialog();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _serviceStatusStream.cancel();
+    super.dispose();
+  }
+
+  // -------------------- INIT --------------------
+
+  void _initMarkers() {
+    _markers = [
+      DragMarker(
+        point: _locationData,
+        size: const Size(40, 40),
+        builder: (_, __, dragging) => Icon(
+          Icons.location_on,
+          color: Colors.red,
+          size: dragging ? 60 : 40,
+        ),
+        onDragEnd: (_, latLng) {
+          setState(() {
+            _locationData = latLng;
+            _showButtons = true;
+            _rebuildGreenMarker();
+          });
+        },
+      ),
+    ];
+  }
+
+  void _rebuildGreenMarker() {
+    _markers = [
+      _markers.first,
+      DragMarker(
+        point: _locationData,
+        size: const Size(40, 40),
+        builder: (_, __, dragging) => Icon(
+          Icons.location_on,
+          color: Colors.green,
+          size: dragging ? 55 : 40,
+        ),
+      ),
+    ];
+  }
+
+  // -------------------- STORAGE --------------------
+
+  Future<void> _loadStorageLocation() async {
+    final data = await _storage.read(key: 'storageLocation');
+    if (data == null) return;
+
+    try {
+      final Map<String, dynamic> json = jsonDecode(data);
+      final lat = (json['latitude'] as num?)?.toDouble();
+      final lng = (json['longitude'] as num?)?.toDouble();
+
+      if (lat == null || lng == null) return;
+
+      if (!mounted) return;
+
+      setState(() {
+        _locationData = LatLng(lat, lng);
+        _isLocationAvailable = true;
+        _rebuildGreenMarker();
+      });
+    } catch (e) {
+      debugPrint('❌ Error al leer storage: $e');
+    }
+  }
+
+  Future<void> _saveStorageLocation() async {
+    final map = {
+      'latitude': _locationData.latitude,
+      'longitude': _locationData.longitude,
+    };
+
+    await _storage.write(
+      key: 'storageLocation',
+      value: jsonEncode(map),
+    );
+
+    debugPrint('✅ Ubicación guardada: $map');
+  }
+
+  // -------------------- GPS --------------------
+
+  void _updateGPSStatus(ServiceStatus status) {
+    setState(() {
+      _isGpsEnabled = status == ServiceStatus.enabled;
+    });
+  }
+
+  Future<void> _checkGps() async {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return;
+    setState(() {
+      _isGpsEnabled = enabled;
+    });
+  }
+
+  // -------------------- DIALOG --------------------
+
+  void _showLocationDialog() {
+    if (_dialogShown) return;
+    _dialogShown = true;
+
+  showDialog(
+      context: context,
+      useRootNavigator: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Center(
+                child: Text(
+                  'Select Location Method',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Radio<int>(
+                        value: 1,
+                        groupValue: _selectedOption,
+                        onChanged: _isLocationAvailable
+                            ? (int? value) {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedOption = value!;
+                                  });
+                                }
+                              }
+                            : null,
+                      ),
+                      _isLocationAvailable
+                          ? const Text('Use last position')
+                          : const Text('Use last position', style: TextStyle(decoration: TextDecoration.lineThrough)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<int>(
+                        value: 2,
+                        groupValue: _selectedOption,
+                        onChanged: _isGpsEnabled
+                            ? (int? value) {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedOption = value!;
+                                  });
+                                }
+                              }
+                            : null,
+                      ),
+                      _isGpsEnabled
+                          ? const Text('Use automatic position')
+                          : const Text('Use automatic position',
+                              style: TextStyle(decoration: TextDecoration.lineThrough)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<int>(
+                        value: 3,
+                        groupValue: _selectedOption,
+                        onChanged: (int? value) {
+                          if (mounted) {
+                            setState(() {
+                              _selectedOption = value!;
+                            });
+                          }
+                        },
+                      ),
+                      const Text('Manual position'),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _dialogShown = false; // Reinicia el estado del diálogo al cerrarlo
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+    /*showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Center(child: Text('Select Location Method')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<int>(
+              value: 1,
+              groupValue: _selectedOption,
+              onChanged: _isLocationAvailable
+                  ? (v) => setState(() => _selectedOption = v!)
+                  : null,
+              title: const Text('Use last position'),
+            ),
+            RadioListTile<int>(
+              value: 2,
+              groupValue: _selectedOption,
+              onChanged: _isGpsEnabled
+                  ? (v) => setState(() => _selectedOption = v!)
+                  : null,
+              title: const Text('Use automatic position'),
+            ),
+            RadioListTile<int>(
+              value: 3,
+              groupValue: _selectedOption,
+              onChanged: (v) => setState(() => _selectedOption = v!),
+              title: const Text('Manual position'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _dialogShown = false;
+            },
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }*/
+
+  // -------------------- UI --------------------
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    return Scaffold(
+      body: BlocBuilder<LocationBloc, LocationState>(
+        builder: (_, state) {
+          return Column(
+            children: [
+              TextButton.icon(
+                onPressed: _showLocationDialog,
+                icon: const Icon(Icons.gps_fixed),
+                label: const Text('Select method'),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _locationData,
+                        initialZoom: 5,
+                      ),
+                      children: [
+                        openStreetMapTileLayer,
+                        DragMarkers(markers: _markers),
+                      ],
+                    ),
+                    AnimatedPositioned(
+                      right: _showButtons ? 10 : -60,
+                      bottom: size.height * 0.35,
+                      duration: const Duration(milliseconds: 300),
+                      child: IconButton(
+                        icon: const Icon(Icons.check_circle,
+                            color: Colors.green),
+                        iconSize: 40,
+                        onPressed: () async {
+                          await _saveStorageLocation();
+                          setState(() => _showButtons = false);
+                        },
+                      ),
+                    ),
+                    AnimatedPositioned(
+                      right: _showButtons ? 10 : -60,
+                      bottom: (size.height * 0.35) - 45,
+                      duration: const Duration(milliseconds: 300),
+                      child: IconButton(
+                        icon:
+                            const Icon(Icons.cancel, color: Colors.red),
+                        iconSize: 40,
+                        onPressed: () =>
+                            setState(() => _showButtons = false),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/*
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart'; // Importa el paquete
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
@@ -335,3 +700,5 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 }
+
+*/

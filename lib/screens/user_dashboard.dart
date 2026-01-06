@@ -321,7 +321,7 @@ class _UserDashboardState extends State<UserDashboard> {
               children: [
                 Card(
                   shape: RoundedRectangleBorder(
-                      side: BorderSide(color: Theme.of(context).colorScheme.primaryContainer, width: 1.5),
+                      side: BorderSide(color: Theme.of(context).colorScheme.primaryContainer, width: 0.5),
                       borderRadius: BorderRadius.circular(10)),
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   child: ListTile(
@@ -361,89 +361,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 const SizedBox(
                   height: 200,
                 ),
-                Offstage(
-                  offstage: !_isDeleting,
-                  child: const Center(
-                      child: Icon(
-                    Icons.warning_amber_sharp,
-                    color: Colors.red,
-                    size: 60,
-                  )),
-                ),
-                Offstage(
-                  offstage: !_isDeleting,
-                  child: const Center(
-                      child:
-                          Text('Are you sure you want to delete your account?', style: TextStyle(color: Colors.red))),
-                ),
-                Offstage(
-                  offstage: _isDeleting,
-                  child: UnconstrainedBox(
-                    child:ElevatedButton.icon(
-                      onPressed: _startCountdown,
-                      label: Text(
-                        'Delete account',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      icon: Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                      ),
-                      style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondaryFixed,
-                    foregroundColor: Theme.of(context).colorScheme.onSecondaryFixedVariant,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      )
-                    ),
-                    ),
-                      ),
-                ),
-                Column(
-                  children: [
-                    Offstage(
-                      offstage: (_countdown == 0 || _countdown == 11),
-                      child: ElevatedButton(
-                        onPressed: null, // Botón deshabilitado
-                        child: Text('Confirmar ($_countdown s)'),
-                      ),
-                    ),
-                    Offstage(
-                      offstage: _countdown != 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _isDeleting = false;
-                                  _countdown = 11;
-                                }); // Ejecutar la acción al confirmar
-                              },
-                              label: const Text(
-                                'cancel',
-                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                              ),
-                              icon: const Icon(
-                                Icons.cancel,
-                                color: Colors.blue,
-                              )),
-                          TextButton.icon(
-                              onPressed: _executeDeleteAction,
-                              label: const Text(
-                                'confirm',
-                                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                              ),
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.red,
-                              )),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                
               ],
             ),
       backgroundColor: Theme.of(context).appBarTheme.backgroundColor,

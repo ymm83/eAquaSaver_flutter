@@ -45,9 +45,15 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         return;
       }
 
-      _positionSubscription = _geolocator.getPositionStream().listen((Position position) {
+      _positionSubscription = _geolocator.getPositionStream().listen((Position position) async{
+
         add(LocationChanged(latLng: LatLng(position.latitude, position.longitude)));
-        _storage.write(key: 'storageLocation', value: jsonEncode(LatLng(position.latitude, position.longitude)));
+        //_storage.write(key: 'storageLocation', value: jsonEncode(LatLng(position.latitude, position.longitude)));
+        final locationJson = jsonEncode({
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        });
+        await _storage.write(key: 'storageLocation', value: locationJson);
       });
     } catch (_) {
       emit(LocationLoadFailure());

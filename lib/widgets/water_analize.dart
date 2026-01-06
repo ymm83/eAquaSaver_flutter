@@ -1,5 +1,179 @@
 import 'package:flutter/material.dart';
 
+Color analizeColor(String code, double value) {
+  const Color alert = Color(0xFFFF190C);
+  const Color warning = Color(0xFFFAAD14);
+  const Color success = Color(0xFF52C41A);
+
+  switch (code) {
+    case 'PH':
+      if (value < 6.5 || value > 9) return alert;
+      if (value >= 6.8 && value <= 8.5) return success;
+      return warning;
+
+    case 'CL': // Chlorures
+      if (value > 250) return alert;
+      if (value <= 200) return success;
+      return warning;
+
+    case 'SO4': // Sulfates
+      if (value > 250) return alert;
+      if (value <= 200) return success;
+      return warning;
+
+    case 'K': // Potassium
+      if (value > 12) return alert;
+      if (value <= 10) return success;
+      return warning;
+
+    case 'TH': // Titre hydrotimétrique
+      // TH no es un contaminante → nunca "alert"
+      if (value < 7) return success;          // très douce
+      if (value <= 15) return success;        // douce
+      if (value <= 25) return warning;        // moyennement dure
+      if (value <= 42) return warning;        // dure
+      return warning;                         // très dure
+
+    default:
+      return warning;
+  }
+}
+
+Map<String, String> THCuality(double thValue) {
+  if (thValue < 7) {
+    return {
+      'label': 'Très douce',
+      'range': '< 7 °f',
+      'level': 'success',
+    };
+  }
+
+  if (thValue >= 7 && thValue < 15) {
+    return {
+      'label': 'Douce',
+      'range': '7 – 15 °f',
+      'level': 'success',
+    };
+  }
+
+  if (thValue >= 15 && thValue < 25) {
+    return {
+      'label': 'Modérée',
+      'range': '15 – 25 °f',
+      'level': 'warning',
+    };
+  }
+
+  if (thValue >= 25 && thValue <= 42) {
+    return {
+      'label': 'Dure',
+      'range': '25 – 42 °f',
+      'level': 'warning',
+    };
+  }
+
+  return {
+    'label': 'Très dure',
+    'range': '> 42 °f',
+    'level': 'warning',
+  };
+}
+ 
+
+class Analize extends StatelessWidget {
+  final Map<String, dynamic> item;
+
+  const Analize({required this.item, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final String code = item['code_parametre_se'];
+    final double value = (item['resultat_numerique'] as num).toDouble();
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: Text(code),
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.science,
+                size: 16,
+                color: analizeColor(code, value),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                item['libelle_parametre'],
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              if (code == 'K')
+                const Text('Qualité < 12 mg/L', style: TextStyle(fontSize: 12)),
+              if (code == 'TH') ...[
+                Text(
+                  THCuality(value)['label']!,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+              if (code != 'K' &&
+                  code != 'TH' &&
+                  item['reference_qualite_parametre'] != null)
+                Text(
+                  'Qualité ${item['reference_qualite_parametre']}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item['resultat_alphanumerique'],
+                  style: TextStyle(
+                    color: analizeColor(code, value),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                item['libelle_unite'].contains('pH')
+                    ? 'pH'
+                    : item['libelle_unite'],
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Icon(Icons.calendar_today,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurface),
+              const SizedBox(width: 5),
+              Text(
+                item['date_prelevement'].substring(0, 10),
+                style: const TextStyle(fontSize: 11),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/*import 'package:flutter/material.dart';
+
 Color analizeColor(String elem, double val) {
   const colors = {
     'alert': Color(0xFFFF190C),
@@ -38,6 +212,7 @@ class Analize extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //debugPrint('---->>>> parametro: [ ${item} ]');
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -54,7 +229,7 @@ class Analize extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 item['libelle_parametre'],
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               if (item['libelle_parametre'] == 'Potassium')
@@ -62,7 +237,7 @@ class Analize extends StatelessWidget {
               if (item['libelle_parametre'] == 'Titre hydrotimétrique')
                 const Text('Qualité < 15 °f', style: TextStyle(fontSize: 12)),
               if (item['libelle_parametre'] != 'Potassium' && item['reference_qualite_parametre'] != null)
-                Text('Qualité ${item['reference_qualite_parametre']}', style: const TextStyle(fontSize: 12)),
+                Text('Qualité ${item['reference_qualite_parametre'].contains('pH') ? item['reference_qualite_parametre'].replaceAll(RegExp(r'\s*unitÃ©\s*'), ' ').trim() : item['reference_qualite_parametre']}', style: const TextStyle(fontSize: 12)),
             ],
           ),
           const SizedBox(height: 5),
@@ -71,16 +246,16 @@ class Analize extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 decoration: BoxDecoration(
-                  color: analizeColor(item['code_parametre_se'], item['resultat_numerique']),
+                  //color: analizeColor(item['code_parametre_se'], item['resultat_numerique']),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   item['resultat_alphanumerique'],
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(color: analizeColor(item['code_parametre_se'], item['resultat_numerique'])),
                 ),
               ),
               const SizedBox(width: 5),
-              Text(item['libelle_unite']),
+              Text(item['libelle_unite'].contains('pH') ? 'pH' : item['libelle_unite']) ,
             ],
           ),
           const SizedBox(height: 5),
@@ -88,11 +263,11 @@ class Analize extends StatelessWidget {
             children: [
               Icon(Icons.calendar_today, size: 14, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 5),
-              Text(item['date_prelevement'].substring(0, 10)),
+              Text(item['date_prelevement'].substring(0, 10), style: const TextStyle(fontSize: 11),),
             ],
           ),
         ],
       ),
     );
   }
-}
+}*/

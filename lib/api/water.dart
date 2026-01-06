@@ -6,9 +6,29 @@ import "package:unorm_dart/unorm_dart.dart" as unorm;
 const String reverseUrl = 'https://nominatim.openstreetmap.org';
 const String qualityUrl = 'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable';
 
-String upperAndClean(String str) {
+
+
+final last_year = DateTime.now().subtract(const Duration(days: 365));
+final current_year = DateTime.now().year - 1;
+
+// alternativa:
+//final now = DateTime.now();
+//final date = DateTime(now.year - 1, now.month, now.day);
+//final String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+
+/*String upperAndClean(String str) {
   return unorm.nfd(str.toUpperCase()).replaceAll(RegExp(r'[\u0300-\u036f]'), '');
   //return str.toUpperCase().normalize().replaceAll(RegExp(r'[\u0300-\u036f]'), '');
+}*/
+
+String upperAndClean(String str) {
+  return unorm
+      .nfd(str)
+      .replaceAll(RegExp(r'[\u0300-\u036f]'), '') // quita acentos
+      .toUpperCase()
+      .trim() // elimina espacios inicio/fin
+       .replaceAll(RegExp(r'\s+'), '%20'); // 🔥 ESPACIO → flutter pub add another_telephony
+      //.replaceAll(RegExp(r'\s+'), ' '); // colapsa espacios múltiples
 }
 
 Future<String?> getPlaceByZipCode(String code) async {
@@ -32,11 +52,22 @@ Future<String?> getPlaceByZipCode(String code) async {
   }
 }
 
-Future<dynamic> franceEuaCommune(String commune) async {
-  final String apiUrl = '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2025';
 
+Future<dynamic> franceEuaCommune(String commune) async {
   try {
+    final String apiUrl = '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=${current_year}';
+    /*final apiUrl = Uri.parse(qualityUrl).replace(
+      path: '${Uri.parse(qualityUrl).path}/communes_udi',
+      queryParameters: {
+        'nom_commune': upperAndClean(commune), // LE BLANC -> LE%20BLANC
+        'annee': '2025',
+      },
+    );*/
+    debugPrint("------------> api_url: ${apiUrl}");
+    debugPrint("------------> api_url: ${Uri.parse(apiUrl)}");
     final response = await http.get(Uri.parse(apiUrl));
+    //final response = await http.get(apiUrl);
+
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       final data = result['data'];
@@ -58,10 +89,61 @@ Future<dynamic> franceEuaCommune(String commune) async {
   }
 }
 
+
+/*Future<Map<String, dynamic>?> franceEuaCommune(String commune) async {
+  try {
+    final String apiUrl =
+        '$qualityUrl/communes_udi?nom_commune=${upperAndClean(commune)}&annee=2025';
+
+    debugPrint("------------> api_url: $apiUrl");
+
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load commune data');
+    }
+
+    final Map<String, dynamic> result = jsonDecode(response.body);
+    final List data = result['data'];
+
+    if (data.isEmpty) {
+      return null;
+    }
+
+    // Normalizamos el texto para comparar correctamente
+    String normalize(String value) {
+      return value
+          .toUpperCase()
+          .replaceAll(RegExp(r'\(.*?\)'), '') // elimina (LE)
+          .replaceAll('-', ' ')
+          .trim();
+    }
+
+    final String search = normalize(commune);
+
+    final List filteredData = data.where((e) {
+      final String apiCommune = normalize(e['nom_commune']);
+      return apiCommune.contains(search) || search.contains(apiCommune);
+    }).toList();
+
+    if (filteredData.isNotEmpty) {
+      return filteredData.first;
+    }
+
+    // fallback: devuelve el primero si no hubo match exacto
+    return data.first;
+  } catch (error) {
+    debugPrint('---Error---: Fn>franceEuaCommune> $error');
+    return null;
+  }
+}
+*/
+
+/*
 Future<List<dynamic>> rawApiResults(String codeCommune) async {
   final String apiUrl =
       'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=$codeCommune&code_parametre=1302,1338,1337,1367,1345&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,resultat_alphanumerique&date_min_prelevement=2025-05-01&sort=desc';
-
+  debugPrint("------------> rawApiResults: ${apiUrl}");
   try {
     final response = await http.get(Uri.parse(apiUrl), headers: {'Accept-Language': 'fr'});
     if (response.statusCode == 200) {
@@ -103,6 +185,60 @@ Future<List<dynamic>> rawApiResults(String codeCommune) async {
     return [];
   }
 }
+*/
+
+
+Future<List<Map<String, dynamic>>> rawApiResults(String codeCommune) async {
+  final String apiUrl =
+      'https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis'
+      '?code_commune=$codeCommune'
+      '&code_parametre=1302,1338,1337,1367,1345'
+      '&fields=libelle_parametre,code_lieu_analyse,resultat_numerique,libelle_unite,'
+      'date_prelevement,code_parametre_se,code_parametre,reference_qualite_parametre,'
+      'resultat_alphanumerique'
+      '&date_min_prelevement=${last_year}'
+      '&sort=desc'
+      '&size=5000';
+
+  debugPrint("------------> rawApiResults: $apiUrl");
+
+  try {
+    final response =
+        await http.get(Uri.parse(apiUrl), headers: {'Accept-Language': 'fr'});
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load raw API results');
+    }
+    final Map<String, dynamic> responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+    //final Map<String, dynamic> responseJson = jsonDecode(response.body);
+    final List rawData = responseJson['data'];
+
+    /// Parámetros que queremos (primer valor = más reciente)
+    final Set<String> wantedParams = {
+      '1302', // pH
+      '1337', // Chlorures
+      '1338', // Sulfates
+      '1367', // Potassium
+      '1345', // Titre hydrotimétrique
+    };
+
+    final Map<String, Map<String, dynamic>> latestValues = {};
+
+    for (final e in rawData) {
+      final String code = e['code_parametre'];
+
+      if (wantedParams.contains(code) && !latestValues.containsKey(code)) {
+        latestValues[code] = Map<String, dynamic>.from(e);
+      }
+    }
+
+    return latestValues.values.toList();
+  } catch (error) {
+    debugPrint('Error: rawApiResults $error');
+    return [];
+  }
+}
+
 
 Future<Map<String, dynamic>> getReverseLocation(Map<String, dynamic> coord) async {
   final double lat = coord['latitude']!;
